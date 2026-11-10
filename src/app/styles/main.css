@@ -71,8 +71,8 @@
     --lift: 1;
     transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--lift));
     transition:
-      transform 0.25s ease-out,
-      box-shadow 0.25s ease-out;
+      transform 0.4s ease-out,
+      box-shadow 0.4s ease-out;
   }
   .glare-card::after {
     content: '';
@@ -82,18 +82,18 @@
     border-radius: inherit;
     pointer-events: none;
     background:
-      radial-gradient(circle at var(--mx) var(--my), oklch(1 0 0 / 0.2), transparent 45%),
+      radial-gradient(circle at var(--mx) var(--my), oklch(1 0 0 / 0.09), transparent 55%),
       linear-gradient(
         115deg,
         transparent calc(var(--mx) - 30%),
-        oklch(1 0 0 / 0.08) var(--mx),
+        oklch(1 0 0 / 0.035) var(--mx),
         transparent calc(var(--mx) + 30%)
       );
     opacity: 0;
-    transition: opacity 0.3s ease-out;
+    transition: opacity 0.45s ease-out;
   }
   .glare-card:hover {
-    --lift: 1.02;
+    --lift: 1.01;
     box-shadow: var(--card-shadow-hover);
   }
   .glare-card:hover::after {

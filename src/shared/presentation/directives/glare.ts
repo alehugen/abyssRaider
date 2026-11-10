@@ -5,7 +5,7 @@ import type { Directive } from 'vue'
  * Só escreve variáveis CSS (--mx, --my, --rx, --ry); o visual fica em `.glare-card` (main.css).
  * Ignora toque e respeita prefers-reduced-motion (o CSS desliga a inclinação).
  */
-const MAX_TILT = 3 // graus
+const MAX_TILT = 1.5 // graus
 
 type GlareEl = HTMLElement & { __glare?: { move: (e: PointerEvent) => void; leave: () => void } }
 
