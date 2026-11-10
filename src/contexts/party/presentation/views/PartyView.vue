@@ -4,6 +4,7 @@ import {
   PhCalendarDots,
   PhCheck,
   PhCircleNotch,
+  PhDiscordLogo,
   PhEye,
   PhLink,
   PhSignOut,
@@ -28,6 +29,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { assignRoles, canJoin, composition, groups, ROLE_ORDER, type PartyMember } from '../../domain/Party'
 import { usePartyDetail } from '../usePartyDetail'
+import PartyNotificationsDialog from '../components/PartyNotificationsDialog.vue'
 import { nextOccurrences } from '../../domain/RaidRoutine'
 import { formatRoutine } from '../routineFormat'
 
@@ -181,6 +183,9 @@ async function removeMember(m: PartyMember) {
             <PhLink v-else />
             {{ copied ? 'Link copiado' : 'Copiar link da party' }}
           </Button>
+          <PartyNotificationsDialog v-if="p.isLeader.value" :party-id="party.id">
+            <Button variant="outline"><PhDiscordLogo /> Avisos no Discord</Button>
+          </PartyNotificationsDialog>
           <Button
             v-if="p.isLeader.value"
             variant="ghost"

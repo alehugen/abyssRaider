@@ -11,6 +11,8 @@ import type { AuthRepository } from '@/contexts/identity/domain/AuthRepository'
 import { SupabaseAuthRepository } from '@/contexts/identity/infrastructure/SupabaseAuthRepository'
 import type { PartyRepository } from '@/contexts/party/domain/PartyRepository'
 import type { SanctuaryCatalog } from '@/contexts/party/domain/SanctuaryCatalog'
+import type { PartyNotificationsRepository } from '@/contexts/party/domain/PartyNotifications'
+import { SupabasePartyNotificationsRepository } from '@/contexts/party/infrastructure/SupabasePartyNotificationsRepository'
 import { SupabasePartyRepository } from '@/contexts/party/infrastructure/SupabasePartyRepository'
 import { SupabaseSanctuaryCatalog } from '@/contexts/party/infrastructure/SupabaseSanctuaryCatalog'
 import type { AvailabilityRepository } from '@/contexts/scheduling/domain/AvailabilityRepository'
@@ -27,6 +29,7 @@ export interface Container {
   partyRepository: PartyRepository
   raidEventRepository: RaidEventRepository
   availabilityRepository: AvailabilityRepository
+  partyNotificationsRepository: PartyNotificationsRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -74,6 +77,13 @@ const unconfiguredAvailability: AvailabilityRepository = {
   demand: async () => [],
 }
 
+const unconfiguredNotifications: PartyNotificationsRepository = {
+  get: async () => null,
+  save: notConfigured,
+  remove: notConfigured,
+  test: notConfigured,
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -87,6 +97,9 @@ export function getContainer(): Container {
       partyRepository: supabase ? new SupabasePartyRepository(supabase) : unconfiguredParties,
       raidEventRepository: supabase ? new SupabaseRaidEventRepository(supabase) : unconfiguredEvents,
       availabilityRepository: supabase ? new SupabaseAvailabilityRepository(supabase) : unconfiguredAvailability,
+      partyNotificationsRepository: supabase
+        ? new SupabasePartyNotificationsRepository(supabase)
+        : unconfiguredNotifications,
     }
   }
   return container

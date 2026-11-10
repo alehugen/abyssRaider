@@ -12,6 +12,9 @@ describe('errorMessage', () => {
     expect(errorMessage({ message: 'column sanctuaries.image_url does not exist', code: '42703' })).toContain(
       'rode as migrations',
     )
+    expect(
+      errorMessage({ message: "Could not find the table 'public.party_notifications' in the schema cache", code: 'PGRST205' }),
+    ).toContain('rode as migrations')
   })
 
   it('nunca devolve [object Object]', () => {

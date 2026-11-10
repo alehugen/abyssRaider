@@ -48,9 +48,11 @@ const routine = computed<RaidRoutine>(() => ({
   time: raidTime.value,
   timeZone,
 }))
-const routineValid = computed(() => routine.value.days.length > 0 && isValidTime(routine.value.time))
+/** Rotina opcional: sem dias marcados, a party fica sem horário de costume. */
+const hasRoutine = computed(() => routine.value.days.length > 0)
+const routineValid = computed(() => !hasRoutine.value || isValidTime(routine.value.time))
 const routinePreview = computed(() => {
-  if (!routineValid.value) return null
+  if (!hasRoutine.value || !routineValid.value) return null
   const next = formatNextRaid(routine.value)
   const days = formatDays(routine.value.days)
   return `${days.charAt(0).toUpperCase()}${days.slice(1)} às ${routine.value.time}.${next ? ` Próxima: ${next}.` : ''}`
@@ -121,7 +123,7 @@ async function submit() {
       name: name.value.trim(),
       sanctuaryId: sanctuary.value.id,
       characterLinkId: characterLinkId.value,
-      routine: routine.value,
+      routine: hasRoutine.value ? routine.value : null,
     })
     open.value = false
     name.value = ''
@@ -176,7 +178,9 @@ async function submit() {
         </div>
 
         <fieldset class="space-y-1.5">
-          <legend class="text-sm font-medium">Dias de raid</legend>
+          <legend class="text-sm font-medium">
+            Horário de costume <span class="font-normal text-muted-foreground">(opcional)</span>
+          </legend>
           <ToggleGroup
             v-model="raidDays"
             type="multiple"
@@ -196,12 +200,12 @@ async function submit() {
           </ToggleGroup>
         </fieldset>
 
-        <label class="block space-y-1.5">
+        <label v-if="hasRoutine" class="block space-y-1.5">
           <span class="text-sm font-medium">Horário de início <span class="font-normal text-muted-foreground">({{ TZ_LABEL }})</span></span>
           <Input v-model="raidTime" type="time" required class="w-36" />
         </label>
         <p class="-mt-2 text-[13px] text-muted-foreground">
-          {{ routinePreview ?? 'Escolha ao menos um dia.' }}
+          {{ routinePreview ?? 'Sem dias marcados, cada raid é marcada na semana pela disponibilidade do grupo.' }}
         </p>
 
         <div v-if="demandSlots.length" class="space-y-1.5 rounded-xl bg-muted/60 p-3">

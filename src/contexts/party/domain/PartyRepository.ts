@@ -7,7 +7,8 @@ export interface CreatePartyInput {
   sanctuaryId: string
   /** Personagem do líder (LinkedCharacter.linkId). */
   characterLinkId: string
-  routine: RaidRoutine
+  /** Horário de costume (opcional): sem ele, cada raid sai da disponibilidade da semana. */
+  routine?: RaidRoutine | null
 }
 
 export interface PartyRepository {

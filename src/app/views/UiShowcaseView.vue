@@ -3,6 +3,7 @@ import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
+import PartyNotificationsDialog from '@/contexts/party/presentation/components/PartyNotificationsDialog.vue'
 import ScheduleRaidDialog from '@/contexts/scheduling/presentation/components/ScheduleRaidDialog.vue'
 import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
 import { Button } from '@/shared/presentation/ui/button'
@@ -127,6 +128,13 @@ const scheduleOptions = [
     <section id="schedule-demo" class="space-y-4">
       <h2 class="font-display text-xl font-semibold">Agendar raid da semana</h2>
       <ScheduleRaidDialog :options="scheduleOptions" />
+    </section>
+
+    <section id="notify-demo" class="space-y-4">
+      <h2 class="font-display text-xl font-semibold">Avisos no Discord</h2>
+      <PartyNotificationsDialog party-id="00000000-0000-0000-0000-000000000000">
+        <Button variant="outline">Avisos no Discord</Button>
+      </PartyNotificationsDialog>
     </section>
   </div>
 </template>

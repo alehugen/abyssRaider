@@ -166,9 +166,9 @@ export class SupabasePartyRepository implements PartyRepository {
       p_name: input.name,
       p_sanctuary_id: input.sanctuaryId,
       p_character_id: input.characterLinkId,
-      p_raid_days: input.routine.days,
-      p_raid_time: input.routine.time,
-      p_time_zone: input.routine.timeZone,
+      p_raid_days: input.routine?.days ?? [],
+      p_raid_time: input.routine?.time ?? null,
+      p_time_zone: input.routine?.timeZone ?? 'America/Sao_Paulo',
     })
     if (error) rethrow(error)
     return data as string
