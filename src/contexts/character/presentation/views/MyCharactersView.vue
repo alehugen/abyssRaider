@@ -2,6 +2,7 @@
 import {
   PhArrowsClockwise,
   PhCircleNotch,
+  PhEye,
   PhMagnifyingGlass,
   PhTrash,
   PhUserPlus,
@@ -9,6 +10,7 @@ import {
 } from '@phosphor-icons/vue'
 import { onMounted, ref, watch } from 'vue'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
+import InspectCharacter from '../inspect/InspectCharacter.vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -119,6 +121,9 @@ async function confirmUnlink(linked: LinkedCharacter) {
             </template>
             <template #footer>
               <div class="flex flex-wrap items-center gap-2">
+                <InspectCharacter :character="linked.character">
+                  <Button size="sm" variant="ghost"><PhEye /> Inspecionar</Button>
+                </InspectCharacter>
                 <Button size="sm" variant="ghost" as-child>
                   <RouterLink :to="{ name: 'find-parties', query: { personagem: linked.linkId } }">
                     <PhMagnifyingGlass /> Buscar parties

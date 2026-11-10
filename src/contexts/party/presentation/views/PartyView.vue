@@ -4,6 +4,7 @@ import {
   PhCalendarDots,
   PhCheck,
   PhCircleNotch,
+  PhEye,
   PhLink,
   PhSignOut,
   PhTrash,
@@ -14,6 +15,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { REGION_LABEL, ROLE_LABEL } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
+import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
@@ -218,6 +220,17 @@ async function removeMember(m: PartyMember) {
                 <CharacterCard v-if="member" :character="member.linked.character" size="sm" :role="roleLabel(member)">
                   <template #actions>
                     <span class="hidden text-xs text-muted-foreground sm:inline">{{ member.ownerName }}</span>
+                    <InspectCharacter :character="member.linked.character">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        class="size-8 text-muted-foreground"
+                        :aria-label="`Inspecionar ${member.linked.character.name}`"
+                        :title="`Inspecionar ${member.linked.character.name}`"
+                      >
+                        <PhEye />
+                      </Button>
+                    </InspectCharacter>
                     <Button
                       v-if="p.isLeader.value && member.linked.linkId !== party.leaderCharacterLinkId"
                       size="icon"
@@ -260,6 +273,9 @@ async function removeMember(m: PartyMember) {
           <li v-for="m in p.pending.value" :key="m.id">
             <CharacterCard :character="m.linked.character" size="sm" :role="m.ownerName">
               <template #actions>
+                <InspectCharacter :character="m.linked.character">
+                  <Button size="sm" variant="ghost"><PhEye /> Inspecionar</Button>
+                </InspectCharacter>
                 <Button
                   size="sm"
                   variant="ghost"

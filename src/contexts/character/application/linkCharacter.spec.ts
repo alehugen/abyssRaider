@@ -25,7 +25,7 @@ const ref = { region: 'eu' as const, serverId: 1313, id: 'abc=' }
 const linked = (c: Character, i = 0): LinkedCharacter => ({ linkId: `l${i}`, ownerId: 'u1', character: c, syncedAt: new Date() })
 
 function deps(found: Character | null) {
-  const directory: CharacterDirectory = { search: vi.fn(), servers: vi.fn(), get: vi.fn(async () => found) }
+  const directory: CharacterDirectory = { search: vi.fn(), servers: vi.fn(), get: vi.fn(async () => found), build: vi.fn(), gear: vi.fn() }
   const repository: CharacterRepository = {
     listByOwner: vi.fn(),
     remove: vi.fn(),

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
+import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import { Button } from '@/shared/presentation/ui/button'
 
 // Dados fictícios só para visualizar os componentes (rota disponível apenas em dev).
@@ -56,6 +57,19 @@ const characters: Character[] = [
     itemLevel: 1760,
   },
 ]
+
+// Personagem real (dados públicos da API do jogo) para testar o inspecionar.
+const inspectSample: Character = {
+  id: 'XhMV1CTzq462ZgV191XmXDNgrXceXZxkUvAWjgwVVRc=',
+  name: 'Lu',
+  faction: 'asmodian',
+  className: 'Gladiator',
+  level: 45,
+  region: 'eu',
+  serverId: 2323,
+  serverName: 'Tassin',
+  combatPower: 160013,
+}
 </script>
 
 <template>
@@ -84,6 +98,13 @@ const characters: Character[] = [
       <div class="grid max-w-md gap-2">
         <CharacterCard v-for="c in characters" :key="c.id" :character="c" size="sm" />
       </div>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="font-display text-xl font-semibold">Inspecionar (API real)</h2>
+      <InspectCharacter :character="inspectSample">
+        <Button id="inspect-demo" variant="outline">Inspecionar {{ inspectSample.name }}</Button>
+      </InspectCharacter>
     </section>
   </div>
 </template>

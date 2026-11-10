@@ -1,7 +1,11 @@
 import type { Character, CharacterSummary, Region, Server } from '../domain/Character'
+import type { CharacterBuild, Gear, GearDetail } from '../domain/CharacterBuild'
 import type { CharacterDirectory, CharacterRef } from '../domain/CharacterDirectory'
 
 type Fetch = typeof fetch
+
+const refParams = (ref: CharacterRef) =>
+  new URLSearchParams({ region: ref.region, serverId: String(ref.serverId), id: ref.id })
 
 /** Fala com as funções /api/aion/* (proxy na Vercel, ou plugin do Vite em dev). */
 export class HttpCharacterDirectory implements CharacterDirectory {
@@ -36,6 +40,25 @@ export class HttpCharacterDirectory implements CharacterDirectory {
   async servers(region: Region): Promise<Server[]> {
     const { servers } = await this.getJson<{ servers: Server[] }>(`/servers?region=${region}`)
     return servers
+  }
+
+  async build(ref: CharacterRef): Promise<CharacterBuild | null> {
+    try {
+      const { build } = await this.getJson<{ build: CharacterBuild }>(`/build?${refParams(ref)}`)
+      return build
+    } catch (e) {
+      if (e instanceof HttpError && e.status === 404) return null
+      throw e
+    }
+  }
+
+  async gear(ref: CharacterRef, gear: Pick<Gear, 'itemId' | 'slot' | 'enchantLevel'>): Promise<GearDetail> {
+    const params = refParams(ref)
+    params.set('itemId', String(gear.itemId))
+    params.set('slot', String(gear.slot))
+    params.set('enchant', String(gear.enchantLevel))
+    const { item } = await this.getJson<{ item: GearDetail }>(`/item?${params}`)
+    return item
   }
 
   private async getJson<T>(path: string): Promise<T> {

@@ -121,3 +121,22 @@
     @apply border-border outline-ring/50;
   }
 }
+
+/*
+ * Raridade dos itens do jogo. --grade pinta molduras; --grade-ink é a versão
+ * para texto: mesmo matiz, luminosidade ajustada ao tema (claro ou escuro).
+ */
+:root,
+[data-theme='elyos'] { --grade-ink-l: 0.5; }
+[data-theme='asmodian'],
+[data-theme='abyss'] { --grade-ink-l: 0.82; }
+.grade-common { --grade: oklch(0.7 0.01 260); }
+.grade-rare { --grade: oklch(0.7 0.17 145); }
+.grade-legend { --grade: oklch(0.66 0.16 245); }
+.grade-unique { --grade: oklch(0.8 0.15 85); }
+.grade-epic { --grade: oklch(0.72 0.18 50); }
+.grade-special { --grade: oklch(0.7 0.14 195); }
+.grade-mythic { --grade: oklch(0.64 0.22 25); }
+.grade-common, .grade-rare, .grade-legend, .grade-unique, .grade-epic, .grade-special, .grade-mythic {
+  --grade-ink: oklch(from var(--grade) var(--grade-ink-l) c h);
+}
