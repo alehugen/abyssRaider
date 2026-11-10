@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCalendarDots, PhSignIn, PhSpiral, PhSword, PhUsersThree } from '@phosphor-icons/vue'
+import { PhCalendarDots, PhSignIn, PhSword, PhUsersThree } from '@phosphor-icons/vue'
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
@@ -15,11 +15,11 @@ const links = [
 </script>
 
 <template>
-  <div class="flex min-h-dvh flex-col">
+  <div class="flex min-h-dvh flex-col overflow-x-clip">
     <header class="sticky top-0 z-10 border-b bg-background/85 backdrop-blur">
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <RouterLink to="/" class="flex items-center gap-2 rounded-md font-display text-xl font-bold">
-          <PhSpiral :size="22" weight="duotone" class="text-primary" aria-hidden="true" />
+          <img src="/aion2-icon.png" alt="" width="30" height="30" class="size-7.5 rounded-md shadow-sm" />
           <span :class="auth.isAuthenticated && 'hidden sm:inline'">AbyssRaider</span>
         </RouterLink>
         <nav v-if="auth.isAuthenticated" aria-label="Principal" class="mr-auto ml-2 flex items-center gap-1 sm:ml-6">
@@ -48,5 +48,11 @@ const links = [
     <main class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
       <slot />
     </main>
+    <footer class="border-t border-border/60 bg-background/70 backdrop-blur">
+      <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-muted-foreground">
+        AbyssRaider é um projeto de fãs, sem vínculo com a NCSOFT. Aion 2, seus ícones, imagens e vídeos são
+        marcas e conteúdos da NCSOFT Corporation.
+      </p>
+    </footer>
   </div>
 </template>

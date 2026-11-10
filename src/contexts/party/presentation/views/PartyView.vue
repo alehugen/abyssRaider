@@ -17,6 +17,7 @@ import CharacterCard from '@/contexts/character/presentation/components/Characte
 import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
+import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -76,19 +77,39 @@ async function copyLink() {
 }
 
 async function deleteParty() {
-  if (!party.value || !window.confirm(`Excluir a party ${party.value.name}? Todos os membros saem dela.`)) return
+  if (!party.value) return
+  const ok = await confirm({
+    title: `Excluir ${party.value.name}?`,
+    description: 'Todos os membros saem dela e a agenda de raids é apagada. Não dá para desfazer.',
+    confirmText: 'Excluir party',
+    destructive: true,
+  })
+  if (!ok) return
   if (await p.removeParty()) await router.push({ name: 'parties' })
 }
 
 async function leave() {
   const m = p.myMembership.value
   if (!m) return
-  const text = m.status === 'pending' ? 'Cancelar seu pedido?' : 'Sair desta party?'
-  if (window.confirm(text)) await p.removeMember(m.id)
+  const pending = m.status === 'pending'
+  const ok = await confirm({
+    title: pending ? 'Cancelar seu pedido?' : 'Sair desta party?',
+    description: pending ? undefined : 'Para voltar, você vai precisar pedir vaga de novo.',
+    confirmText: pending ? 'Cancelar pedido' : 'Sair',
+    cancelText: 'Voltar',
+    destructive: !pending,
+  })
+  if (ok) await p.removeMember(m.id)
 }
 
-function removeMember(m: PartyMember) {
-  if (window.confirm(`Remover ${m.linked.character.name} da party?`)) void p.removeMember(m.id)
+async function removeMember(m: PartyMember) {
+  const ok = await confirm({
+    title: `Remover ${m.linked.character.name}?`,
+    description: `${m.ownerName} sai da party e das confirmações de presença.`,
+    confirmText: 'Remover',
+    destructive: true,
+  })
+  if (ok) void p.removeMember(m.id)
 }
 </script>
 

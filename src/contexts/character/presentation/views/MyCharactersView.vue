@@ -9,6 +9,7 @@ import {
 } from '@phosphor-icons/vue'
 import { onMounted, ref, watch } from 'vue'
 import SanctuaryApplications from '@/contexts/party/presentation/components/SanctuaryApplications.vue'
+import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -43,8 +44,14 @@ function syncedLabel(date: Date): string {
   return `Atualizado ${relative.format(-Math.round(hours / 24), 'day')}`
 }
 
-function confirmUnlink(linked: LinkedCharacter) {
-  if (window.confirm(`Desvincular ${linked.character.name} da sua conta?`)) void characters.unlink(linked)
+async function confirmUnlink(linked: LinkedCharacter) {
+  const ok = await confirm({
+    title: `Desvincular ${linked.character.name}?`,
+    description: 'Ele sai das parties e das aplicações em santuários; parties que ele lidera são excluídas. Você pode vincular de novo depois.',
+    confirmText: 'Desvincular',
+    destructive: true,
+  })
+  if (ok) void characters.unlink(linked)
 }
 </script>
 

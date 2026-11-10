@@ -3,6 +3,7 @@ import { PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
 import type { PartyMember } from '@/contexts/party/domain/Party'
+import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { myRsvp, rsvpCounts, RSVP_LABEL, type RaidEvent, type RsvpStatus } from '../../domain/RaidEvent'
@@ -57,10 +58,15 @@ async function schedule(dates: Date[], note: string | null) {
   if (await run('schedule', () => repo.schedule(props.partyId, dates, note))) dialog.value?.close()
 }
 
-function cancel(event: RaidEvent) {
-  if (window.confirm('Cancelar esta raid? As confirmações de presença serão apagadas.')) {
-    void run(event.id, () => repo.cancel(event.id))
-  }
+async function cancel(event: RaidEvent) {
+  const ok = await confirm({
+    title: 'Cancelar esta raid?',
+    description: 'As confirmações de presença dessa data serão apagadas.',
+    confirmText: 'Cancelar raid',
+    cancelText: 'Manter',
+    destructive: true,
+  })
+  if (ok) void run(event.id, () => repo.cancel(event.id))
 }
 
 function respond(event: RaidEvent, status: RsvpStatus) {
