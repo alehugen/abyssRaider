@@ -2,8 +2,6 @@
 --   pg_net  -> faz o POST para o Discord de dentro do Postgres (assíncrono)
 --   pg_cron -> roda a cada 5 min e manda os lembretes de raid
 -- Nenhuma chave sai do Supabase. A URL do webhook só o líder lê.
---
--- Também: a rotina da party (dias + horário) passa a ser opcional.
 
 create extension if not exists pg_net;
 create extension if not exists pg_cron with schema pg_catalog;
@@ -360,67 +358,3 @@ $$;
 
 revoke execute on function public.test_party_notifications(uuid) from public, anon;
 grant execute on function public.test_party_notifications(uuid) to authenticated;
-
-
--- 9. Rotina opcional -------------------------------------------------------------
--- Mesma assinatura (create or replace, sem DROP): aceita party sem dias/horário.
-
-create or replace function public.create_party(
-  p_name text,
-  p_sanctuary_id text,
-  p_character_id uuid,
-  p_raid_days smallint[] default '{}',
-  p_raid_time time default null,
-  p_time_zone text default 'America/Sao_Paulo'
-)
-returns uuid
-language plpgsql
-security definer
-set search_path = ''
-as $$
-declare
-  uid uuid := auth.uid();
-  c public.characters;
-  new_id uuid;
-  days smallint[] := coalesce(p_raid_days, '{}');
-begin
-  if uid is null then
-    raise exception 'Faça login.' using errcode = 'P0001';
-  end if;
-
-  select * into c from public.characters where id = p_character_id and owner_id = uid;
-  if not found then
-    raise exception 'Personagem não encontrado na sua conta.' using errcode = 'P0001';
-  end if;
-
-  if not exists (select 1 from public.sanctuaries where id = p_sanctuary_id and active) then
-    raise exception 'Este santuário não está aberto.' using errcode = 'P0001';
-  end if;
-
-  perform pg_advisory_xact_lock(hashtextextended('parties:' || uid::text, 0));
-  if (select count(*) from public.parties where leader_id = uid) >= 10 then
-    raise exception 'Limite de 10 parties por líder.' using errcode = 'P0001';
-  end if;
-
-  if (cardinality(days) = 0) <> (p_raid_time is null) then
-    raise exception 'Para ter horário de costume, escolha os dias e o horário.' using errcode = 'P0001';
-  end if;
-
-  if not exists (select 1 from pg_catalog.pg_timezone_names where name = p_time_zone) then
-    raise exception 'Fuso horário inválido: %.', p_time_zone using errcode = 'P0001';
-  end if;
-
-  insert into public.parties (name, sanctuary_id, leader_id, leader_character_id, region, faction, raid_days, raid_time, time_zone)
-  values (
-    trim(p_name), p_sanctuary_id, uid, c.id, c.region, c.faction,
-    coalesce((select array_agg(distinct d order by d) from unnest(days) d), '{}'),
-    p_raid_time, p_time_zone
-  )
-  returning id into new_id;
-
-  insert into public.party_members (party_id, character_id, owner_id, status)
-  values (new_id, c.id, uid, 'accepted');
-
-  return new_id;
-end;
-$$;

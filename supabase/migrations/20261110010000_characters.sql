@@ -36,6 +36,7 @@ create policy "characters: dono insere"
   to authenticated
   with check (owner_id = (select auth.uid()));
 
+-- Atualizar = sincronizar CP/item level com o jogo (upsert do front).
 create policy "characters: dono atualiza"
   on public.characters for update
   to authenticated
@@ -47,15 +48,26 @@ create policy "characters: dono remove"
   to authenticated
   using (owner_id = (select auth.uid()));
 
--- Limite de personagens por conta (o front também valida).
+
+-- Limite de 12 personagens por conta. Upsert de um personagem que já existe é
+-- atualização e não conta; o lock por dono evita passar de 12 em corrida.
 create function public.enforce_character_limit()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
+  perform pg_advisory_xact_lock(hashtextextended('characters:' || new.owner_id::text, 0));
+
+  if exists (
+    select 1 from public.characters
+     where region = new.region and server_id = new.server_id and aion_id = new.aion_id
+  ) then
+    return new; -- upsert de um personagem existente: é atualização, não conta no limite
+  end if;
+
   if (select count(*) from public.characters where owner_id = new.owner_id) >= 12 then
-    raise exception 'Limite de 12 personagens por conta' using errcode = 'P0001';
+    raise exception 'Limite de 12 personagens por conta.' using errcode = 'P0001';
   end if;
   return new;
 end;
@@ -64,3 +76,28 @@ $$;
 create trigger characters_limit
   before insert on public.characters
   for each row execute function public.enforce_character_limit();
+
+
+-- Identidade do personagem não muda depois de vinculado (dono, id do jogo,
+-- região, servidor, facção): senão daria para burlar as regras das parties.
+create function public.characters_keep_identity()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if new.owner_id  is distinct from old.owner_id
+  or new.aion_id   is distinct from old.aion_id
+  or new.region    is distinct from old.region
+  or new.server_id is distinct from old.server_id
+  or new.faction   is distinct from old.faction then
+    raise exception 'A identidade do personagem (dono, região, servidor, facção) não pode mudar.'
+      using errcode = 'P0001';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger characters_keep_identity
+  before update on public.characters
+  for each row execute function public.characters_keep_identity();
