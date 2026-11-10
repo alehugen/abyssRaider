@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Character, Faction, Region } from '../domain/Character'
 import type { CharacterRepository } from '../domain/CharacterRepository'
+import { DomainError } from '@/shared/domain/DomainError'
 import { CharacterAlreadyClaimedError, type LinkedCharacter } from '../domain/LinkedCharacter'
 
 export interface CharacterRow {
@@ -88,6 +89,9 @@ export class SupabaseCharacterRepository implements CharacterRepository {
       if (error.code === '42501' || error.code === 'PGRST116' || error.code === '23505') {
         throw new CharacterAlreadyClaimedError()
       }
+      // Trigger characters_keep_identity: o upsert tentou "trocar o dono" de um personagem alheio.
+      if (error.code === 'P0001' && error.message.startsWith('A identidade')) throw new CharacterAlreadyClaimedError()
+      if (error.code === 'P0001') throw new DomainError('character.rule', error.message)
       throw error
     }
     return rowToLinked(data as CharacterRow)

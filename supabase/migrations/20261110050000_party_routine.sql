@@ -1,5 +1,5 @@
--- Rotina da party: dias da semana (0 = domingo ... 6 = sábado) e horário de início,
--- no fuso de quem criou. O front converte para o fuso de cada membro.
+-- Rotina da party: dias da semana (0 = domingo ... 6 = sábado) e horário de início.
+-- O app usa sempre o horário de Brasília; time_zone fica salvo caso isso mude.
 
 alter table public.parties
   add column raid_days smallint[] not null default '{}'::smallint[]
