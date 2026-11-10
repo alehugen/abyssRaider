@@ -6,7 +6,7 @@ import {
   type CharacterRow,
 } from '@/contexts/character/infrastructure/SupabaseCharacterRepository'
 import { DomainError } from '@/shared/domain/DomainError'
-import type { Applicant, MemberStatus, Party, PartyDetails, PartyMember, PartySummary } from '../domain/Party'
+import type { MemberStatus, Party, PartyDetails, PartyMember, PartySummary } from '../domain/Party'
 import type { CreatePartyInput, PartyRepository } from '../domain/PartyRepository'
 
 interface SanctuaryEmbed {
@@ -193,35 +193,6 @@ export class SupabasePartyRepository implements PartyRepository {
 
   async removeMember(memberId: string): Promise<void> {
     const { error } = await this.client.from('party_members').delete().eq('id', memberId)
-    if (error) rethrow(error)
-  }
-
-  async listApplicants(sanctuaryId: string): Promise<Applicant[]> {
-    const { data, error } = await this.client
-      .from('raid_applications')
-      .select(
-        `id, created_at,
-        character:characters!raid_applications_character_id_fkey(${CHARACTER_COLUMNS}),
-        owner:profiles!raid_applications_owner_id_fkey(display_name)`,
-      )
-      .eq('sanctuary_id', sanctuaryId)
-      .eq('status', 'pending')
-      .order('created_at')
-    if (error) rethrow(error)
-    type Row = { id: string; created_at: string; character: CharacterRow; owner: { display_name: string } | null }
-    return (data as unknown as Row[]).map((r) => ({
-      applicationId: r.id,
-      linked: rowToLinked(r.character),
-      ownerName: r.owner?.display_name ?? 'Daeva',
-      appliedAt: new Date(r.created_at),
-    }))
-  }
-
-  async recruit(partyId: string, applicationId: string): Promise<void> {
-    const { error } = await this.client.rpc('recruit_application', {
-      p_party_id: partyId,
-      p_application_id: applicationId,
-    })
     if (error) rethrow(error)
   }
 }

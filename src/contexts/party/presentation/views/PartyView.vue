@@ -7,7 +7,6 @@ import {
   PhLink,
   PhSignOut,
   PhTrash,
-  PhUserPlus,
   PhWarningCircle,
   PhX,
 } from '@phosphor-icons/vue'
@@ -272,35 +271,6 @@ async function removeMember(m: PartyMember) {
                 <Button size="sm" :disabled="full || p.busy.value === m.id" @click="p.accept(m.id)">
                   <PhCircleNotch v-if="p.busy.value === m.id" class="animate-spin" />
                   Aceitar
-                </Button>
-              </template>
-            </CharacterCard>
-          </li>
-        </ul>
-      </section>
-
-      <!-- Líder: recrutar aplicados -->
-      <section v-if="p.isLeader.value" aria-labelledby="applicants-title" class="space-y-3">
-        <div>
-          <h2 id="applicants-title" class="font-display text-2xl font-semibold">Aplicados em {{ party.sanctuary.name }}</h2>
-          <p class="text-sm text-muted-foreground">
-            Jogadores da mesma facção e região que aplicaram no santuário e ainda não têm grupo.
-          </p>
-        </div>
-        <p v-if="!p.recruitable.value.length" class="text-sm text-muted-foreground">Ninguém disponível agora.</p>
-        <ul v-else class="divide-y divide-border/60 rounded-2xl border bg-card/60 px-4">
-          <li v-for="a in p.recruitable.value" :key="a.applicationId">
-            <CharacterCard :character="a.linked.character" size="sm" :role="a.ownerName">
-              <template #actions>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  :disabled="full || p.busy.value === a.applicationId"
-                  @click="p.recruit(a.applicationId)"
-                >
-                  <PhCircleNotch v-if="p.busy.value === a.applicationId" class="animate-spin" />
-                  <PhUserPlus v-else />
-                  Recrutar
                 </Button>
               </template>
             </CharacterCard>

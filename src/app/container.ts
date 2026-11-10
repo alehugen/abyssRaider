@@ -10,12 +10,9 @@ import { SupabaseCharacterRepository } from '@/contexts/character/infrastructure
 import type { AuthRepository } from '@/contexts/identity/domain/AuthRepository'
 import { SupabaseAuthRepository } from '@/contexts/identity/infrastructure/SupabaseAuthRepository'
 import type { PartyRepository } from '@/contexts/party/domain/PartyRepository'
-import type { RaidApplicationRepository, SanctuaryCatalog } from '@/contexts/party/domain/RaidApplicationRepository'
+import type { SanctuaryCatalog } from '@/contexts/party/domain/SanctuaryCatalog'
 import { SupabasePartyRepository } from '@/contexts/party/infrastructure/SupabasePartyRepository'
-import {
-  SupabaseRaidApplicationRepository,
-  SupabaseSanctuaryCatalog,
-} from '@/contexts/party/infrastructure/SupabaseRaidApplications'
+import { SupabaseSanctuaryCatalog } from '@/contexts/party/infrastructure/SupabaseSanctuaryCatalog'
 import type { RaidEventRepository } from '@/contexts/scheduling/domain/RaidEventRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
@@ -25,7 +22,6 @@ export interface Container {
   characterDirectory: CharacterDirectory
   characterRepository: CharacterRepository
   sanctuaryCatalog: SanctuaryCatalog
-  raidApplicationRepository: RaidApplicationRepository
   partyRepository: PartyRepository
   raidEventRepository: RaidEventRepository
 }
@@ -49,12 +45,6 @@ const unconfiguredCharacters: CharacterRepository = {
   findOwners: async () => [],
 }
 
-const unconfiguredApplications: RaidApplicationRepository = {
-  listByOwner: async () => [],
-  create: notConfigured,
-  withdraw: async () => {},
-}
-
 const unconfiguredParties: PartyRepository = {
   listMine: async () => [],
   listOpen: async () => [],
@@ -64,8 +54,6 @@ const unconfiguredParties: PartyRepository = {
   requestJoin: notConfigured,
   decide: notConfigured,
   removeMember: notConfigured,
-  listApplicants: async () => [],
-  recruit: notConfigured,
 }
 
 const unconfiguredEvents: RaidEventRepository = {
@@ -86,9 +74,6 @@ export function getContainer(): Container {
       characterDirectory: new HttpCharacterDirectory(),
       characterRepository: supabase ? new SupabaseCharacterRepository(supabase) : unconfiguredCharacters,
       sanctuaryCatalog: supabase ? new SupabaseSanctuaryCatalog(supabase) : { listActive: async () => [] },
-      raidApplicationRepository: supabase
-        ? new SupabaseRaidApplicationRepository(supabase)
-        : unconfiguredApplications,
       partyRepository: supabase ? new SupabasePartyRepository(supabase) : unconfiguredParties,
       raidEventRepository: supabase ? new SupabaseRaidEventRepository(supabase) : unconfiguredEvents,
     }

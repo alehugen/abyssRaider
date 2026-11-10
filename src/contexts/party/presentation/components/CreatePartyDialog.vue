@@ -22,11 +22,11 @@ import { eligibility } from '../../domain/Sanctuary'
 import { formatNextRaid } from '../routineFormat'
 import { APP_TIME_ZONE, TZ_LABEL } from '@/shared/lib/brasilia'
 import { usePartiesStore } from '../usePartiesStore'
-import { useRaidApplicationsStore } from '../useRaidApplicationsStore'
+import { useSanctuariesStore } from '../useSanctuariesStore'
 
 const router = useRouter()
 const characters = useCharactersStore()
-const raid = useRaidApplicationsStore()
+const raid = useSanctuariesStore()
 const parties = usePartiesStore()
 
 const open = ref(false)

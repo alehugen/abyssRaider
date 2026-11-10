@@ -2,7 +2,7 @@ import { errorMessage } from '@/shared/lib/errorMessage'
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
-import { acceptedMembers, pendingMembers, type Applicant, type PartyDetails } from '../domain/Party'
+import { acceptedMembers, pendingMembers, type PartyDetails } from '../domain/Party'
 import { usePartiesStore } from './usePartiesStore'
 
 /** Estado e ações da página de uma party. Cada ação recarrega a party inteira (simples e consistente). */
@@ -12,7 +12,6 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
   const parties = usePartiesStore()
 
   const details = shallowRef<PartyDetails | null>(null)
-  const applicants = shallowRef<Applicant[]>([])
   const loading = ref(true)
   const notFound = ref(false)
   const error = ref<string | null>(null)
@@ -27,19 +26,6 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
   /** Participação do usuário logado (qualquer status). */
   const myMembership = computed(() => members.value.find((m) => m.linked.ownerId === userId.value) ?? null)
 
-  /** Aplicados no santuário que combinam com a party e ainda não estão nela. */
-  const recruitable = computed(() => {
-    const d = details.value
-    if (!d) return []
-    const inParty = new Set(d.members.filter((m) => m.status !== 'declined').map((m) => m.linked.linkId))
-    return applicants.value.filter(
-      (a) =>
-        !inParty.has(a.linked.linkId) &&
-        a.linked.character.region === d.party.region &&
-        a.linked.character.faction === d.party.faction,
-    )
-  })
-
   async function load() {
     const id = toValue(partyId)
     error.value = null
@@ -47,9 +33,6 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
       const found = await repo.get(id)
       details.value = found
       notFound.value = !found
-      applicants.value = found && found.party.leaderId === userId.value
-        ? await repo.listApplicants(found.party.sanctuary.id)
-        : []
     } catch (e) {
       error.value = errorMessage(e)
     } finally {
@@ -77,8 +60,6 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
 
   return {
     details,
-    applicants,
-    recruitable,
     loading,
     notFound,
     error,
@@ -93,7 +74,6 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     accept: (memberId: string) => run(memberId, () => repo.decide(memberId, 'accepted')),
     decline: (memberId: string) => run(memberId, () => repo.decide(memberId, 'declined')),
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
-    recruit: (applicationId: string) => run(applicationId, () => repo.recruit(id(), applicationId)),
     removeParty: () => run('party', () => repo.remove(id())),
   }
 }

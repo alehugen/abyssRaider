@@ -1,5 +1,5 @@
 import type { Faction, Region } from '@/contexts/character/domain/Character'
-import type { Applicant, PartyDetails, PartySummary } from './Party'
+import type { PartyDetails, PartySummary } from './Party'
 import type { RaidRoutine } from './RaidRoutine'
 
 export interface CreatePartyInput {
@@ -23,8 +23,4 @@ export interface PartyRepository {
   decide(memberId: string, status: 'accepted' | 'declined'): Promise<void>
   /** Sair, cancelar pedido ou (líder) remover alguém. */
   removeMember(memberId: string): Promise<void>
-
-  /** Quem aplicou no santuário e ainda está aguardando. */
-  listApplicants(sanctuaryId: string): Promise<Applicant[]>
-  recruit(partyId: string, applicationId: string): Promise<void>
 }

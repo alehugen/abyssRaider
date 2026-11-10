@@ -8,7 +8,6 @@ import {
   PhWarningCircle,
 } from '@phosphor-icons/vue'
 import { onMounted, ref, watch } from 'vue'
-import SanctuaryApplications from '@/contexts/party/presentation/components/SanctuaryApplications.vue'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
@@ -120,7 +119,6 @@ async function confirmUnlink(linked: LinkedCharacter) {
             </template>
             <template #footer>
               <div class="flex flex-wrap items-center gap-2">
-                <SanctuaryApplications :linked="linked" />
                 <Button size="sm" variant="ghost" as-child>
                   <RouterLink :to="{ name: 'find-parties', query: { personagem: linked.linkId } }">
                     <PhMagnifyingGlass /> Buscar parties

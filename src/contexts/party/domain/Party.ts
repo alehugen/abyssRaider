@@ -42,14 +42,6 @@ export interface PartySummary {
   myStatus: MemberStatus | 'leader'
 }
 
-/** Alguém que aplicou no santuário e pode ser recrutado. */
-export interface Applicant {
-  applicationId: string
-  linked: LinkedCharacter
-  ownerName: string
-  appliedAt: Date
-}
-
 /** Grupos dentro da raid (Ludra: 10 = 2 grupos de 5). */
 export const GROUP_SIZE = 5
 export const ROLE_ORDER: readonly CombatRole[] = ['tank', 'healer', 'dps']
