@@ -1,3 +1,8 @@
+<script setup lang="ts">
+import { Button } from '@/shared/presentation/ui/button'
+import { Badge } from '@/shared/presentation/ui/badge'
+</script>
+
 <template>
   <section class="relative mx-auto max-w-2xl py-16 text-center">
     <div
@@ -10,13 +15,9 @@
     <p class="mt-4 text-lg text-muted-foreground">
       Entre com o Discord, vincule seu personagem, monte sua party e acompanhe o calendário de raids.
     </p>
-    <button
-      type="button"
-      disabled
-      class="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground shadow-lg shadow-glow transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70"
-    >
+    <Button size="lg" disabled class="mt-8 shadow-lg shadow-glow">
       Entrar com Discord
-      <span class="rounded bg-primary-foreground/15 px-1.5 text-xs">em breve</span>
-    </button>
+      <Badge variant="secondary">em breve</Badge>
+    </Button>
   </section>
 </template>

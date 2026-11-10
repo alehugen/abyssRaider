@@ -1,36 +1,113 @@
 /*
  * Paletas dos temas (ver src/shared/presentation/theme/themes.ts).
+ * Os nomes seguem a convenção do shadcn-vue (background, card, primary, muted,
+ * accent, destructive...) para que os componentes gerados funcionem sem ajuste.
+ * Extras do projeto: highlight, success, warning, glow, card-shadow, facções.
+ *
  * Para criar um tema: adicione um bloco [data-theme='<id>'] com TODAS as
- * variáveis abaixo e registre-o em THEMES.
+ * variáveis de cor abaixo e registre-o em THEMES.
  */
+
+:root {
+  --radius: 0.75rem;
+}
 
 /* Elyos: claro, marfim, ouro e azul-celeste */
 :root,
 [data-theme='elyos'] {
   --background: oklch(0.982 0.01 85);
   --foreground: oklch(0.25 0.035 255);
-  --surface: oklch(1 0 0);
-  --surface-muted: oklch(0.955 0.015 85);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--foreground);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.955 0.015 85);
   --muted-foreground: oklch(0.5 0.03 255);
+  --secondary: oklch(0.945 0.018 85);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.945 0.018 85);
+  --accent-foreground: var(--foreground);
   --border: oklch(0.89 0.025 85);
+  --input: oklch(0.89 0.025 85);
   --ring: oklch(0.6 0.14 235);
 
   --primary: oklch(0.75 0.14 80);
   --primary-foreground: oklch(0.24 0.05 70);
-  --accent: oklch(0.58 0.14 235);
-  --accent-foreground: oklch(0.985 0.01 235);
+  --highlight: oklch(0.58 0.14 235);
+  --highlight-foreground: oklch(0.985 0.01 235);
 
+  --destructive: oklch(0.57 0.2 25);
   --success: oklch(0.58 0.14 155);
   --warning: oklch(0.72 0.16 65);
-  --danger: oklch(0.57 0.2 25);
-  --danger-foreground: oklch(0.985 0.01 25);
 
   --glow: oklch(0.85 0.12 85 / 0.45);
+}
 
+/* Asmodian: escuro, violeta profundo e carmesim */
+[data-theme='asmodian'] {
+  --background: oklch(0.15 0.03 300);
+  --foreground: oklch(0.93 0.015 300);
+  --card: oklch(0.19 0.035 300);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.19 0.035 300);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.24 0.04 300);
+  --muted-foreground: oklch(0.7 0.035 300);
+  --secondary: oklch(0.26 0.045 300);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.26 0.045 300);
+  --accent-foreground: var(--foreground);
+  --border: oklch(0.3 0.045 300);
+  --input: oklch(0.32 0.045 300);
+  --ring: oklch(0.68 0.2 305);
+
+  --primary: oklch(0.62 0.21 305);
+  --primary-foreground: oklch(0.98 0.01 305);
+  --highlight: oklch(0.62 0.21 20);
+  --highlight-foreground: oklch(0.98 0.01 20);
+
+  --destructive: oklch(0.65 0.21 20);
+  --success: oklch(0.7 0.15 155);
+  --warning: oklch(0.8 0.14 75);
+
+  --glow: oklch(0.55 0.22 305 / 0.4);
+}
+
+/* Abyss: o vazio, azul-noite com fendas ciano e violeta */
+[data-theme='abyss'] {
+  --background: oklch(0.13 0.03 260);
+  --foreground: oklch(0.93 0.02 220);
+  --card: oklch(0.17 0.035 255);
+  --card-foreground: var(--foreground);
+  --popover: oklch(0.17 0.035 255);
+  --popover-foreground: var(--foreground);
+  --muted: oklch(0.22 0.04 255);
+  --muted-foreground: oklch(0.7 0.04 230);
+  --secondary: oklch(0.24 0.045 255);
+  --secondary-foreground: var(--foreground);
+  --accent: oklch(0.24 0.045 255);
+  --accent-foreground: var(--foreground);
+  --border: oklch(0.28 0.045 255);
+  --input: oklch(0.3 0.045 255);
+  --ring: oklch(0.74 0.13 195);
+
+  --primary: oklch(0.74 0.13 195);
+  --primary-foreground: oklch(0.16 0.04 220);
+  --highlight: oklch(0.66 0.18 290);
+  --highlight-foreground: oklch(0.98 0.01 290);
+
+  --destructive: oklch(0.66 0.2 22);
+  --success: oklch(0.72 0.15 160);
+  --warning: oklch(0.8 0.14 80);
+
+  --glow: oklch(0.7 0.14 200 / 0.35);
+}
+
+/* Sombras de card e cores das facções: claras por padrão... */
+:root {
   --card-shadow: 0 12px 32px -20px oklch(0.25 0.04 270 / 0.3);
   --card-shadow-hover: 0 24px 48px -24px oklch(0.25 0.04 270 / 0.38);
 
-  /* Cores das facções (independentes do tema; ver .faction-* abaixo) */
   --elyos: oklch(0.62 0.16 255);
   --elyos-ink: oklch(0.48 0.15 258);
   --elyos-soft: oklch(0.95 0.03 255);
@@ -39,7 +116,7 @@
   --asmodian-soft: oklch(0.95 0.035 295);
 }
 
-/* Temas escuros: sombra mais densa + contorno sutil, facções mais claras */
+/* ...e ajustadas nos temas escuros */
 .dark {
   --card-shadow: 0 14px 34px -18px oklch(0 0 0 / 0.8), 0 0 0 1px oklch(1 0 0 / 0.06);
   --card-shadow-hover: 0 26px 50px -22px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(1 0 0 / 0.1);
@@ -65,50 +142,4 @@
   --faction: var(--asmodian);
   --faction-ink: var(--asmodian-ink);
   --faction-soft: var(--asmodian-soft);
-}
-
-/* Asmodian: escuro, violeta profundo e carmesim */
-[data-theme='asmodian'] {
-  --background: oklch(0.15 0.03 300);
-  --foreground: oklch(0.93 0.015 300);
-  --surface: oklch(0.19 0.035 300);
-  --surface-muted: oklch(0.24 0.04 300);
-  --muted-foreground: oklch(0.7 0.035 300);
-  --border: oklch(0.3 0.045 300);
-  --ring: oklch(0.68 0.2 305);
-
-  --primary: oklch(0.62 0.21 305);
-  --primary-foreground: oklch(0.98 0.01 305);
-  --accent: oklch(0.62 0.21 20);
-  --accent-foreground: oklch(0.98 0.01 20);
-
-  --success: oklch(0.7 0.15 155);
-  --warning: oklch(0.8 0.14 75);
-  --danger: oklch(0.65 0.21 20);
-  --danger-foreground: oklch(0.16 0.03 20);
-
-  --glow: oklch(0.55 0.22 305 / 0.4);
-}
-
-/* Abyss: o vazio, azul-noite com fendas ciano e violeta */
-[data-theme='abyss'] {
-  --background: oklch(0.13 0.03 260);
-  --foreground: oklch(0.93 0.02 220);
-  --surface: oklch(0.17 0.035 255);
-  --surface-muted: oklch(0.22 0.04 255);
-  --muted-foreground: oklch(0.7 0.04 230);
-  --border: oklch(0.28 0.045 255);
-  --ring: oklch(0.74 0.13 195);
-
-  --primary: oklch(0.74 0.13 195);
-  --primary-foreground: oklch(0.16 0.04 220);
-  --accent: oklch(0.66 0.18 290);
-  --accent-foreground: oklch(0.98 0.01 290);
-
-  --success: oklch(0.72 0.15 160);
-  --warning: oklch(0.8 0.14 80);
-  --danger: oklch(0.66 0.2 22);
-  --danger-foreground: oklch(0.15 0.03 22);
-
-  --glow: oklch(0.7 0.14 200 / 0.35);
 }

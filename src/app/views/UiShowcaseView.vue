@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
+import { Button } from '@/shared/presentation/ui/button'
 
 // Dados fictícios só para visualizar os componentes (rota disponível apenas em dev).
 const characters: Character[] = [
@@ -69,12 +70,7 @@ const characters: Character[] = [
         <CharacterCard :character="characters[0]!" role="Líder" interactive />
         <CharacterCard :character="characters[1]!" role="Seu personagem" interactive>
           <template #actions>
-            <button
-              type="button"
-              class="rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90"
-            >
-              Aplicar
-            </button>
+            <Button size="sm">Aplicar</Button>
           </template>
         </CharacterCard>
         <CharacterCard :character="characters[2]!" role="Ausente" inactive />
