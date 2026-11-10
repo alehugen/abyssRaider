@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   PhArrowLeft,
+  PhCalendarDots,
   PhCheck,
   PhCircleNotch,
   PhLink,
@@ -23,6 +24,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { assignRoles, canJoin, composition, groups, ROLE_ORDER, type PartyMember } from '../../domain/Party'
 import { usePartyDetail } from '../usePartyDetail'
+import { nextOccurrences } from '../../domain/RaidRoutine'
+import { formatRoutine } from '../routineFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -35,6 +38,7 @@ watch(partyId, () => void p.load(), { immediate: true })
 if (!characters.loaded) void characters.load()
 
 const party = computed(() => p.details.value?.party ?? null)
+const nextRoutineDate = computed(() => (party.value?.routine ? (nextOccurrences(party.value.routine, 1)[0] ?? null) : null))
 const roster = computed(() => (party.value ? groups(party.value, p.accepted.value) : []))
 const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
@@ -139,6 +143,10 @@ async function removeMember(m: PartyMember) {
             {{ party.sanctuary.name }}, <span class="text-faction-ink">{{ party.faction === 'elyos' ? 'Elyos' : 'Asmodian' }}</span>,
             {{ REGION_LABEL[party.region] }}
           </p>
+          <p v-if="party.routine" class="mt-1 flex items-center gap-1.5 text-sm">
+            <PhCalendarDots class="text-muted-foreground" aria-hidden="true" />
+            <span class="first-letter:uppercase">{{ formatRoutine(party.routine) }}</span>
+          </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <Button variant="outline" @click="copyLink">
@@ -226,6 +234,7 @@ async function removeMember(m: PartyMember) {
         :members="p.accepted.value"
         :is-leader="p.isLeader.value"
         :my-member-id="p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
+        :suggested="nextRoutineDate"
       />
 
       <!-- Líder: pedidos -->

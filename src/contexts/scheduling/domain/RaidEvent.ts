@@ -1,3 +1,5 @@
+import { brasiliaDayKey } from '@/shared/lib/brasilia'
+
 export type RsvpStatus = 'going' | 'maybe' | 'declined'
 
 export const RSVP_LABEL: Record<RsvpStatus, string> = {
@@ -39,9 +41,8 @@ export const MAX_WEEKS = 8
 export function weeklyOccurrences(first: Date, weeks: number): Date[] {
   const count = Math.min(Math.max(1, Math.trunc(weeks)), MAX_WEEKS)
   return Array.from({ length: count }, (_, i) => {
-    const d = new Date(first)
-    d.setDate(d.getDate() + 7 * i) // setDate respeita horário de verão do fuso local
-    return d
+    // Brasília não tem horário de verão: somar 7 dias exatos mantém o mesmo horário.
+    return new Date(first.getTime() + 7 * i * 86_400_000)
   })
 }
 
@@ -55,13 +56,15 @@ export function myRsvp(event: RaidEvent, memberId: string): RsvpStatus | null {
   return event.rsvps.find((r) => r.memberId === memberId)?.status ?? null
 }
 
-/** Agrupa por dia no fuso de quem está vendo (chave AAAA-MM-DD local). */
-export function groupByDay<T>(items: readonly T[], dateOf: (item: T) => Date): Array<{ day: Date; items: T[] }> {
-  const groups = new Map<string, { day: Date; items: T[] }>()
+/** Agrupa por dia no horário de Brasília; `day` é o primeiro instante do grupo. */
+export function groupByDay<T>(
+  items: readonly T[],
+  dateOf: (item: T) => Date,
+): Array<{ key: string; day: Date; items: T[] }> {
+  const groups = new Map<string, { key: string; day: Date; items: T[] }>()
   for (const item of [...items].sort((a, b) => dateOf(a).getTime() - dateOf(b).getTime())) {
-    const d = dateOf(item)
-    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
-    if (!groups.has(key)) groups.set(key, { day: new Date(d.getFullYear(), d.getMonth(), d.getDate()), items: [] })
+    const key = brasiliaDayKey(dateOf(item))
+    if (!groups.has(key)) groups.set(key, { key, day: dateOf(item), items: [] })
     groups.get(key)!.items.push(item)
   }
   return [...groups.values()]

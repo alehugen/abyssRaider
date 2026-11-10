@@ -8,6 +8,7 @@ import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import CreatePartyDialog from '../components/CreatePartyDialog.vue'
 import type { PartySummary } from '../../domain/Party'
 import { usePartiesStore } from '../usePartiesStore'
+import { formatRoutine } from '../routineFormat'
 
 const parties = usePartiesStore()
 
@@ -69,6 +70,9 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
             <span class="block truncate text-sm text-muted-foreground">
               {{ item.party.sanctuary.name }}, liderada por {{ item.leaderCharacterName }},
               {{ REGION_LABEL[item.party.region] }}
+            </span>
+            <span v-if="item.party.routine" class="block truncate text-[13px] text-muted-foreground first-letter:uppercase">
+              {{ formatRoutine(item.party.routine) }}
             </span>
           </span>
           <span class="flex-none text-right">

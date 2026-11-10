@@ -19,6 +19,8 @@ const props = defineProps<{
   isLeader: boolean
   /** party_members.id do usuário, se for membro aceito. */
   myMemberId: string | null
+  /** Próxima data da rotina da party, sugerida ao agendar. */
+  suggested?: Date | null
 }>()
 
 const repo = getContainer().raidEventRepository
@@ -94,7 +96,13 @@ function pendingCount(event: RaidEvent): number {
   <section aria-labelledby="schedule-title" class="space-y-3">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h2 id="schedule-title" class="font-display text-2xl font-semibold">Agenda</h2>
-      <ScheduleRaidDialog v-if="isLeader" ref="dialog" :busy="busy === 'schedule'" @schedule="schedule" />
+      <ScheduleRaidDialog
+        v-if="isLeader"
+        ref="dialog"
+        :busy="busy === 'schedule'"
+        :suggested="suggested"
+        @schedule="schedule"
+      />
     </div>
 
     <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
@@ -118,6 +126,7 @@ function pendingCount(event: RaidEvent): number {
         <div class="min-w-0 flex-1 space-y-1.5">
           <p class="flex flex-wrap items-baseline gap-x-2">
             <span class="font-display text-xl font-semibold tabular-nums">{{ formatTime(event.startsAt) }}</span>
+            <span class="text-xs text-muted-foreground">horário de Brasília</span>
             <span class="text-sm text-muted-foreground">{{ formatRelative(event.startsAt) }}</span>
           </p>
           <p v-if="event.note" class="text-sm">{{ event.note }}</p>

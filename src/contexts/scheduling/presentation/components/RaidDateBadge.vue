@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatMonth, formatWeekday } from '../format'
+import { formatDayOfMonth, formatMonth, formatWeekday } from '../format'
 
 defineProps<{ date: Date }>()
 </script>
@@ -11,7 +11,7 @@ defineProps<{ date: Date }>()
     aria-hidden="true"
   >
     <span class="text-[11px] text-muted-foreground">{{ formatWeekday(date) }}</span>
-    <span class="my-0.5 font-display text-2xl font-bold">{{ date.getDate() }}</span>
+    <span class="my-0.5 font-display text-2xl font-bold">{{ formatDayOfMonth(date) }}</span>
     <span class="text-[11px] text-muted-foreground">{{ formatMonth(date) }}</span>
   </span>
 </template>

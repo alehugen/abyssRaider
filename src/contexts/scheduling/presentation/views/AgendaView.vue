@@ -9,7 +9,7 @@ import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { groupByDay, myRsvp, rsvpCounts, type AgendaEntry, type RsvpStatus } from '../../domain/RaidEvent'
 import RaidDateBadge from '../components/RaidDateBadge.vue'
 import RsvpButtons from '../components/RsvpButtons.vue'
-import { formatFullDay, formatRelative, formatTime, localTimeZoneLabel } from '../format'
+import { formatFullDay, formatRelative, formatTime, TZ_LABEL } from '../format'
 
 const auth = useAuthStore()
 const repo = getContainer().raidEventRepository
@@ -18,7 +18,6 @@ const entries = shallowRef<AgendaEntry[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 const busy = ref<string | null>(null)
-const zone = localTimeZoneLabel()
 
 async function load() {
   if (!auth.user) return
@@ -54,7 +53,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
     <header class="space-y-2">
       <h1 class="font-display text-4xl leading-tight font-bold">Agenda</h1>
       <p class="max-w-prose text-muted-foreground">
-        Próximas raids de todas as suas parties, no seu horário ({{ zone }}).
+        Próximas raids de todas as suas parties. Horários no {{ TZ_LABEL }}.
         <template v-if="pendingAnswers">
           Faltam <b class="font-semibold text-foreground">{{ pendingAnswers }}</b> confirmações suas.
         </template>
@@ -78,7 +77,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
     </div>
 
     <template v-else>
-    <section v-for="day in days" :key="day.day.toISOString()" class="space-y-3">
+    <section v-for="day in days" :key="day.key" class="space-y-3">
       <h2 class="flex items-center gap-3 font-display text-xl font-semibold first-letter:uppercase">
         {{ formatFullDay(day.day) }}
       </h2>
@@ -97,6 +96,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
           <div class="min-w-0 flex-1">
             <p class="flex flex-wrap items-baseline gap-x-2">
               <span class="font-display text-xl font-semibold tabular-nums">{{ formatTime(entry.event.startsAt) }}</span>
+              <span class="text-xs text-muted-foreground">horário de Brasília</span>
               <RouterLink
                 :to="{ name: 'party', params: { id: entry.event.partyId } }"
                 class="truncate font-semibold hover:underline"

@@ -14,24 +14,23 @@ import {
 import { Input } from '@/shared/presentation/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { MAX_WEEKS, weeklyOccurrences } from '../../domain/RaidEvent'
-import { formatFullDay, formatTime, localTimeZoneLabel, toLocalInputValue } from '../format'
+import { fromBrasiliaInputValue, toBrasilia, toBrasiliaInputValue, zonedToInstant } from '@/shared/lib/brasilia'
+import { formatFullDay, formatTime, TZ_LABEL } from '../format'
 
 const emit = defineEmits<{ schedule: [dates: Date[], note: string | null] }>()
-defineProps<{ busy?: boolean }>()
+const props = defineProps<{ busy?: boolean; suggested?: Date | null }>()
 
 const open = ref(false)
 const when = ref('')
 const weeks = ref('1')
 const note = ref('')
 const error = ref<string | null>(null)
-const zone = localTimeZoneLabel()
 
-/** Sugestão: próximo dia às 21h. */
+/** Sugestão: a próxima data da rotina da party ou, sem rotina, amanhã às 21h (Brasília). */
 function suggestion(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  d.setHours(21, 0, 0, 0)
-  return toLocalInputValue(d)
+  if (props.suggested) return toBrasiliaInputValue(props.suggested)
+  const today = toBrasilia(new Date())
+  return toBrasiliaInputValue(zonedToInstant(today.y, today.m, today.d + 1, 21, 0))
 }
 
 watch(open, (isOpen) => {
@@ -41,14 +40,14 @@ watch(open, (isOpen) => {
 })
 
 const dates = computed(() => {
-  const first = when.value ? new Date(when.value) : null
-  return first && !Number.isNaN(first.getTime()) ? weeklyOccurrences(first, Number(weeks.value)) : []
+  const first = fromBrasiliaInputValue(when.value)
+  return first ? weeklyOccurrences(first, Number(weeks.value)) : []
 })
 
 const summary = computed(() => {
   const first = dates.value[0]
   if (!first) return ''
-  const base = `${formatFullDay(first)}, às ${formatTime(first)}`
+  const base = `${formatFullDay(first)}, às ${formatTime(first)} (${TZ_LABEL})`
   return dates.value.length > 1 ? `${base}, e mais ${dates.value.length - 1} semanas no mesmo horário` : base
 })
 
@@ -85,13 +84,13 @@ defineExpose({ close })
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Agendar raid</DialogTitle>
         <DialogDescription>
-          Use o seu horário local ({{ zone }}). Cada membro vê a raid convertida para o próprio fuso.
+          Informe data e hora no {{ TZ_LABEL }}. Todos os horários do AbyssRaider usam essa referência.
         </DialogDescription>
       </DialogHeader>
 
       <form class="space-y-4" @submit.prevent="submit">
         <label class="block space-y-1.5">
-          <span class="text-sm font-medium">Data e hora</span>
+          <span class="text-sm font-medium">Data e hora <span class="font-normal text-muted-foreground">({{ TZ_LABEL }})</span></span>
           <Input v-model="when" type="datetime-local" required />
         </label>
 

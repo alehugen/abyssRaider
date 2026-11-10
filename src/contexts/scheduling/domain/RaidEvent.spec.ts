@@ -14,12 +14,12 @@ const event: RaidEvent = {
 }
 
 describe('RaidEvent', () => {
-  it('gera ocorrências semanais no mesmo horário local, com limite', () => {
-    const dates = weeklyOccurrences(new Date(2026, 10, 13, 21, 0), 3)
-    expect(dates.map((d) => [d.getDate(), d.getHours()])).toEqual([
-      [13, 21],
-      [20, 21],
-      [27, 21],
+  it('gera ocorrências semanais no mesmo horário, com limite', () => {
+    const dates = weeklyOccurrences(new Date('2026-11-14T00:00:00Z'), 3) // sex 13/11, 21:00 em Brasília
+    expect(dates.map((d) => d.toISOString())).toEqual([
+      '2026-11-14T00:00:00.000Z',
+      '2026-11-21T00:00:00.000Z',
+      '2026-11-28T00:00:00.000Z',
     ])
     expect(weeklyOccurrences(new Date(), 50)).toHaveLength(8)
     expect(weeklyOccurrences(new Date(), 0)).toHaveLength(1)
@@ -31,12 +31,16 @@ describe('RaidEvent', () => {
     expect(myRsvp(event, 'm9')).toBeNull()
   })
 
-  it('agrupa por dia local em ordem', () => {
-    const items = [new Date(2026, 10, 14, 10), new Date(2026, 10, 13, 22), new Date(2026, 10, 13, 20)]
+  it('agrupa por dia no horário de Brasília, em ordem', () => {
+    const items = [
+      new Date('2026-11-14T13:00:00Z'), // sáb 14, 10:00 em Brasília
+      new Date('2026-11-14T01:00:00Z'), // sex 13, 22:00 em Brasília (já é sábado em UTC)
+      new Date('2026-11-13T23:00:00Z'), // sex 13, 20:00 em Brasília
+    ]
     const days = groupByDay(items, (d) => d)
-    expect(days.map((g) => [g.day.getDate(), g.items.map((d) => d.getHours())])).toEqual([
-      [13, [20, 22]],
-      [14, [10]],
+    expect(days.map((g) => [g.key, g.items.length])).toEqual([
+      ['2026-11-13', 2],
+      ['2026-11-14', 1],
     ])
   })
 })

@@ -13,6 +13,7 @@ import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { findPartiesFor, type PartyMatch } from '../../application/findPartiesFor'
 import { ROLE_ORDER } from '../../domain/Party'
 import { usePartiesStore } from '../usePartiesStore'
+import { formatRoutine } from '../routineFormat'
 
 const route = useRoute()
 const router = useRouter()
@@ -157,6 +158,9 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
           <p class="text-sm text-muted-foreground">
             {{ m.details.party.sanctuary.name }}, {{ m.acceptedCount }}/{{ m.details.party.sanctuary.groupSize }}
             membros
+          </p>
+          <p v-if="m.details.party.routine" class="text-sm first-letter:uppercase">
+            {{ formatRoutine(m.details.party.routine) }}
           </p>
           <p class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
             <span class="font-semibold text-success">Precisa de {{ roleList(m.needed) }}</span>

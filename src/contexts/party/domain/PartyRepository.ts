@@ -1,11 +1,13 @@
 import type { Faction, Region } from '@/contexts/character/domain/Character'
 import type { Applicant, PartyDetails, PartySummary } from './Party'
+import type { RaidRoutine } from './RaidRoutine'
 
 export interface CreatePartyInput {
   name: string
   sanctuaryId: string
   /** Personagem do líder (LinkedCharacter.linkId). */
   characterLinkId: string
+  routine: RaidRoutine
 }
 
 export interface PartyRepository {

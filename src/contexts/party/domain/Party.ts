@@ -1,5 +1,6 @@
 import { rolesOf, type CombatRole, type Faction, type Region } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
+import type { RaidRoutine } from './RaidRoutine'
 import { eligibility, type Eligibility, type Sanctuary } from './Sanctuary'
 
 export type MemberStatus = 'pending' | 'accepted' | 'declined'
@@ -13,6 +14,8 @@ export interface Party {
   region: Region
   faction: Faction
   createdAt: Date
+  /** Dias e horário em que a party costuma raidar (null em parties antigas). */
+  routine?: RaidRoutine | null
 }
 
 export interface PartyMember {

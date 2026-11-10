@@ -25,6 +25,9 @@ interface PartyRow {
   region: Region
   faction: Faction
   created_at: string
+  raid_days: number[] | null
+  raid_time: string | null
+  time_zone: string | null
   sanctuary: SanctuaryEmbed
 }
 
@@ -44,6 +47,7 @@ interface MemberRow {
 
 // Hints de FK explícitos: evitam ambiguidade no embed do PostgREST.
 const PARTY_COLUMNS = `id, name, sanctuary_id, leader_id, leader_character_id, region, faction, created_at,
+  raid_days, raid_time, time_zone,
   sanctuary:sanctuaries!parties_sanctuary_id_fkey(id, name, min_item_level, group_size)`
 
 const MEMBER_COLUMNS = `id, party_id, status, created_at,
@@ -65,6 +69,10 @@ function toParty(r: PartyRow): Party {
     region: r.region,
     faction: r.faction,
     createdAt: new Date(r.created_at),
+    routine:
+      r.raid_days?.length && r.raid_time
+        ? { days: r.raid_days, time: r.raid_time.slice(0, 5), timeZone: r.time_zone ?? 'America/Sao_Paulo' }
+        : null,
   }
 }
 
@@ -156,6 +164,9 @@ export class SupabasePartyRepository implements PartyRepository {
       p_name: input.name,
       p_sanctuary_id: input.sanctuaryId,
       p_character_id: input.characterLinkId,
+      p_raid_days: input.routine.days,
+      p_raid_time: input.routine.time,
+      p_time_zone: input.routine.timeZone,
     })
     if (error) rethrow(error)
     return data as string
