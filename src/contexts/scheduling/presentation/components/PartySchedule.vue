@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
@@ -34,7 +35,7 @@ async function load() {
   try {
     events.value = await repo.listForParty(props.partyId)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }
@@ -49,7 +50,7 @@ async function run(key: string, action: () => Promise<void>) {
     await load()
     return true
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
     return false
   } finally {
     busy.value = null

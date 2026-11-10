@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
 import { REGIONS, type CharacterSummary, type Region, type Server } from '../domain/Character'
@@ -81,7 +82,7 @@ export function useCharacterSearch() {
       await loadOwners(current)
     } catch (e) {
       if (current !== seq) return
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
       results.value = []
     } finally {
       if (current === seq) searching.value = false

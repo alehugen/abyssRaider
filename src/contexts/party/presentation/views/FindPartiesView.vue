@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhArrowLeft, PhCircleNotch, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -53,7 +54,7 @@ async function search() {
     const candidates = await repo.listOpen({ region: linked.character.region, faction: linked.character.faction })
     matches.value = findPartiesFor(linked, candidates)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }
@@ -70,7 +71,7 @@ async function requestJoin(match: PartyMatch) {
     requested.value = new Set(requested.value).add(match.details.party.id)
     parties.invalidate()
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     requesting.value = null
   }

@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
@@ -5,10 +6,6 @@ import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { linkCharacter } from '../application/linkCharacter'
 import type { CharacterRef } from '../domain/CharacterDirectory'
 import type { LinkedCharacter } from '../domain/LinkedCharacter'
-
-function message(e: unknown): string {
-  return e instanceof Error ? e.message : String(e)
-}
 
 /** Chave estável de um personagem do jogo (o characterId só é único por servidor). */
 export function characterKey(c: { region: string; serverId: number; id: string }): string {
@@ -38,7 +35,7 @@ export const useCharactersStore = defineStore('characters', () => {
     try {
       return await fn()
     } catch (e) {
-      error.value = message(e)
+      error.value = errorMessage(e)
       return undefined
     } finally {
       const next = new Set(pending.value)
@@ -54,7 +51,7 @@ export const useCharactersStore = defineStore('characters', () => {
       items.value = await getContainer().characterRepository.listByOwner(ownerId())
       loaded.value = true
     } catch (e) {
-      error.value = message(e)
+      error.value = errorMessage(e)
     } finally {
       loading.value = false
     }

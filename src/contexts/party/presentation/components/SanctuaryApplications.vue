@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhCircleNotch, PhFlagBanner, PhX } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
@@ -66,7 +67,7 @@ async function submit() {
     await store.apply(props.linked, sanctuary)
     open.value = false
   } catch (e) {
-    dialogError.value = e instanceof Error ? e.message : String(e)
+    dialogError.value = errorMessage(e)
   } finally {
     submitting.value = false
   }

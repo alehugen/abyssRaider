@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { getContainer } from '@/app/container'
@@ -24,7 +25,7 @@ async function load() {
   try {
     entries.value = await repo.listAgenda(auth.user.id)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }
@@ -41,7 +42,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
     await repo.respond(entry.event.id, entry.myMemberId, status)
     await load()
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     busy.value = null
   }

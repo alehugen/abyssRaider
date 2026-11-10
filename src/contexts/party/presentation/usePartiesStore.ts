@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
@@ -21,7 +22,7 @@ export const usePartiesStore = defineStore('parties', () => {
       items.value = await getContainer().partyRepository.listMine(userId)
       loaded.value = true
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
     } finally {
       loading.value = false
     }

@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { defineStore } from 'pinia'
 import { ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
@@ -30,7 +31,7 @@ export const useRaidApplicationsStore = defineStore('raidApplications', () => {
         applications.value = mine
         loaded.value = true
       } catch (e) {
-        error.value = e instanceof Error ? e.message : String(e)
+        error.value = errorMessage(e)
         loading = null
       }
     })()
@@ -62,7 +63,7 @@ export const useRaidApplicationsStore = defineStore('raidApplications', () => {
       await getContainer().raidApplicationRepository.withdraw(application.id)
       applications.value = applications.value.filter((a) => a.id !== application.id)
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
     }
   }
 

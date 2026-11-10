@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { getContainer } from '@/app/container'
@@ -28,7 +29,7 @@ export const useAuthStore = defineStore('auth', () => {
       try {
         setUser(await repo.getCurrentUser())
       } catch (e) {
-        error.value = e instanceof Error ? e.message : String(e)
+        error.value = errorMessage(e)
         setUser(null)
       }
       unsubscribe = repo.onChange(setUser)
@@ -43,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await getContainer().authRepository.signInWithDiscord(redirectTo.toString())
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
     }
   }
 

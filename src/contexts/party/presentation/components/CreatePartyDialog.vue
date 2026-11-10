@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhCircleNotch, PhPlus } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -95,7 +96,7 @@ async function submit() {
     raidDays.value = []
     await router.push({ name: 'party', params: { id } })
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = errorMessage(e)
   } finally {
     submitting.value = false
   }

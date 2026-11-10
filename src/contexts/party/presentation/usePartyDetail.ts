@@ -1,3 +1,4 @@
+import { errorMessage } from '@/shared/lib/errorMessage'
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
@@ -50,7 +51,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
         ? await repo.listApplicants(found.party.sanctuary.id)
         : []
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
     } finally {
       loading.value = false
     }
@@ -65,7 +66,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
       await load()
       return true
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
       return false
     } finally {
       busy.value = null
