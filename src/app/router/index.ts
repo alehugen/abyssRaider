@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { characterRoutes } from '@/contexts/character/presentation/routes'
+import { partyRoutes } from '@/contexts/party/presentation/routes'
 import { identityRoutes } from '@/contexts/identity/presentation/routes'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 
@@ -26,6 +27,7 @@ export const router = createRouter({
     },
     ...identityRoutes,
     ...characterRoutes,
+    ...partyRoutes,
     ...devRoutes,
     {
       path: '/:pathMatch(.*)*',

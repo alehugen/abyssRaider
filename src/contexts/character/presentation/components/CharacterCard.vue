@@ -84,7 +84,7 @@ const ariaLabel = computed(() =>
       <span v-else class="absolute inset-0 grid place-items-center font-display text-4xl font-bold text-faction-ink">
         {{ initials }}
       </span>
-      <span class="absolute inset-y-0 left-0 w-[3px] bg-faction" />
+      <span class="absolute inset-y-0 left-0 w-0.75 bg-faction" />
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 py-4 pr-4 pl-1 sm:pr-5">

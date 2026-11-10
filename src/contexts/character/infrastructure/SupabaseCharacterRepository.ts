@@ -54,7 +54,7 @@ export function characterToRow(ownerId: string, c: Character): Omit<CharacterRow
   }
 }
 
-const COLUMNS =
+export const CHARACTER_COLUMNS =
   'id, owner_id, aion_id, region, server_id, server_name, name, faction, class_name, level, combat_power, item_level, portrait_url, synced_at'
 
 export class SupabaseCharacterRepository implements CharacterRepository {
@@ -67,7 +67,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
   async listByOwner(ownerId: string): Promise<LinkedCharacter[]> {
     const { data, error } = await this.client
       .from('characters')
-      .select(COLUMNS)
+      .select(CHARACTER_COLUMNS)
       .eq('owner_id', ownerId)
       .order('combat_power', { ascending: false, nullsFirst: false })
     if (error) throw error
@@ -81,7 +81,7 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     const { data, error } = await this.client
       .from('characters')
       .upsert(row, { onConflict: 'region,server_id,aion_id' })
-      .select(COLUMNS)
+      .select(CHARACTER_COLUMNS)
       .single()
     if (error) {
       // 42501 = RLS; PGRST116 = upsert não devolveu linha (update barrado pela policy).

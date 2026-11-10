@@ -9,7 +9,9 @@ import { HttpCharacterDirectory } from '@/contexts/character/infrastructure/Http
 import { SupabaseCharacterRepository } from '@/contexts/character/infrastructure/SupabaseCharacterRepository'
 import type { AuthRepository } from '@/contexts/identity/domain/AuthRepository'
 import { SupabaseAuthRepository } from '@/contexts/identity/infrastructure/SupabaseAuthRepository'
+import type { PartyRepository } from '@/contexts/party/domain/PartyRepository'
 import type { RaidApplicationRepository, SanctuaryCatalog } from '@/contexts/party/domain/RaidApplicationRepository'
+import { SupabasePartyRepository } from '@/contexts/party/infrastructure/SupabasePartyRepository'
 import {
   SupabaseRaidApplicationRepository,
   SupabaseSanctuaryCatalog,
@@ -22,6 +24,7 @@ export interface Container {
   characterRepository: CharacterRepository
   sanctuaryCatalog: SanctuaryCatalog
   raidApplicationRepository: RaidApplicationRepository
+  partyRepository: PartyRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -48,6 +51,18 @@ const unconfiguredApplications: RaidApplicationRepository = {
   withdraw: async () => {},
 }
 
+const unconfiguredParties: PartyRepository = {
+  listMine: async () => [],
+  get: async () => null,
+  create: notConfigured,
+  remove: notConfigured,
+  requestJoin: notConfigured,
+  decide: notConfigured,
+  removeMember: notConfigured,
+  listApplicants: async () => [],
+  recruit: notConfigured,
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -61,6 +76,7 @@ export function getContainer(): Container {
       raidApplicationRepository: supabase
         ? new SupabaseRaidApplicationRepository(supabase)
         : unconfiguredApplications,
+      partyRepository: supabase ? new SupabasePartyRepository(supabase) : unconfiguredParties,
     }
   }
   return container
