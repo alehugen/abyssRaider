@@ -38,6 +38,15 @@
   --color-danger-foreground: var(--danger-foreground);
 
   --color-glow: var(--glow);
+
+  --color-elyos: var(--elyos);
+  --color-asmodian: var(--asmodian);
+  --color-faction: var(--faction, var(--primary));
+  --color-faction-ink: var(--faction-ink, var(--foreground));
+  --color-faction-soft: var(--faction-soft, var(--surface-muted));
+
+  --shadow-card: var(--card-shadow);
+  --shadow-card-hover: var(--card-shadow-hover);
 }
 
 @layer base {

@@ -26,6 +26,45 @@
   --danger-foreground: oklch(0.985 0.01 25);
 
   --glow: oklch(0.85 0.12 85 / 0.45);
+
+  --card-shadow: 0 12px 32px -20px oklch(0.25 0.04 270 / 0.3);
+  --card-shadow-hover: 0 24px 48px -24px oklch(0.25 0.04 270 / 0.38);
+
+  /* Cores das facções (independentes do tema; ver .faction-* abaixo) */
+  --elyos: oklch(0.62 0.16 255);
+  --elyos-ink: oklch(0.48 0.15 258);
+  --elyos-soft: oklch(0.95 0.03 255);
+  --asmodian: oklch(0.58 0.19 295);
+  --asmodian-ink: oklch(0.47 0.2 290);
+  --asmodian-soft: oklch(0.95 0.035 295);
+}
+
+/* Temas escuros: sombra mais densa + contorno sutil, facções mais claras */
+.dark {
+  --card-shadow: 0 14px 34px -18px oklch(0 0 0 / 0.8), 0 0 0 1px oklch(1 0 0 / 0.06);
+  --card-shadow-hover: 0 26px 50px -22px oklch(0 0 0 / 0.9), 0 0 0 1px oklch(1 0 0 / 0.1);
+
+  --elyos: oklch(0.66 0.15 255);
+  --elyos-ink: oklch(0.8 0.1 255);
+  --elyos-soft: oklch(0.62 0.16 255 / 0.16);
+  --asmodian: oklch(0.64 0.18 295);
+  --asmodian-ink: oklch(0.81 0.11 295);
+  --asmodian-soft: oklch(0.58 0.19 295 / 0.2);
+}
+
+/*
+ * Escopo de facção: qualquer elemento com .faction-elyos / .faction-asmodian
+ * passa a ter bg-faction, text-faction-ink, bg-faction-soft, border-faction.
+ */
+.faction-elyos {
+  --faction: var(--elyos);
+  --faction-ink: var(--elyos-ink);
+  --faction-soft: var(--elyos-soft);
+}
+.faction-asmodian {
+  --faction: var(--asmodian);
+  --faction-ink: var(--asmodian-ink);
+  --faction-soft: var(--asmodian-soft);
 }
 
 /* Asmodian: escuro, violeta profundo e carmesim */
