@@ -26,6 +26,9 @@ const byFaction = computed(() => ({
   elyos: servers.value.filter((s) => s.faction === 'elyos'),
   asmodian: servers.value.filter((s) => s.faction === 'asmodian'),
 }))
+const resultCount = computed(() =>
+  results.value.length === 1 ? '1 personagem encontrado' : `${results.value.length} personagens encontrados`,
+)
 
 function link(c: CharacterSummary) {
   void characters.link({ region: c.region, serverId: c.serverId, id: c.id })
@@ -33,12 +36,21 @@ function link(c: CharacterSummary) {
 </script>
 
 <template>
-  <section class="space-y-4" aria-labelledby="search-title">
-    <h2 id="search-title" class="font-display text-xl font-bold">Vincular personagem</h2>
+  <section class="rounded-2xl border bg-card/60 p-4 sm:p-6" aria-labelledby="search-title">
+    <div class="max-w-prose">
+      <h2 id="search-title" class="font-display text-2xl font-semibold">Vincular personagem</h2>
+      <p class="mt-1 text-sm text-muted-foreground">
+        Escolha a região e digite o nome como aparece no jogo. Os dados vêm do site oficial do Aion 2.
+      </p>
+    </div>
 
-    <form class="grid gap-2 sm:grid-cols-[minmax(0,11rem)_minmax(0,11rem)_1fr_auto]" @submit.prevent="search">
+    <form
+      class="mt-5 grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,12rem)_1fr_auto]"
+      role="search"
+      @submit.prevent="search"
+    >
       <Select v-model="regionValue">
-        <SelectTrigger class="w-full" aria-label="Região">
+        <SelectTrigger class="w-full bg-background" aria-label="Região">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -47,7 +59,7 @@ function link(c: CharacterSummary) {
       </Select>
 
       <Select v-model="serverValue">
-        <SelectTrigger class="w-full" aria-label="Servidor">
+        <SelectTrigger class="w-full bg-background" aria-label="Servidor">
           <SelectValue placeholder="Todos os servidores" />
         </SelectTrigger>
         <SelectContent>
@@ -63,7 +75,14 @@ function link(c: CharacterSummary) {
         </SelectContent>
       </Select>
 
-      <Input v-model="name" placeholder="Nome do personagem" aria-label="Nome do personagem" maxlength="32" autocomplete="off" />
+      <Input
+        v-model="name"
+        class="bg-background"
+        placeholder="Nome do personagem"
+        aria-label="Nome do personagem"
+        maxlength="32"
+        autocomplete="off"
+      />
 
       <Button type="submit" :disabled="searching">
         <PhCircleNotch v-if="searching" class="animate-spin" />
@@ -72,40 +91,52 @@ function link(c: CharacterSummary) {
       </Button>
     </form>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>
 
-    <div v-if="searching" class="grid gap-3 sm:grid-cols-2">
-      <Skeleton v-for="i in 4" :key="i" class="h-[74px] rounded-[20px]" />
+    <div v-if="searching" class="mt-4 divide-y divide-border/60" aria-busy="true">
+      <div v-for="i in 4" :key="i" class="flex items-center gap-3 py-2.5">
+        <Skeleton class="size-11 rounded-lg" />
+        <div class="space-y-1.5">
+          <Skeleton class="h-4 w-32" />
+          <Skeleton class="h-3 w-48" />
+        </div>
+      </div>
     </div>
 
     <template v-else-if="searched">
-      <p v-if="!results.length" class="text-sm text-muted-foreground">
-        Nenhum personagem encontrado. Confira a região e o nome.
+      <p v-if="!results.length" class="mt-4 text-sm text-muted-foreground">
+        Nenhum personagem com esse nome em {{ REGION_LABEL[region] }}. Confira a grafia ou troque a região.
       </p>
-      <ul v-else class="grid gap-3 sm:grid-cols-2">
-        <li v-for="c in results" :key="characterKey(c)">
-          <CharacterCard :character="c" size="sm">
-            <template #actions>
-              <Button v-if="characters.linkedKeys.has(characterKey(c))" size="sm" variant="ghost" disabled>
-                <PhCheck /> Vinculado
-              </Button>
-              <Button
-                v-else
-                size="sm"
-                variant="outline"
-                :disabled="characters.isPending(characterKey(c))"
-                @click="link(c)"
-              >
-                <PhCircleNotch v-if="characters.isPending(characterKey(c))" class="animate-spin" />
-                <PhLink v-else />
-                Vincular
-              </Button>
-            </template>
-          </CharacterCard>
-        </li>
-      </ul>
+      <template v-else>
+        <p class="mt-5 text-xs text-muted-foreground" aria-live="polite">{{ resultCount }}</p>
+        <ul class="mt-1 divide-y divide-border/60">
+          <li v-for="c in results" :key="characterKey(c)">
+            <CharacterCard :character="c" size="sm">
+              <template #actions>
+                <span
+                  v-if="characters.linkedKeys.has(characterKey(c))"
+                  class="flex items-center gap-1.5 px-3 text-sm font-medium text-success"
+                >
+                  <PhCheck weight="bold" /> Vinculado
+                </span>
+                <Button
+                  v-else
+                  size="sm"
+                  variant="outline"
+                  :disabled="characters.isPending(characterKey(c))"
+                  @click="link(c)"
+                >
+                  <PhCircleNotch v-if="characters.isPending(characterKey(c))" class="animate-spin" />
+                  <PhLink v-else />
+                  Vincular
+                </Button>
+              </template>
+            </CharacterCard>
+          </li>
+        </ul>
+      </template>
     </template>
   </section>
 </template>

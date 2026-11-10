@@ -2,9 +2,6 @@
 import { computed } from 'vue'
 import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/shared/presentation/ui/avatar'
-import { Badge } from '@/shared/presentation/ui/badge'
-import { Card } from '@/shared/presentation/ui/card'
 
 /** Aceita o personagem completo ou só o resumo da busca (sem classe/CP). */
 type CardCharacter = CharacterSummary & Partial<Pick<Character, 'className' | 'combatPower' | 'itemLevel' | 'legionName'>>
@@ -16,85 +13,155 @@ const props = withDefaults(
     role?: string
     /** Visual apagado: ausente, recusou a raid, etc. */
     inactive?: boolean
-    /** md = card completo; sm = linha compacta para listas de party. */
+    /**
+     * md = nameplate: retrato grande e faixa de atributos.
+     * sm = linha compacta, sem moldura, para listas (busca, membros da party).
+     */
     size?: 'md' | 'sm'
-    interactive?: boolean
+    /** Linha discreta no rodapé do nameplate (ex.: "Atualizado há 5 min"). */
+    footnote?: string
   }>(),
-  { size: 'md', inactive: false, interactive: false },
+  { size: 'md', inactive: false },
 )
 
 const number = new Intl.NumberFormat('pt-BR')
-const combatPower = computed(() =>
-  props.character.combatPower != null ? number.format(props.character.combatPower) : null,
-)
 const initials = computed(() => props.character.name.slice(0, 2).toUpperCase())
-const md = computed(() => props.size === 'md')
+const factionLabel = computed(() => (props.character.faction === 'elyos' ? 'Elyos' : 'Asmodian'))
+
+/** "em Siel, legião Aurora" (ou só "Siel" quando não há classe para preceder). */
+const location = computed(() => {
+  const c = props.character
+  const server = c.className ? `em ${c.serverName}` : c.serverName
+  return c.legionName ? `${server}, legião ${c.legionName}` : server
+})
+
+const stats = computed(() => {
+  const c = props.character
+  return [
+    { label: 'CP', value: c.combatPower, primary: true },
+    { label: 'Item level', value: c.itemLevel, primary: false },
+    { label: 'Nível', value: c.level, primary: false },
+  ]
+    .filter((s): s is { label: string; value: number; primary: boolean } => s.value != null)
+    .map((s) => ({ ...s, text: number.format(s.value) }))
+})
+
+const ariaLabel = computed(() =>
+  [props.character.name, props.character.className, `nível ${props.character.level}`, props.character.serverName, factionLabel.value]
+    .filter(Boolean)
+    .join(', '),
+)
 </script>
 
 <template>
-  <Card
-    role="article"
+  <!-- Nameplate -->
+  <article
+    v-if="size === 'md'"
     :class="
       cn(
         `faction-${character.faction}`,
-        'flex-row items-center border-t-4 border-faction',
-        md ? 'gap-3.5 p-4 sm:gap-4 sm:p-5' : 'gap-3 px-3 py-2.5',
-        interactive && 'transition-[box-shadow,translate] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-card-hover',
+        'relative isolate flex min-h-36 overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card',
+        inactive && 'opacity-70',
       )
     "
-    :aria-label="[character.name, character.className, `nível ${character.level}`, character.serverName].filter(Boolean).join(', ')"
+    :aria-label="ariaLabel"
   >
-    <Avatar
-      :class="
-        cn(
-          'bg-faction-soft',
-          md ? 'size-18 rounded-[22px] sm:size-22 sm:rounded-[28px]' : 'size-12 rounded-2xl',
-          inactive && 'opacity-85 grayscale-[.85]',
-        )
-      "
-    >
-      <AvatarImage v-if="character.portraitUrl" :src="character.portraitUrl" :alt="`Retrato de ${character.name}`" class="object-cover" />
-      <AvatarFallback
-        :class="cn('rounded-none bg-transparent font-display font-bold text-faction-ink', md ? 'text-2xl' : 'text-base')"
-      >
-        {{ initials }}
-      </AvatarFallback>
-    </Avatar>
-
-    <div class="flex min-w-0 flex-1 flex-col" :class="md ? 'gap-1.5' : 'gap-0.5'">
-      <span v-if="role" class="text-xs font-semibold text-faction-ink">{{ role }}</span>
-
-      <h3
+    <!-- Retrato: os retratos oficiais têm fundo preto, então ele "derrete" no card. -->
+    <div class="relative w-28 flex-none sm:w-36" aria-hidden="true">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_40%_45%,var(--faction-soft),transparent_70%)]" />
+      <img
+        v-if="character.portraitUrl"
+        :src="character.portraitUrl"
+        alt=""
+        loading="lazy"
         :class="
           cn(
-            'truncate font-display leading-tight font-bold',
-            md ? 'text-2xl sm:text-[28px]' : 'text-lg',
-            inactive && 'text-muted-foreground',
+            'absolute inset-0 size-full object-cover object-top mask-r-from-55% mask-r-to-100%',
+            inactive && 'grayscale',
           )
         "
-      >
-        {{ character.name }}
-      </h3>
+      />
+      <span v-else class="absolute inset-0 grid place-items-center font-display text-4xl font-bold text-faction-ink">
+        {{ initials }}
+      </span>
+      <span class="absolute inset-y-0 left-0 w-[3px] bg-faction" />
+    </div>
 
-      <div v-if="md" class="flex flex-wrap gap-1.5">
-        <Badge v-if="character.className" variant="faction">{{ character.className }}</Badge>
-        <Badge variant="faction">{{ character.serverName }}</Badge>
-        <Badge v-if="character.legionName" variant="secondary" class="px-2.5 text-[13px] font-semibold">
-          {{ character.legionName }}
-        </Badge>
+    <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 py-4 pr-4 pl-1 sm:pr-5">
+      <div class="min-w-0 pr-20">
+        <p v-if="role" class="text-xs font-semibold text-faction-ink">{{ role }}</p>
+        <h3
+          :class="
+            cn('truncate font-display text-[28px] leading-none font-semibold', inactive && 'text-muted-foreground')
+          "
+        >
+          {{ character.name }}
+        </h3>
+        <p class="mt-1.5 truncate text-sm text-muted-foreground">
+          <span v-if="character.className" class="font-semibold text-faction-ink">{{ character.className }}</span>
+          {{ location }}
+        </p>
       </div>
 
-      <p class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[13px] text-muted-foreground">
-        <span v-if="!md && character.className" class="font-semibold text-faction-ink">{{ character.className }}</span>
-        <span v-if="!md">{{ character.serverName }}</span>
-        <span>Nv. <b class="font-semibold text-foreground">{{ character.level }}</b></span>
-        <span v-if="combatPower"><b class="font-semibold text-foreground">{{ combatPower }}</b> CP</span>
-        <span v-if="character.itemLevel">iLv <b class="font-semibold text-foreground">{{ character.itemLevel }}</b></span>
+      <dl class="flex flex-wrap items-end gap-x-5 gap-y-2">
+        <div v-for="s in stats" :key="s.label" class="flex flex-col-reverse">
+          <dt class="text-xs text-muted-foreground">{{ s.label }}</dt>
+          <dd
+            :class="
+              cn(
+                'font-display leading-none font-semibold tabular-nums',
+                s.primary ? 'text-2xl text-foreground' : 'text-xl text-foreground/85',
+              )
+            "
+          >
+            {{ s.text }}
+          </dd>
+        </div>
+        <p v-if="footnote" class="basis-full text-xs text-muted-foreground sm:ml-auto sm:basis-auto">{{ footnote }}</p>
+      </dl>
+    </div>
+
+    <div v-if="$slots.actions" class="absolute top-2.5 right-2.5 flex items-center gap-0.5">
+      <slot name="actions" />
+    </div>
+  </article>
+
+  <!-- Linha compacta -->
+  <div
+    v-else
+    :class="cn(`faction-${character.faction}`, 'flex items-center gap-3 py-2.5', inactive && 'opacity-70')"
+    :aria-label="ariaLabel"
+    role="group"
+  >
+    <span
+      class="relative size-11 flex-none overflow-hidden rounded-lg bg-faction-soft ring-2 ring-faction/70"
+      aria-hidden="true"
+    >
+      <img
+        v-if="character.portraitUrl"
+        :src="character.portraitUrl"
+        alt=""
+        loading="lazy"
+        :class="cn('size-full object-cover object-top', inactive && 'grayscale')"
+      />
+      <span v-else class="grid size-full place-items-center font-display font-bold text-faction-ink">{{ initials }}</span>
+    </span>
+
+    <div class="min-w-0 flex-1">
+      <p class="flex items-baseline gap-2">
+        <span class="truncate font-display text-lg leading-tight font-semibold">{{ character.name }}</span>
+        <span v-if="role" class="flex-none text-xs font-semibold text-faction-ink">{{ role }}</span>
+      </p>
+      <p class="truncate text-[13px] text-muted-foreground">
+        <span class="text-faction-ink">{{ character.className ?? factionLabel }}</span>
+        <span class="ml-2">{{ character.serverName }}</span>
+        <span class="ml-2">Nível {{ character.level }}</span>
+        <span v-if="character.combatPower" class="ml-2 tabular-nums">{{ number.format(character.combatPower) }} CP</span>
       </p>
     </div>
 
     <div v-if="$slots.actions" class="flex flex-none items-center gap-2">
       <slot name="actions" />
     </div>
-  </Card>
+  </div>
 </template>

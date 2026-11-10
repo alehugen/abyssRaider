@@ -11,8 +11,9 @@
 @custom-variant abyss (&:where([data-theme='abyss'], [data-theme='abyss'] *));
 
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Cinzel', ui-serif, Georgia, serif;
+  /* Barlow em duas larguras: a condensada faz nomes, títulos e números (cara de HUD). */
+  --font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', ui-sans-serif, sans-serif;
 }
 
 /*

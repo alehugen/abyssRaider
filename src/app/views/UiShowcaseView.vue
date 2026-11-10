@@ -8,6 +8,7 @@ const characters: Character[] = [
   {
     id: 'demo-1',
     name: 'Lyrandel',
+    portraitUrl: 'https://profileimg.plaync.com/game_profile_images/aion2global/images?gameServerKey=1313&charKey=369576644421273464',
     faction: 'elyos',
     className: 'Templar',
     level: 45,
@@ -65,10 +66,10 @@ const characters: Character[] = [
     </header>
 
     <section class="space-y-4">
-      <h2 class="text-sm font-semibold tracking-wider text-muted-foreground uppercase">Character card</h2>
+      <h2 class="font-display text-xl font-semibold">Nameplate</h2>
       <div class="grid gap-4 md:grid-cols-2">
-        <CharacterCard :character="characters[0]!" role="Líder" interactive />
-        <CharacterCard :character="characters[1]!" role="Seu personagem" interactive>
+        <CharacterCard :character="characters[0]!" role="Líder" footnote="Atualizado há 5 minutos" />
+        <CharacterCard :character="characters[1]!" role="Seu personagem">
           <template #actions>
             <Button size="sm">Aplicar</Button>
           </template>
@@ -79,7 +80,7 @@ const characters: Character[] = [
     </section>
 
     <section class="space-y-4">
-      <h2 class="text-sm font-semibold tracking-wider text-muted-foreground uppercase">Compacto (lista de party)</h2>
+      <h2 class="font-display text-xl font-semibold">Linha compacta (busca e party)</h2>
       <div class="grid max-w-md gap-2">
         <CharacterCard v-for="c in characters" :key="c.id" :character="c" size="sm" />
       </div>
