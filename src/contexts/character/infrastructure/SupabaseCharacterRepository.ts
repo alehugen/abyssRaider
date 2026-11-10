@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Character, Faction, Region } from '../domain/Character'
+import type { CharacterRef } from '../domain/CharacterDirectory'
 import type { CharacterRepository } from '../domain/CharacterRepository'
 import { DomainError } from '@/shared/domain/DomainError'
 import { CharacterAlreadyClaimedError, type LinkedCharacter } from '../domain/LinkedCharacter'
@@ -63,6 +64,23 @@ export class SupabaseCharacterRepository implements CharacterRepository {
 
   constructor(client: SupabaseClient) {
     this.client = client
+  }
+
+  async findOwners(refs: readonly CharacterRef[]): Promise<Array<CharacterRef & { ownerId: string }>> {
+    if (!refs.length) return []
+    // A busca é sempre de uma região; filtramos por região + ids e conferimos o servidor aqui.
+    const regions = [...new Set(refs.map((r) => r.region))]
+    const { data, error } = await this.client
+      .from('characters')
+      .select('region, server_id, aion_id, owner_id')
+      .in('region', regions)
+      .in('aion_id', [...new Set(refs.map((r) => r.id))])
+    if (error) throw error
+    type Row = { region: Region; server_id: number; aion_id: string; owner_id: string }
+    const wanted = new Set(refs.map((r) => `${r.region}:${r.serverId}:${r.id}`))
+    return (data as Row[])
+      .filter((r) => wanted.has(`${r.region}:${r.server_id}:${r.aion_id}`))
+      .map((r) => ({ region: r.region, serverId: r.server_id, id: r.aion_id, ownerId: r.owner_id }))
   }
 
   async listByOwner(ownerId: string): Promise<LinkedCharacter[]> {

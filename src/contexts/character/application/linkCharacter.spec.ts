@@ -29,6 +29,7 @@ function deps(found: Character | null) {
   const repository: CharacterRepository = {
     listByOwner: vi.fn(),
     remove: vi.fn(),
+    findOwners: vi.fn(async () => []),
     save: vi.fn(async (ownerId, character) => ({ linkId: 'new', ownerId, character, syncedAt: new Date() })),
   }
   return { directory, repository }

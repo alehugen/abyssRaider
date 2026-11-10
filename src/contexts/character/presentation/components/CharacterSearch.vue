@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { PhCheck, PhCircleNotch, PhLink, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhCheck, PhCircleNotch, PhLink, PhLock, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/presentation/ui/tooltip'
 import { computed } from 'vue'
 import { REGIONS, REGION_LABEL, type CharacterSummary, type Region } from '@/contexts/character/domain/Character'
 import { Button } from '@/shared/presentation/ui/button'
@@ -13,7 +15,14 @@ import CharacterCard from './CharacterCard.vue'
 /** embedded = dentro de um diálogo: sem moldura nem título próprios. */
 defineProps<{ embedded?: boolean }>()
 
-const { region, serverId, name, servers, results, searching, searched, error, search } = useCharacterSearch()
+const { region, serverId, name, servers, results, searching, searched, error, search, ownerOf } = useCharacterSearch()
+const auth = useAuthStore()
+
+/** Vinculado por outra conta: aparece na busca, mas bloqueado. */
+const claimedByOther = (c: CharacterSummary) => {
+  const owner = ownerOf(c)
+  return owner !== null && owner !== auth.user?.id
+}
 const characters = useCharactersStore()
 
 const ALL = 'all'
@@ -121,7 +130,7 @@ function link(c: CharacterSummary) {
         <p class="mt-5 text-xs text-muted-foreground" aria-live="polite">{{ resultCount }}</p>
         <ul class="mt-1 divide-y divide-border/60">
           <li v-for="c in results" :key="characterKey(c)">
-            <CharacterCard :character="c" size="sm">
+            <CharacterCard :character="c" size="sm" :inactive="claimedByOther(c)">
               <template #actions>
                 <span
                   v-if="characters.linkedKeys.has(characterKey(c))"
@@ -129,6 +138,19 @@ function link(c: CharacterSummary) {
                 >
                   <PhCheck weight="bold" /> Vinculado
                 </span>
+                <Tooltip v-else-if="claimedByOther(c)">
+                  <TooltipTrigger as-child>
+                    <span
+                      tabindex="0"
+                      class="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground"
+                    >
+                      <PhLock weight="bold" /> Já vinculado
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-60">
+                    Este personagem já está vinculado a outra conta do AbyssRaider.
+                  </TooltipContent>
+                </Tooltip>
                 <Button
                   v-else
                   size="sm"

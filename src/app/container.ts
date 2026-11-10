@@ -46,6 +46,7 @@ const unconfiguredCharacters: CharacterRepository = {
   listByOwner: async () => [],
   save: notConfigured,
   remove: async () => {},
+  findOwners: async () => [],
 }
 
 const unconfiguredApplications: RaidApplicationRepository = {

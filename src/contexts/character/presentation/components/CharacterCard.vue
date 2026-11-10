@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
 import { vGlare } from '@/shared/presentation/directives/glare'
+import { formatCombatPower, formatCombatPowerFull } from '../formatCombatPower'
 import ClassIcon from './ClassIcon.vue'
 
 /** Aceita o personagem completo ou só o resumo da busca (sem classe/CP). */
@@ -44,7 +45,12 @@ const stats = computed(() => {
     { label: 'Nível', value: c.level, primary: false },
   ]
     .filter((s): s is { label: string; value: number; primary: boolean } => s.value != null)
-    .map((s) => ({ ...s, text: number.format(s.value) }))
+    .map((s) => ({
+      ...s,
+      // CP abreviado como no jogo (184K); o valor exato fica no tooltip.
+      text: s.primary ? formatCombatPower(s.value) : number.format(s.value),
+      title: s.primary ? `${formatCombatPowerFull(s.value)} CP` : undefined,
+    }))
 })
 
 const ariaLabel = computed(() =>
@@ -116,7 +122,7 @@ const ariaLabel = computed(() =>
               )
             "
           >
-            {{ s.text }}
+            <span :title="s.title">{{ s.text }}</span>
           </dd>
         </div>
         <p v-if="footnote" class="basis-full text-xs text-muted-foreground sm:ml-auto sm:basis-auto">{{ footnote }}</p>
@@ -163,7 +169,12 @@ const ariaLabel = computed(() =>
         <span v-if="!character.className" class="mr-2 text-faction-ink">{{ factionLabel }}</span>
         <span>{{ character.serverName }}</span>
         <span class="ml-2">Nível {{ character.level }}</span>
-        <span v-if="character.combatPower" class="ml-2 tabular-nums">{{ number.format(character.combatPower) }} CP</span>
+        <span
+          v-if="character.combatPower"
+          class="ml-2 tabular-nums"
+          :title="`${formatCombatPowerFull(character.combatPower)} CP`"
+          >{{ formatCombatPower(character.combatPower) }} CP</span
+        >
       </p>
     </div>
 

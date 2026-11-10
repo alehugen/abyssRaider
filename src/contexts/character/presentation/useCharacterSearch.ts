@@ -16,7 +16,7 @@ function savedRegion(): Region {
 
 /** Estado da busca de personagens: região (lembrada), servidores, termo e resultados. */
 export function useCharacterSearch() {
-  const directory = getContainer().characterDirectory
+  const { characterDirectory: directory, characterRepository: repository } = getContainer()
 
   const region = ref<Region>(savedRegion())
   const serverId = ref<number | null>(null)
@@ -27,6 +27,8 @@ export function useCharacterSearch() {
   const searching = ref(false)
   const searched = ref(false)
   const error = ref<string | null>(null)
+  /** Dono (id da conta) de cada resultado que já está vinculado, por chave região:servidor:id. */
+  const owners = shallowRef(new Map<string, string>())
 
   async function loadServers(r: Region) {
     try {
@@ -76,6 +78,7 @@ export function useCharacterSearch() {
           Number(b.name.toLowerCase() === exact) - Number(a.name.toLowerCase() === exact) || b.level - a.level,
       )
       searched.value = true
+      await loadOwners(current)
     } catch (e) {
       if (current !== seq) return
       error.value = e instanceof Error ? e.message : String(e)
@@ -85,5 +88,22 @@ export function useCharacterSearch() {
     }
   }
 
-  return { region, serverId, name, servers, results, searching, searched, error, search }
+  async function loadOwners(current: number) {
+    try {
+      const found = await repository.findOwners(
+        results.value.map((r) => ({ region: r.region, serverId: r.serverId, id: r.id })),
+      )
+      if (current !== seq) return
+      owners.value = new Map(found.map((o) => [`${o.region}:${o.serverId}:${o.id}`, o.ownerId]))
+    } catch {
+      owners.value = new Map() // sem a informação, o banco ainda bloqueia o vínculo duplicado
+    }
+  }
+
+  /** Conta dona do personagem, ou null se ninguém vinculou. */
+  function ownerOf(c: CharacterSummary): string | null {
+    return owners.value.get(`${c.region}:${c.serverId}:${c.id}`) ?? null
+  }
+
+  return { region, serverId, name, servers, results, searching, searched, error, search, ownerOf }
 }
