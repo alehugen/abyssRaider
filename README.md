@@ -23,7 +23,8 @@ npm run build
 
 - Os temas ficam registrados em `src/shared/presentation/theme/themes.ts`.
 - As paletas ficam em `src/app/styles/themes.css`.
-- Use sempre as classes semânticas: `bg-background`, `bg-surface`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `text-primary-foreground`, `bg-accent`, `border-border`, `bg-glow`.
+- Use sempre as classes semânticas, no padrão do shadcn: `bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `bg-primary`, `text-primary-foreground`, `border-border`.
+- Extras do projeto: `bg-highlight`, `bg-glow`, `shadow-card`, e as classes de facção `bg-faction-soft`, `text-faction-ink` e `border-faction`. Estas valem dentro de um elemento com `.faction-elyos` ou `.faction-asmodian`.
 - As variantes `dark:`, `elyos:`, `asmodian:` e `abyss:` estão disponíveis.
 
 Aviso: este projeto não tem afiliação com a NCSOFT. Aion é marca registrada da NCSOFT Corporation.
