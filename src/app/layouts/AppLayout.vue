@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhSignIn, PhSpiral, PhSword, PhUsersThree } from '@phosphor-icons/vue'
+import { PhCalendarDots, PhSignIn, PhSpiral, PhSword, PhUsersThree } from '@phosphor-icons/vue'
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
@@ -10,6 +10,7 @@ const auth = useAuthStore()
 const links = [
   { to: '/me', label: 'Personagens', icon: PhSword },
   { to: '/parties', label: 'Parties', icon: PhUsersThree },
+  { to: '/agenda', label: 'Agenda', icon: PhCalendarDots },
 ]
 </script>
 
@@ -19,7 +20,7 @@ const links = [
       <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <RouterLink to="/" class="flex items-center gap-2 rounded-md font-display text-xl font-bold">
           <PhSpiral :size="22" weight="duotone" class="text-primary" aria-hidden="true" />
-          AbyssRaider
+          <span :class="auth.isAuthenticated && 'hidden sm:inline'">AbyssRaider</span>
         </RouterLink>
         <nav v-if="auth.isAuthenticated" aria-label="Principal" class="mr-auto ml-2 flex items-center gap-1 sm:ml-6">
           <RouterLink

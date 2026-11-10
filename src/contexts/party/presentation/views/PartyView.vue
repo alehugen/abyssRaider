@@ -14,6 +14,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { REGION_LABEL, ROLE_LABEL } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
+import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -197,6 +198,14 @@ function removeMember(m: PartyMember) {
           </div>
         </div>
       </section>
+
+      <PartySchedule
+        v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"
+        :party-id="party.id"
+        :members="p.accepted.value"
+        :is-leader="p.isLeader.value"
+        :my-member-id="p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
+      />
 
       <!-- Líder: pedidos -->
       <section v-if="p.isLeader.value" aria-labelledby="requests-title" class="space-y-3">

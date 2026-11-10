@@ -16,6 +16,8 @@ import {
   SupabaseRaidApplicationRepository,
   SupabaseSanctuaryCatalog,
 } from '@/contexts/party/infrastructure/SupabaseRaidApplications'
+import type { RaidEventRepository } from '@/contexts/scheduling/domain/RaidEventRepository'
+import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
 
 export interface Container {
@@ -25,6 +27,7 @@ export interface Container {
   sanctuaryCatalog: SanctuaryCatalog
   raidApplicationRepository: RaidApplicationRepository
   partyRepository: PartyRepository
+  raidEventRepository: RaidEventRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -64,6 +67,14 @@ const unconfiguredParties: PartyRepository = {
   recruit: notConfigured,
 }
 
+const unconfiguredEvents: RaidEventRepository = {
+  listForParty: async () => [],
+  listAgenda: async () => [],
+  schedule: notConfigured,
+  cancel: notConfigured,
+  respond: notConfigured,
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -78,6 +89,7 @@ export function getContainer(): Container {
         ? new SupabaseRaidApplicationRepository(supabase)
         : unconfiguredApplications,
       partyRepository: supabase ? new SupabasePartyRepository(supabase) : unconfiguredParties,
+      raidEventRepository: supabase ? new SupabaseRaidEventRepository(supabase) : unconfiguredEvents,
     }
   }
   return container
