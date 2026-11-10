@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { Monitor } from '@lucide/vue'
+import { PhDesktop, PhMoonStars, PhSpiral, PhSun } from '@phosphor-icons/vue'
+import type { Component } from 'vue'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
-import { isThemePreference, THEMES } from './themes'
+import { isThemePreference, THEMES, type ThemeId } from './themes'
 import { useTheme } from './useTheme'
 
 const { preference, setPreference } = useTheme()
+
+const icons: Record<ThemeId, Component> = {
+  elyos: PhSun,
+  asmodian: PhMoonStars,
+  abyss: PhSpiral,
+}
 
 function onChange(value: unknown) {
   // Clicar no item já ativo emite vazio; mantemos a escolha atual.
@@ -27,9 +34,15 @@ function onChange(value: unknown) {
       :value="t.id"
       :title="`${t.label}: ${t.description}`"
       :aria-label="t.label"
-      class="gap-1.5 text-xs data-[state=on]:bg-card data-[state=on]:shadow-sm"
+      class="group gap-1.5 text-xs data-[state=on]:bg-card data-[state=on]:shadow-sm"
     >
-      <span class="size-3 rounded-full ring-1 ring-foreground/20" :style="{ background: t.swatch }" aria-hidden="true" />
+      <component
+        :is="icons[t.id]"
+        :size="16"
+        :weight="preference === t.id ? 'fill' : 'duotone'"
+        :color="t.swatch"
+        aria-hidden="true"
+      />
       <span class="hidden sm:inline">{{ t.label }}</span>
     </ToggleGroupItem>
     <ToggleGroupItem
@@ -38,7 +51,7 @@ function onChange(value: unknown) {
       aria-label="Seguir o sistema"
       class="data-[state=on]:bg-card data-[state=on]:shadow-sm"
     >
-      <Monitor />
+      <PhDesktop :size="16" :weight="preference === 'system' ? 'fill' : 'regular'" aria-hidden="true" />
     </ToggleGroupItem>
   </ToggleGroup>
 </template>

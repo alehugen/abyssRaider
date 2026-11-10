@@ -27,3 +27,9 @@ npm run build
 - As variantes `dark:`, `elyos:`, `asmodian:` e `abyss:` estão disponíveis.
 
 Aviso: este projeto não tem afiliação com a NCSOFT. Aion é marca registrada da NCSOFT Corporation.
+
+## UI
+
+- Componentes do shadcn-vue ficam em `src/shared/presentation/ui`.
+- Para adicionar um componente, use **`npm run ui:add -- <nome>`** em vez de `npx shadcn-vue add`. O script corrige um bug do CLI.
+- Os ícones vêm do [Phosphor](https://phosphoricons.com) (`@phosphor-icons/vue`). Exemplo: `import { PhSword } from '@phosphor-icons/vue'`.

@@ -13,7 +13,7 @@
     "ui:add": "node scripts/ui-add.mjs"
   },
   "dependencies": {
-    "@lucide/vue": "^1.71.0",
+    "@phosphor-icons/vue": "^2.2.1",
     "@supabase/supabase-js": "^2.119.0",
     "@vueuse/core": "^15.0.0",
     "class-variance-authority": "^0.7.1",
