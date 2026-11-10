@@ -9,30 +9,43 @@ import { HttpCharacterDirectory } from '@/contexts/character/infrastructure/Http
 import { SupabaseCharacterRepository } from '@/contexts/character/infrastructure/SupabaseCharacterRepository'
 import type { AuthRepository } from '@/contexts/identity/domain/AuthRepository'
 import { SupabaseAuthRepository } from '@/contexts/identity/infrastructure/SupabaseAuthRepository'
+import type { RaidApplicationRepository, SanctuaryCatalog } from '@/contexts/party/domain/RaidApplicationRepository'
+import {
+  SupabaseRaidApplicationRepository,
+  SupabaseSanctuaryCatalog,
+} from '@/contexts/party/infrastructure/SupabaseRaidApplications'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
 
 export interface Container {
   authRepository: AuthRepository
   characterDirectory: CharacterDirectory
   characterRepository: CharacterRepository
+  sanctuaryCatalog: SanctuaryCatalog
+  raidApplicationRepository: RaidApplicationRepository
+}
+
+const notConfigured = async (): Promise<never> => {
+  throw new Error('Supabase não configurado (.env).')
 }
 
 /** Usado quando não há .env: o app abre, mas o login avisa que falta configuração. */
 const unconfiguredAuth: AuthRepository = {
   getCurrentUser: async () => null,
-  signInWithDiscord: async () => {
-    throw new Error('Supabase não configurado (.env).')
-  },
+  signInWithDiscord: notConfigured,
   signOut: async () => {},
   onChange: () => () => {},
 }
 
 const unconfiguredCharacters: CharacterRepository = {
   listByOwner: async () => [],
-  save: async () => {
-    throw new Error('Supabase não configurado (.env).')
-  },
+  save: notConfigured,
   remove: async () => {},
+}
+
+const unconfiguredApplications: RaidApplicationRepository = {
+  listByOwner: async () => [],
+  create: notConfigured,
+  withdraw: async () => {},
 }
 
 let container: Container | null = null
@@ -44,6 +57,10 @@ export function getContainer(): Container {
       authRepository: supabase ? new SupabaseAuthRepository(supabase) : unconfiguredAuth,
       characterDirectory: new HttpCharacterDirectory(),
       characterRepository: supabase ? new SupabaseCharacterRepository(supabase) : unconfiguredCharacters,
+      sanctuaryCatalog: supabase ? new SupabaseSanctuaryCatalog(supabase) : { listActive: async () => [] },
+      raidApplicationRepository: supabase
+        ? new SupabaseRaidApplicationRepository(supabase)
+        : unconfiguredApplications,
     }
   }
   return container

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
+import ClassIcon from './ClassIcon.vue'
 
 /** Aceita o personagem completo ou só o resumo da busca (sem classe/CP). */
 type CardCharacter = CharacterSummary & Partial<Pick<Character, 'className' | 'combatPower' | 'itemLevel' | 'legionName'>>
@@ -28,11 +29,10 @@ const number = new Intl.NumberFormat('pt-BR')
 const initials = computed(() => props.character.name.slice(0, 2).toUpperCase())
 const factionLabel = computed(() => (props.character.faction === 'elyos' ? 'Elyos' : 'Asmodian'))
 
-/** "em Siel, legião Aurora" (ou só "Siel" quando não há classe para preceder). */
+/** "Siel, legião Aurora" */
 const location = computed(() => {
   const c = props.character
-  const server = c.className ? `em ${c.serverName}` : c.serverName
-  return c.legionName ? `${server}, legião ${c.legionName}` : server
+  return c.legionName ? `${c.serverName}, legião ${c.legionName}` : c.serverName
 })
 
 const stats = computed(() => {
@@ -90,17 +90,17 @@ const ariaLabel = computed(() =>
     <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 py-4 pr-4 pl-1 sm:pr-5">
       <div class="min-w-0 pr-20">
         <p v-if="role" class="text-xs font-semibold text-faction-ink">{{ role }}</p>
-        <h3
-          :class="
-            cn('truncate font-display text-[28px] leading-none font-semibold', inactive && 'text-muted-foreground')
-          "
-        >
-          {{ character.name }}
-        </h3>
-        <p class="mt-1.5 truncate text-sm text-muted-foreground">
-          <span v-if="character.className" class="font-semibold text-faction-ink">{{ character.className }}</span>
-          {{ location }}
-        </p>
+        <div class="flex min-w-0 items-center gap-2">
+          <ClassIcon v-if="character.className" :class-name="character.className" />
+          <h3
+            :class="
+              cn('truncate font-display text-[28px] leading-none font-semibold', inactive && 'text-muted-foreground')
+            "
+          >
+            {{ character.name }}
+          </h3>
+        </div>
+        <p class="mt-1.5 truncate text-sm text-muted-foreground">{{ location }}</p>
       </div>
 
       <dl class="flex flex-wrap items-end gap-x-5 gap-y-2">
@@ -119,6 +119,10 @@ const ariaLabel = computed(() =>
         </div>
         <p v-if="footnote" class="basis-full text-xs text-muted-foreground sm:ml-auto sm:basis-auto">{{ footnote }}</p>
       </dl>
+
+      <div v-if="$slots.footer" class="border-t border-border/60 pt-3">
+        <slot name="footer" />
+      </div>
     </div>
 
     <div v-if="$slots.actions" class="absolute top-2.5 right-2.5 flex items-center gap-0.5">
@@ -148,13 +152,14 @@ const ariaLabel = computed(() =>
     </span>
 
     <div class="min-w-0 flex-1">
-      <p class="flex items-baseline gap-2">
+      <p class="flex items-center gap-1.5">
+        <ClassIcon v-if="character.className" :class-name="character.className" size="sm" />
         <span class="truncate font-display text-lg leading-tight font-semibold">{{ character.name }}</span>
         <span v-if="role" class="flex-none text-xs font-semibold text-faction-ink">{{ role }}</span>
       </p>
       <p class="truncate text-[13px] text-muted-foreground">
-        <span class="text-faction-ink">{{ character.className ?? factionLabel }}</span>
-        <span class="ml-2">{{ character.serverName }}</span>
+        <span v-if="!character.className" class="mr-2 text-faction-ink">{{ factionLabel }}</span>
+        <span>{{ character.serverName }}</span>
         <span class="ml-2">Nível {{ character.level }}</span>
         <span v-if="character.combatPower" class="ml-2 tabular-nums">{{ number.format(character.combatPower) }} CP</span>
       </p>

@@ -27,13 +27,28 @@ export const CLASS_ROLE: Record<CharacterClass, CombatRole> = {
   Chanter: 'support',
 }
 
+export const ROLE_LABEL: Record<CombatRole, string> = {
+  tank: 'tanque',
+  healer: 'cura',
+  support: 'suporte',
+  dps: 'dano',
+}
+
+/** A API às vezes usa o nome interno (Elementalist) em vez do exibido (Spiritmaster). */
+const CLASS_ALIASES: Record<string, CharacterClass> = { Elementalist: 'Spiritmaster' }
+
+export function normalizeClassName(value: string): string {
+  return CLASS_ALIASES[value] ?? value
+}
+
 export function isCharacterClass(value: string): value is CharacterClass {
   return (CHARACTER_CLASSES as readonly string[]).includes(value)
 }
 
 /** A API pode trazer classes novas; nesse caso não há papel sugerido. */
 export function roleOf(className: string): CombatRole | null {
-  return isCharacterClass(className) ? CLASS_ROLE[className] : null
+  const name = normalizeClassName(className)
+  return isCharacterClass(name) ? CLASS_ROLE[name] : null
 }
 
 export const REGIONS = ['nae', 'naw', 'eu', 'la', 'as'] as const

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PhArrowsClockwise, PhCircleNotch, PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
 import { onMounted } from 'vue'
+import SanctuaryApplications from '@/contexts/party/presentation/components/SanctuaryApplications.vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import CharacterCard from '../components/CharacterCard.vue'
@@ -78,6 +79,9 @@ function confirmUnlink(linked: LinkedCharacter) {
               >
                 <PhTrash />
               </Button>
+            </template>
+            <template #footer>
+              <SanctuaryApplications :linked="linked" />
             </template>
           </CharacterCard>
         </li>
