@@ -1,6 +1,10 @@
 <script setup lang="ts">
+import { PhSword } from '@phosphor-icons/vue'
+import DiscordLoginButton from '@/contexts/identity/presentation/components/DiscordLoginButton.vue'
+import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { Button } from '@/shared/presentation/ui/button'
-import { Badge } from '@/shared/presentation/ui/badge'
+
+const auth = useAuthStore()
 </script>
 
 <template>
@@ -15,9 +19,14 @@ import { Badge } from '@/shared/presentation/ui/badge'
     <p class="mt-4 text-lg text-muted-foreground">
       Entre com o Discord, vincule seu personagem, monte sua party e acompanhe o calendário de raids.
     </p>
-    <Button size="lg" disabled class="mt-8 shadow-lg shadow-glow">
-      Entrar com Discord
-      <Badge variant="secondary">em breve</Badge>
-    </Button>
+    <div class="mt-8 flex justify-center">
+      <Button v-if="auth.isAuthenticated" size="lg" as-child class="shadow-lg shadow-glow">
+        <RouterLink to="/me">
+          <PhSword :size="20" />
+          Meus personagens
+        </RouterLink>
+      </Button>
+      <DiscordLoginButton v-else-if="auth.status === 'anonymous'" next="/me" size="lg" class="shadow-lg" />
+    </div>
   </section>
 </template>

@@ -1,7 +1,7 @@
 /**
  * Cron diário (vercel.json) que faz uma requisição ao Supabase para o projeto
  * free não ser pausado por inatividade. A Vercel envia `Authorization: Bearer $CRON_SECRET`.
- * TODO: quando houver tabelas, trocar por um SELECT leve em uma tabela real.
+ * Faz um SELECT leve em `profiles` (o RLS devolve 0 linhas para anon, mas o banco é tocado).
  */
 export async function GET(request: Request): Promise<Response> {
   const secret = process.env.CRON_SECRET
@@ -15,6 +15,6 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ ok: false, error: 'Supabase não configurado' }, { status: 500 })
   }
 
-  const res = await fetch(`${url}/rest/v1/`, { headers: { apikey: key } })
+  const res = await fetch(`${url}/rest/v1/profiles?select=id&limit=1`, { headers: { apikey: key } })
   return Response.json({ ok: res.ok, status: res.status }, { status: res.ok ? 200 : 502 })
 }
