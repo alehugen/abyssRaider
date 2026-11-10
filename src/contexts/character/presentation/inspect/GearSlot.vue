@@ -52,7 +52,7 @@ watch(open, async (isOpen) => {
         </span>
         <span class="min-w-0">
           <span class="block text-xs text-muted-foreground">{{ slotLabel(gear.slotName) }}</span>
-          <span class="block truncate text-sm font-medium text-(--grade-ink)">
+          <span class="block truncate text-sm font-medium text-(--grade-ink)" :title="`${gear.name} ${enchantLabel(gear)}`.trim()">
             {{ gear.name }}
             <span v-if="enchantLabel(gear)" class="tabular-nums">{{ enchantLabel(gear) }}</span>
           </span>

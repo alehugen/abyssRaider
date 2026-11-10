@@ -84,8 +84,8 @@ const summary = computed(() => {
       <slot />
     </DialogTrigger>
 
-    <DialogContent :class="cn(`faction-${character.faction}`, 'max-h-[90vh] overflow-y-auto sm:max-w-3xl')">
-      <DialogHeader class="flex-row items-center gap-3 text-left">
+    <DialogContent :class="cn(`faction-${character.faction}`, 'flex h-[min(90dvh,820px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl')">
+      <DialogHeader class="flex-none flex-row items-center gap-3 px-6 pt-6 pb-4 pr-12 text-left">
         <img
           v-if="character.portraitUrl"
           :src="character.portraitUrl"
@@ -108,24 +108,24 @@ const summary = computed(() => {
         </div>
       </DialogHeader>
 
-      <div v-if="loading" class="space-y-3" aria-busy="true">
+      <div v-if="loading" class="space-y-3 px-6 pb-6" aria-busy="true">
         <Skeleton class="h-9 w-80" />
         <div class="grid gap-2 sm:grid-cols-2">
           <Skeleton v-for="i in 8" :key="i" class="h-14" />
         </div>
       </div>
 
-      <div v-else-if="error" role="alert" class="space-y-3 text-sm">
+      <div v-else-if="error" role="alert" class="space-y-3 px-6 pb-6 text-sm">
         <p class="flex items-center gap-2 text-destructive"><PhWarningCircle :size="18" /> {{ error }}</p>
         <Button variant="outline" size="sm" @click="load"><PhArrowClockwise /> Tentar de novo</Button>
       </div>
 
-      <p v-else-if="missing" class="text-sm text-muted-foreground">
+      <p v-else-if="missing" class="px-6 pb-6 text-sm text-muted-foreground">
         O jogo não encontrou este personagem. Ele pode ter sido renomeado, transferido ou excluído.
       </p>
 
-      <Tabs v-else-if="build" default-value="gear" class="gap-4">
-        <TabsList class="w-full">
+      <Tabs v-else-if="build" default-value="gear" class="min-h-0 flex-1 gap-0">
+        <TabsList class="mx-6 mb-3 w-auto flex-none">
           <TabsTrigger value="gear" class="px-1 text-[13px] sm:px-2 sm:text-sm">Equipamento</TabsTrigger>
           <TabsTrigger value="stats" class="px-1 text-[13px] sm:px-2 sm:text-sm">Atributos</TabsTrigger>
           <TabsTrigger value="skills" class="px-1 text-[13px] sm:px-2 sm:text-sm">Skills</TabsTrigger>
@@ -133,7 +133,7 @@ const summary = computed(() => {
         </TabsList>
 
         <!-- Equipamento -->
-        <TabsContent value="gear" class="space-y-5">
+        <TabsContent value="gear" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-5">
           <p v-if="!build.equipment.length" class="text-sm text-muted-foreground">Nada equipado.</p>
           <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
             <section v-for="g in gearGroups" :key="g.id">
@@ -181,7 +181,7 @@ const summary = computed(() => {
         </TabsContent>
 
         <!-- Atributos -->
-        <TabsContent value="stats" class="space-y-6">
+        <TabsContent value="stats" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-6">
           <section>
             <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Atributos base</h3>
             <dl class="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -221,7 +221,7 @@ const summary = computed(() => {
         </TabsContent>
 
         <!-- Skills -->
-        <TabsContent value="skills" class="space-y-5">
+        <TabsContent value="skills" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-5">
           <p v-if="!skillGroups.length" class="text-sm text-muted-foreground">Nenhuma skill aprendida.</p>
           <section v-for="g in skillGroups" :key="g.category">
             <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
@@ -252,7 +252,7 @@ const summary = computed(() => {
         </TabsContent>
 
         <!-- Daevanion -->
-        <TabsContent value="daevanion" class="space-y-3">
+        <TabsContent value="daevanion" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-3">
           <p v-if="!build.daevanion.length" class="text-sm text-muted-foreground">Nenhum tabuleiro aberto ainda.</p>
           <ul class="grid gap-2 sm:grid-cols-2">
             <li v-for="b in build.daevanion" :key="b.id" class="flex items-center gap-3 rounded-lg border bg-card/60 p-3">
