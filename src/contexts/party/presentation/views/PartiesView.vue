@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PhCaretRight, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhCaretRight, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { Button } from '@/shared/presentation/ui/button'
 import { onMounted } from 'vue'
 import { REGION_LABEL } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
@@ -31,7 +32,12 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
           Monte o grupo para um santuário ou abra o link que o líder mandou para pedir sua vaga.
         </p>
       </div>
-      <CreatePartyDialog />
+      <div class="flex flex-wrap gap-2">
+        <Button variant="outline" as-child>
+          <RouterLink :to="{ name: 'find-parties' }"><PhMagnifyingGlass /> Buscar parties</RouterLink>
+        </Button>
+        <CreatePartyDialog />
+      </div>
     </header>
 
     <p v-if="parties.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">

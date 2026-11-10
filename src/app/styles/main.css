@@ -11,9 +11,9 @@
 @custom-variant abyss (&:where([data-theme='abyss'], [data-theme='abyss'] *));
 
 @theme {
-  /* Barlow em duas larguras: a condensada faz nomes, títulos e números (cara de HUD). */
-  --font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
-  --font-display: 'Barlow Condensed', 'Barlow', ui-sans-serif, sans-serif;
+  /* Mesmas famílias do site oficial do Aion 2: Noto Sans no texto, Noto Serif nos títulos e nomes. */
+  --font-sans: 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Noto Serif', ui-serif, Georgia, serif;
 }
 
 /*
@@ -59,6 +59,52 @@
 
   --shadow-card: var(--card-shadow);
   --shadow-card-hover: var(--card-shadow-hover);
+}
+
+/* Card com reflexo (diretiva v-glare): cresce, inclina e um brilho segue o ponteiro. */
+@layer components {
+  .glare-card {
+    --mx: 50%;
+    --my: 50%;
+    --rx: 0deg;
+    --ry: 0deg;
+    --lift: 1;
+    transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) scale(var(--lift));
+    transition:
+      transform 0.25s ease-out,
+      box-shadow 0.25s ease-out;
+  }
+  .glare-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at var(--mx) var(--my), oklch(1 0 0 / 0.2), transparent 45%),
+      linear-gradient(
+        115deg,
+        transparent calc(var(--mx) - 30%),
+        oklch(1 0 0 / 0.08) var(--mx),
+        transparent calc(var(--mx) + 30%)
+      );
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+  .glare-card:hover {
+    --lift: 1.02;
+    box-shadow: var(--card-shadow-hover);
+  }
+  .glare-card:hover::after {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glare-card,
+    .glare-card:hover {
+      transform: none;
+    }
+  }
 }
 
 @layer base {

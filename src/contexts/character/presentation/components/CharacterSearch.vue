@@ -10,6 +10,9 @@ import { characterKey, useCharactersStore } from '../useCharactersStore'
 import { useCharacterSearch } from '../useCharacterSearch'
 import CharacterCard from './CharacterCard.vue'
 
+/** embedded = dentro de um diálogo: sem moldura nem título próprios. */
+defineProps<{ embedded?: boolean }>()
+
 const { region, serverId, name, servers, results, searching, searched, error, search } = useCharacterSearch()
 const characters = useCharactersStore()
 
@@ -36,8 +39,12 @@ function link(c: CharacterSummary) {
 </script>
 
 <template>
-  <section class="rounded-2xl border bg-card/60 p-4 sm:p-6" aria-labelledby="search-title">
-    <div class="max-w-prose">
+  <section
+    :class="embedded ? '' : 'rounded-2xl border bg-card/60 p-4 sm:p-6'"
+    :aria-labelledby="embedded ? undefined : 'search-title'"
+    :aria-label="embedded ? 'Buscar personagem' : undefined"
+  >
+    <div v-if="!embedded" class="max-w-prose">
       <h2 id="search-title" class="font-display text-2xl font-semibold">Vincular personagem</h2>
       <p class="mt-1 text-sm text-muted-foreground">
         Escolha a região e digite o nome como aparece no jogo. Os dados vêm do site oficial do Aion 2.
@@ -45,7 +52,8 @@ function link(c: CharacterSummary) {
     </div>
 
     <form
-      class="mt-5 grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,12rem)_1fr_auto]"
+      :class="embedded ? '' : 'mt-5'"
+      class="grid gap-2 sm:grid-cols-[minmax(0,12rem)_minmax(0,12rem)_1fr_auto]"
       role="search"
       @submit.prevent="search"
     >

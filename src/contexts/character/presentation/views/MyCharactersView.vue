@@ -1,19 +1,37 @@
 <script setup lang="ts">
-import { PhArrowsClockwise, PhCircleNotch, PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
-import { onMounted } from 'vue'
+import {
+  PhArrowsClockwise,
+  PhCircleNotch,
+  PhMagnifyingGlass,
+  PhTrash,
+  PhUserPlus,
+  PhWarningCircle,
+} from '@phosphor-icons/vue'
+import { onMounted, ref, watch } from 'vue'
 import SanctuaryApplications from '@/contexts/party/presentation/components/SanctuaryApplications.vue'
 import { Button } from '@/shared/presentation/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/presentation/ui/tooltip'
 import CharacterCard from '../components/CharacterCard.vue'
 import CharacterSearch from '../components/CharacterSearch.vue'
 import { MAX_CHARACTERS_PER_ACCOUNT, type LinkedCharacter } from '../../domain/LinkedCharacter'
 import { characterKey, useCharactersStore } from '../useCharactersStore'
 
 const characters = useCharactersStore()
+const adding = ref(false)
 
 onMounted(() => {
   if (!characters.loaded) void characters.load()
 })
+
+// Vinculou pelo diálogo: fecha para mostrar o card novo.
+watch(
+  () => characters.items.length,
+  (now, before) => {
+    if (adding.value && now > before) adding.value = false
+  },
+)
 
 const relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 function syncedLabel(date: Date): string {
@@ -33,11 +51,28 @@ function confirmUnlink(linked: LinkedCharacter) {
 <template>
   <div class="space-y-10">
     <section class="space-y-5" aria-labelledby="roster-title">
-      <header class="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
-        <h1 id="roster-title" class="font-display text-4xl leading-none font-bold">Meus personagens</h1>
-        <p v-if="characters.loaded" class="text-sm text-muted-foreground tabular-nums">
-          {{ characters.items.length }} de {{ MAX_CHARACTERS_PER_ACCOUNT }} vinculados
-        </p>
+      <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div>
+          <h1 id="roster-title" class="font-display text-4xl leading-tight font-bold">Meus personagens</h1>
+          <p v-if="characters.loaded" class="text-sm text-muted-foreground tabular-nums">
+            {{ characters.items.length }} de {{ MAX_CHARACTERS_PER_ACCOUNT }} vinculados
+          </p>
+        </div>
+
+        <Tooltip v-if="characters.items.length">
+          <TooltipTrigger as-child>
+            <Button
+              size="icon"
+              variant="outline"
+              aria-label="Adicionar personagem"
+              :disabled="characters.items.length >= MAX_CHARACTERS_PER_ACCOUNT"
+              @click="adding = true"
+            >
+              <PhUserPlus />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Adicionar personagem</TooltipContent>
+        </Tooltip>
       </header>
 
       <p v-if="characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
@@ -48,11 +83,7 @@ function confirmUnlink(linked: LinkedCharacter) {
         <Skeleton v-for="i in 2" :key="i" class="h-36 rounded-2xl" />
       </div>
 
-      <p v-else-if="!characters.items.length" class="text-muted-foreground">
-        Você ainda não vinculou nenhum personagem. Busque o seu abaixo para poder entrar em parties.
-      </p>
-
-      <ul v-else class="grid gap-4 lg:grid-cols-2">
+      <ul v-else-if="characters.items.length" class="grid gap-5 lg:grid-cols-2">
         <li v-for="linked in characters.items" :key="linked.linkId">
           <CharacterCard :character="linked.character" :footnote="syncedLabel(linked.syncedAt)">
             <template #actions>
@@ -81,13 +112,33 @@ function confirmUnlink(linked: LinkedCharacter) {
               </Button>
             </template>
             <template #footer>
-              <SanctuaryApplications :linked="linked" />
+              <div class="flex flex-wrap items-center gap-2">
+                <SanctuaryApplications :linked="linked" />
+                <Button size="sm" variant="ghost" as-child>
+                  <RouterLink :to="{ name: 'find-parties', query: { personagem: linked.linkId } }">
+                    <PhMagnifyingGlass /> Buscar parties
+                  </RouterLink>
+                </Button>
+              </div>
             </template>
           </CharacterCard>
         </li>
       </ul>
     </section>
 
-    <CharacterSearch />
+    <!-- Sem personagem: a busca é o conteúdo principal da página. -->
+    <CharacterSearch v-if="characters.loaded && !characters.items.length" />
+
+    <Dialog v-model:open="adding">
+      <DialogContent class="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle class="font-display text-2xl">Adicionar personagem</DialogTitle>
+          <DialogDescription>
+            Escolha a região e digite o nome como aparece no jogo. Os dados vêm do site oficial do Aion 2.
+          </DialogDescription>
+        </DialogHeader>
+        <CharacterSearch embedded />
+      </DialogContent>
+    </Dialog>
   </div>
 </template>

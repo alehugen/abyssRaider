@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
+import { vGlare } from '@/shared/presentation/directives/glare'
 import ClassIcon from './ClassIcon.vue'
 
 /** Aceita o personagem completo ou só o resumo da busca (sem classe/CP). */
@@ -57,6 +58,7 @@ const ariaLabel = computed(() =>
   <!-- Nameplate -->
   <article
     v-if="size === 'md'"
+    v-glare
     :class="
       cn(
         `faction-${character.faction}`,
@@ -125,7 +127,7 @@ const ariaLabel = computed(() =>
       </div>
     </div>
 
-    <div v-if="$slots.actions" class="absolute top-2.5 right-2.5 flex items-center gap-0.5">
+    <div v-if="$slots.actions" class="absolute top-2.5 right-2.5 z-2 flex items-center gap-0.5">
       <slot name="actions" />
     </div>
   </article>

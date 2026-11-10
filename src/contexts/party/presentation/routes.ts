@@ -8,6 +8,12 @@ export const partyRoutes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/parties/buscar',
+    name: 'find-parties',
+    component: () => import('./views/FindPartiesView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     // O link desta página é o convite da party.
     path: '/parties/:id',
     name: 'party',

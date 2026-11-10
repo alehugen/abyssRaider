@@ -9,46 +9,64 @@ export const CHARACTER_CLASSES = [
   'Spiritmaster',
   'Cleric',
   'Chanter',
+  'Brawler',
 ] as const
 
 export type CharacterClass = (typeof CHARACTER_CLASSES)[number]
 
-export type CombatRole = 'tank' | 'healer' | 'support' | 'dps'
+export type CombatRole = 'tank' | 'healer' | 'dps'
 
-/** Papel padrão de cada classe na montagem da party (sujeito a revisão). */
-export const CLASS_ROLE: Record<CharacterClass, CombatRole> = {
-  Gladiator: 'dps',
-  Templar: 'tank',
-  Assassin: 'dps',
-  Ranger: 'dps',
-  Sorcerer: 'dps',
-  Spiritmaster: 'dps',
-  Cleric: 'healer',
-  Chanter: 'support',
+/**
+ * Papéis que cada classe pode cumprir na party; o primeiro é o principal.
+ * Chanter é híbrido: entra como dano ou como cura.
+ */
+export const CLASS_ROLES: Record<CharacterClass, readonly CombatRole[]> = {
+  Gladiator: ['dps'],
+  Templar: ['tank'],
+  Assassin: ['dps'],
+  Ranger: ['dps'],
+  Sorcerer: ['dps'],
+  Spiritmaster: ['dps'],
+  Cleric: ['healer'],
+  Chanter: ['dps', 'healer'],
+  Brawler: ['dps'],
 }
 
 export const ROLE_LABEL: Record<CombatRole, string> = {
   tank: 'tanque',
   healer: 'cura',
-  support: 'suporte',
   dps: 'dano',
 }
 
-/** A API às vezes usa o nome interno (Elementalist) em vez do exibido (Spiritmaster). */
-const CLASS_ALIASES: Record<string, CharacterClass> = { Elementalist: 'Spiritmaster' }
+/** A API às vezes usa o nome interno (Elementalist, Fighter) em vez do exibido. */
+const CLASS_ALIASES: Record<string, CharacterClass> = {
+  Elementalist: 'Spiritmaster',
+  Fighter: 'Brawler',
+}
 
 export function normalizeClassName(value: string): string {
-  return CLASS_ALIASES[value] ?? value
+  const titled = value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+  return CLASS_ALIASES[titled] ?? titled
 }
 
 export function isCharacterClass(value: string): value is CharacterClass {
   return (CHARACTER_CLASSES as readonly string[]).includes(value)
 }
 
-/** A API pode trazer classes novas; nesse caso não há papel sugerido. */
-export function roleOf(className: string): CombatRole | null {
+/** Todos os papéis possíveis; vazio se a API trouxer uma classe desconhecida. */
+export function rolesOf(className: string): readonly CombatRole[] {
   const name = normalizeClassName(className)
-  return isCharacterClass(name) ? CLASS_ROLE[name] : null
+  return isCharacterClass(name) ? CLASS_ROLES[name] : []
+}
+
+/** Papel principal (o primeiro da lista), ou null para classe desconhecida. */
+export function roleOf(className: string): CombatRole | null {
+  return rolesOf(className)[0] ?? null
+}
+
+/** "dano/cura" para híbridos. */
+export function rolesLabel(className: string): string {
+  return rolesOf(className).map((r) => ROLE_LABEL[r]).join('/')
 }
 
 export const REGIONS = ['nae', 'naw', 'eu', 'la', 'as'] as const

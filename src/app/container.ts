@@ -53,6 +53,7 @@ const unconfiguredApplications: RaidApplicationRepository = {
 
 const unconfiguredParties: PartyRepository = {
   listMine: async () => [],
+  listOpen: async () => [],
   get: async () => null,
   create: notConfigured,
   remove: notConfigured,

@@ -124,6 +124,19 @@ export class SupabasePartyRepository implements PartyRepository {
     }))
   }
 
+  async listOpen(filter: { region: Region; faction: Faction }): Promise<PartyDetails[]> {
+    const { data, error } = await this.client
+      .from('parties')
+      .select(`${PARTY_COLUMNS}, members:party_members!party_members_party_id_fkey(${MEMBER_COLUMNS})`)
+      .eq('region', filter.region)
+      .eq('faction', filter.faction)
+      .order('created_at', { ascending: false })
+      .limit(100)
+    if (error) rethrow(error)
+    type Row = PartyRow & { members: MemberRow[] }
+    return (data as unknown as Row[]).map((r) => ({ party: toParty(r), members: r.members.map(toMember) }))
+  }
+
   async get(partyId: string): Promise<PartyDetails | null> {
     const [{ data: party, error }, { data: members, error: membersError }] = await Promise.all([
       this.client.from('parties').select(PARTY_COLUMNS).eq('id', partyId).maybeSingle(),

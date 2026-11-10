@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import type { Character } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
-import { canJoin, composition, groups, isFull, type Party, type PartyMember } from './Party'
+import {
+  canJoin,
+  composition,
+  groups,
+  isFull,
+  neededRolesFor,
+  openRoles,
+  type Party,
+  type PartyMember,
+} from './Party'
 
 const party: Party = {
   id: 'p1',
@@ -46,7 +55,30 @@ describe('Party', () => {
       member('c', { className: 'Elementalist' }),
       member('d', { className: 'Chanter' }, 'pending'),
     ]
-    expect(composition(members)).toEqual({ tank: 1, healer: 1, support: 0, dps: 1, unknown: 0 })
+    expect(composition(members, 10)).toEqual({ tank: 1, healer: 1, dps: 1, unknown: 0 })
+  })
+
+  it('encaixa o Chanter onde mais falta (cura ou dano)', () => {
+    const noHealer = [member('t', { className: 'Templar' }), member('c', { className: 'Chanter' })]
+    expect(composition(noHealer, 10)).toMatchObject({ healer: 1, dps: 0 })
+
+    const healersFull = [
+      member('h1', { className: 'Cleric' }),
+      member('h2', { className: 'Cleric' }),
+      member('c', { className: 'Chanter' }),
+    ]
+    expect(composition(healersFull, 10)).toMatchObject({ healer: 2, dps: 1 })
+  })
+
+  it('calcula vagas por papel e quem a party precisa', () => {
+    const members = [
+      member('leader', { className: 'Templar' }),
+      member('t2', { className: 'Templar' }),
+      member('h', { className: 'Cleric' }),
+    ]
+    expect(openRoles(party, members)).toEqual({ tank: 0, healer: 1, dps: 6 })
+    expect(neededRolesFor(party, members, 'Templar')).toEqual([])
+    expect(neededRolesFor(party, members, 'Chanter')).toEqual(['dps', 'healer'])
   })
 
   it('monta 2 grupos de 5, líder primeiro e depois por papel', () => {

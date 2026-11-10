@@ -12,14 +12,14 @@ import {
 } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { REGION_LABEL, ROLE_LABEL, roleOf } from '@/contexts/character/domain/Character'
+import { REGION_LABEL, ROLE_LABEL } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
-import { canJoin, composition, groups, ROLE_ORDER, type PartyMember } from '../../domain/Party'
+import { assignRoles, canJoin, composition, groups, ROLE_ORDER, type PartyMember } from '../../domain/Party'
 import { usePartyDetail } from '../usePartyDetail'
 
 const route = useRoute()
@@ -34,12 +34,13 @@ if (!characters.loaded) void characters.load()
 
 const party = computed(() => p.details.value?.party ?? null)
 const roster = computed(() => (party.value ? groups(party.value, p.accepted.value) : []))
-const comp = computed(() => composition(p.accepted.value))
+const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
+const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 const full = computed(() => !!party.value && p.accepted.value.length >= party.value.sanctuary.groupSize)
 
 function roleLabel(m: PartyMember): string {
   if (party.value && m.linked.linkId === party.value.leaderCharacterLinkId) return 'Líder'
-  const role = roleOf(m.linked.character.className)
+  const role = assigned.value.get(m.id)
   const label = role ? ROLE_LABEL[role] : ''
   return label.charAt(0).toUpperCase() + label.slice(1)
 }

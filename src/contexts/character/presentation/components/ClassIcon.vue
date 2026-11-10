@@ -1,48 +1,27 @@
 <script setup lang="ts">
-import {
-  PhCrosshair,
-  PhFire,
-  PhGhost,
-  PhHandHeart,
-  PhKnife,
-  PhMusicNotes,
-  PhQuestion,
-  PhShield,
-  PhSword,
-} from '@phosphor-icons/vue'
-import { computed, type Component } from 'vue'
-import {
-  normalizeClassName,
-  ROLE_LABEL,
-  roleOf,
-  type CharacterClass,
-} from '@/contexts/character/domain/Character'
+import { computed, ref, watch } from 'vue'
+import { normalizeClassName, rolesLabel } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/presentation/ui/tooltip'
 
 /*
- * Ícones próprios (Phosphor) por classe. Para usar ícones oficiais no futuro,
- * basta trocar este mapa por <img> apontando para arquivos em /public/classes.
+ * Brasões oficiais das classes, servidos pelo CDN da NCSOFT (os mesmos do site do jogo).
+ * O CDN usa os nomes internos: Spiritmaster = elementalist, Brawler = fighter.
  */
-const ICONS: Record<CharacterClass, Component> = {
-  Gladiator: PhSword,
-  Templar: PhShield,
-  Assassin: PhKnife,
-  Ranger: PhCrosshair,
-  Sorcerer: PhFire,
-  Spiritmaster: PhGhost,
-  Cleric: PhHandHeart,
-  Chanter: PhMusicNotes,
-}
+const CDN = 'https://assets.playnccdn.com/static-aion2/characters/img/class/class_icon_'
+const FILE: Record<string, string> = { Spiritmaster: 'elementalist', Brawler: 'fighter' }
 
 const props = withDefaults(defineProps<{ className: string; size?: 'sm' | 'md' }>(), { size: 'md' })
 
 const name = computed(() => normalizeClassName(props.className))
-const icon = computed(() => ICONS[name.value as CharacterClass] ?? PhQuestion)
+const src = computed(() => `${CDN}${FILE[name.value] ?? name.value.toLowerCase()}.png`)
 const label = computed(() => {
-  const role = roleOf(name.value)
-  return role ? `${name.value}, ${ROLE_LABEL[role]}` : name.value
+  const roles = rolesLabel(name.value)
+  return roles ? `${name.value}, ${roles}` : name.value
 })
+
+const failed = ref(false)
+watch(src, () => (failed.value = false))
 </script>
 
 <template>
@@ -54,12 +33,21 @@ const label = computed(() => {
         :aria-label="label"
         :class="
           cn(
-            'inline-grid flex-none place-items-center rounded-md bg-faction-soft text-faction-ink outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            size === 'md' ? 'size-7' : 'size-5 rounded',
+            'relative inline-grid flex-none place-items-center overflow-hidden rounded-lg bg-[oklch(0.2_0.03_260)] ring-1 ring-faction/40 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            size === 'md' ? 'size-8' : 'size-6 rounded-md',
           )
         "
       >
-        <component :is="icon" :size="size === 'md' ? 18 : 13" weight="duotone" aria-hidden="true" />
+        <img
+          v-if="!failed"
+          :src="src"
+          alt=""
+          loading="lazy"
+          draggable="false"
+          class="size-[85%] object-contain drop-shadow-[0_1px_2px_rgb(0_0_0/0.6)]"
+          @error="failed = true"
+        />
+        <span v-else class="text-[10px] font-bold text-white/80">{{ name.slice(0, 2).toUpperCase() }}</span>
       </span>
     </TooltipTrigger>
     <TooltipContent>{{ label }}</TooltipContent>
