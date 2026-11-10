@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Character } from '@/contexts/character/domain/Character'
+import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
 import { cn } from '@/shared/lib/utils'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/presentation/ui/avatar'
 import { Badge } from '@/shared/presentation/ui/badge'
 import { Card } from '@/shared/presentation/ui/card'
 
+/** Aceita o personagem completo ou só o resumo da busca (sem classe/CP). */
+type CardCharacter = CharacterSummary & Partial<Pick<Character, 'className' | 'combatPower' | 'itemLevel' | 'legionName'>>
+
 const props = withDefaults(
   defineProps<{
-    character: Character
+    character: CardCharacter
     /** Rótulo pequeno acima do nome (ex.: "Líder", "Tank", "Seu personagem"). */
     role?: string
     /** Visual apagado: ausente, recusou a raid, etc. */
@@ -39,7 +42,7 @@ const md = computed(() => props.size === 'md')
         interactive && 'transition-[box-shadow,translate] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-card-hover',
       )
     "
-    :aria-label="`${character.name}, ${character.className} nível ${character.level}`"
+    :aria-label="[character.name, character.className, `nível ${character.level}`, character.serverName].filter(Boolean).join(', ')"
   >
     <Avatar
       :class="
@@ -74,7 +77,7 @@ const md = computed(() => props.size === 'md')
       </h3>
 
       <div v-if="md" class="flex flex-wrap gap-1.5">
-        <Badge variant="faction">{{ character.className }}</Badge>
+        <Badge v-if="character.className" variant="faction">{{ character.className }}</Badge>
         <Badge variant="faction">{{ character.serverName }}</Badge>
         <Badge v-if="character.legionName" variant="secondary" class="px-2.5 text-[13px] font-semibold">
           {{ character.legionName }}
@@ -82,7 +85,8 @@ const md = computed(() => props.size === 'md')
       </div>
 
       <p class="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-[13px] text-muted-foreground">
-        <span v-if="!md" class="font-semibold text-faction-ink">{{ character.className }}</span>
+        <span v-if="!md && character.className" class="font-semibold text-faction-ink">{{ character.className }}</span>
+        <span v-if="!md">{{ character.serverName }}</span>
         <span>Nv. <b class="font-semibold text-foreground">{{ character.level }}</b></span>
         <span v-if="combatPower"><b class="font-semibold text-foreground">{{ combatPower }}</b> CP</span>
         <span v-if="character.itemLevel">iLv <b class="font-semibold text-foreground">{{ character.itemLevel }}</b></span>

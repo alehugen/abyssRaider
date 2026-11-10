@@ -12,10 +12,4 @@ export const identityRoutes: RouteRecordRaw[] = [
     name: 'auth-callback',
     component: () => import('./views/AuthCallbackView.vue'),
   },
-  {
-    path: '/me',
-    name: 'me',
-    component: () => import('./views/MeView.vue'),
-    meta: { requiresAuth: true },
-  },
 ]

@@ -2,6 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv } from 'vite'
+import { vercelApiDev } from './scripts/vite-vercel-api.ts'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -13,7 +14,7 @@ export default defineConfig(({ mode }) => {
   const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || ''
 
   return {
-    plugins: [vue(), tailwindcss()],
+    plugins: [vue(), tailwindcss(), vercelApiDev()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

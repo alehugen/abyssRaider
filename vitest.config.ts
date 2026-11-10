@@ -5,7 +5,7 @@ export default defineConfig((env) =>
   mergeConfig(viteConfig(env), {
     test: {
       environment: 'jsdom',
-      include: ['src/**/*.spec.ts'],
+      include: ['src/**/*.spec.ts', 'api/**/*.spec.ts'],
     },
   }),
 )
