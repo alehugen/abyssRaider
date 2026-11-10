@@ -14,6 +14,7 @@ interface SanctuaryEmbed {
   name: string
   min_item_level: number | null
   group_size: number
+  image_url: string | null
 }
 
 interface PartyRow {
@@ -48,7 +49,7 @@ interface MemberRow {
 // Hints de FK explícitos: evitam ambiguidade no embed do PostgREST.
 const PARTY_COLUMNS = `id, name, sanctuary_id, leader_id, leader_character_id, region, faction, created_at,
   raid_days, raid_time, time_zone,
-  sanctuary:sanctuaries!parties_sanctuary_id_fkey(id, name, min_item_level, group_size)`
+  sanctuary:sanctuaries!parties_sanctuary_id_fkey(id, name, min_item_level, group_size, image_url)`
 
 const MEMBER_COLUMNS = `id, party_id, status, created_at,
   character:characters!party_members_character_id_fkey(${CHARACTER_COLUMNS}),
@@ -63,6 +64,7 @@ function toParty(r: PartyRow): Party {
       name: r.sanctuary.name,
       minItemLevel: r.sanctuary.min_item_level,
       groupSize: r.sanctuary.group_size,
+      imageUrl: r.sanctuary.image_url,
     },
     leaderId: r.leader_id,
     leaderCharacterLinkId: r.leader_character_id,

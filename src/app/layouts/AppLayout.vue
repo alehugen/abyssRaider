@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCalendarDots, PhSignIn, PhSword, PhUsersThree } from '@phosphor-icons/vue'
+import { PhCalendarDots, PhLinkedinLogo, PhSignIn, PhSword, PhUsersThree } from '@phosphor-icons/vue'
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
@@ -49,10 +49,26 @@ const links = [
       <slot />
     </main>
     <footer class="border-t border-border/60 bg-background/70 backdrop-blur">
-      <p class="mx-auto max-w-6xl px-4 py-4 text-xs text-muted-foreground">
-        AbyssRaider é um projeto de fãs, sem vínculo com a NCSOFT. Aion 2, seus ícones, imagens e vídeos são
-        marcas e conteúdos da NCSOFT Corporation.
-      </p>
+      <div
+        class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-6"
+      >
+        <p class="max-w-prose">
+          AbyssRaider é um projeto de fãs, sem vínculo com a NCSOFT. Aion 2, seus ícones, imagens e vídeos são
+          marcas e conteúdos da NCSOFT Corporation.
+        </p>
+        <p class="flex flex-none items-center gap-1.5">
+          Desenvolvido por
+          <a
+            href="https://www.linkedin.com/in/alehugen/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 rounded font-medium text-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+          >
+            Alessandro Hugen
+            <PhLinkedinLogo :size="16" weight="fill" aria-label="LinkedIn" />
+          </a>
+        </p>
+      </div>
     </footer>
   </div>
 </template>

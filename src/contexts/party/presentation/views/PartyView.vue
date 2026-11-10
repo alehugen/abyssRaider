@@ -136,6 +136,20 @@ async function removeMember(m: PartyMember) {
     </p>
 
     <template v-else-if="party">
+      <!-- Arte do santuário no fundo do topo da página, esmaecendo para o fundo do tema. -->
+      <div
+        v-if="party.sanctuary.imageUrl"
+        class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[75vh] overflow-hidden"
+        aria-hidden="true"
+      >
+        <img
+          :src="party.sanctuary.imageUrl"
+          alt=""
+          class="size-full scale-105 object-cover object-[center_20%] opacity-60 blur-[2px] mask-b-from-20% mask-b-to-100%"
+        />
+        <div class="absolute inset-0 bg-linear-to-r from-background via-background/50 to-background/10" />
+      </div>
+
       <header :class="cn(`faction-${party.faction}`, 'flex flex-wrap items-end justify-between gap-4')">
         <div class="min-w-0">
           <h1 class="font-display text-4xl leading-none font-bold break-words">{{ party.name }}</h1>

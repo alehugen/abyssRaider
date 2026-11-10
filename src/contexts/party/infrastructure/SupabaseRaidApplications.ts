@@ -8,6 +8,7 @@ interface SanctuaryRow {
   name: string
   min_item_level: number | null
   group_size: number
+  image_url: string | null
 }
 
 interface ApplicationRow {
@@ -23,6 +24,7 @@ const toSanctuary = (r: SanctuaryRow): Sanctuary => ({
   name: r.name,
   minItemLevel: r.min_item_level,
   groupSize: r.group_size,
+  imageUrl: r.image_url,
 })
 
 const toApplication = (r: ApplicationRow): RaidApplication => ({
@@ -45,7 +47,7 @@ export class SupabaseSanctuaryCatalog implements SanctuaryCatalog {
   async listActive(): Promise<Sanctuary[]> {
     const { data, error } = await this.client
       .from('sanctuaries')
-      .select('id, name, min_item_level, group_size')
+      .select('id, name, min_item_level, group_size, image_url')
       .eq('active', true)
       .order('sort_order')
     if (error) throw error

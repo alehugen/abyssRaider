@@ -9,6 +9,8 @@ export interface Sanctuary {
   minItemLevel: number | null
   /** Tamanho do grupo (Ludra: 10, em duas parties de 5). */
   groupSize: number
+  /** Arte de fundo (opcional), usada no topo da página da party. */
+  imageUrl?: string | null
 }
 
 export type Eligibility = { ok: true } | { ok: false; reason: string }
