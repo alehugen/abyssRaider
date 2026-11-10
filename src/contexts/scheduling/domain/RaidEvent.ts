@@ -35,17 +35,6 @@ export interface AgendaEntry {
   myCharacterName: string
 }
 
-export const MAX_WEEKS = 8
-
-/** Datas de uma raid semanal: a primeira e as mesmas hora/dia da semana nas seguintes. */
-export function weeklyOccurrences(first: Date, weeks: number): Date[] {
-  const count = Math.min(Math.max(1, Math.trunc(weeks)), MAX_WEEKS)
-  return Array.from({ length: count }, (_, i) => {
-    // Brasília não tem horário de verão: somar 7 dias exatos mantém o mesmo horário.
-    return new Date(first.getTime() + 7 * i * 86_400_000)
-  })
-}
-
 export function rsvpCounts(event: RaidEvent): Record<RsvpStatus, number> {
   const counts: Record<RsvpStatus, number> = { going: 0, maybe: 0, declined: 0 }
   for (const r of event.rsvps) counts[r.status]++

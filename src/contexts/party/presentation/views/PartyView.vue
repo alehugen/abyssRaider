@@ -18,6 +18,8 @@ import CharacterCard from '@/contexts/character/presentation/components/Characte
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
 import PartyBestTime from '@/contexts/scheduling/presentation/components/PartyBestTime.vue'
+import { usePartyAvailability } from '@/contexts/scheduling/presentation/usePartyAvailability'
+import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
@@ -44,6 +46,15 @@ const nextRoutineDate = computed(() => (party.value?.routine ? (nextOccurrences(
 const roster = computed(() => (party.value ? groups(party.value, p.accepted.value) : []))
 const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
+// Disponibilidade dos membros: melhor horário e sugestões ao agendar a raid da semana.
+const availability = usePartyAvailability(() => p.accepted.value)
+const scheduleOptions = computed(() =>
+  availability.slots.value.map((s) => ({
+    date: nextSlotStart(s),
+    detail: `${s.people.length} de ${p.accepted.value.length} livres`,
+  })),
+)
+
 const full = computed(() => !!party.value && p.accepted.value.length >= party.value.sanctuary.groupSize)
 
 function roleLabel(m: PartyMember): string {
@@ -259,6 +270,7 @@ async function removeMember(m: PartyMember) {
         v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"
         :members="p.accepted.value"
         :routine="party.routine"
+        :availability="availability"
       />
 
       <PartySchedule
@@ -268,6 +280,7 @@ async function removeMember(m: PartyMember) {
         :is-leader="p.isLeader.value"
         :my-member-id="p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
         :suggested="nextRoutineDate"
+        :options="scheduleOptions"
       />
 
       <!-- Líder: pedidos -->

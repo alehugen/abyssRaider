@@ -11,7 +11,7 @@ import { myRsvp, rsvpCounts, RSVP_LABEL, type RaidEvent, type RsvpStatus } from 
 import { formatRelative, formatTime } from '../format'
 import RaidDateBadge from './RaidDateBadge.vue'
 import RsvpButtons from './RsvpButtons.vue'
-import ScheduleRaidDialog from './ScheduleRaidDialog.vue'
+import ScheduleRaidDialog, { type ScheduleOption } from './ScheduleRaidDialog.vue'
 
 const props = defineProps<{
   partyId: string
@@ -22,6 +22,8 @@ const props = defineProps<{
   myMemberId: string | null
   /** Próxima data da rotina da party, sugerida ao agendar. */
   suggested?: Date | null
+  /** Melhores datas desta semana pela disponibilidade dos membros. */
+  options?: readonly ScheduleOption[]
 }>()
 
 const repo = getContainer().raidEventRepository
@@ -102,6 +104,7 @@ function pendingCount(event: RaidEvent): number {
         ref="dialog"
         :busy="busy === 'schedule'"
         :suggested="suggested"
+        :options="options"
         @schedule="schedule"
       />
     </div>
@@ -113,7 +116,7 @@ function pendingCount(event: RaidEvent): number {
     <Skeleton v-if="loading" class="h-24 rounded-2xl" />
 
     <p v-else-if="!events.length" class="text-sm text-muted-foreground">
-      {{ isLeader ? 'Nenhuma raid marcada. Agende a próxima para o grupo confirmar presença.' : 'Nenhuma raid marcada ainda.' }}
+      {{ isLeader ? 'Nenhuma raid marcada. Marque a desta semana para o grupo confirmar presença.' : 'Nenhuma raid marcada ainda.' }}
     </p>
 
     <ul v-else class="space-y-3">

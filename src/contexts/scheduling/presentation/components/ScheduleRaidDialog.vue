@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCalendarPlus, PhCircleNotch } from '@phosphor-icons/vue'
+import { PhCalendarPlus, PhCircleNotch, PhLightbulb } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { Button } from '@/shared/presentation/ui/button'
 import {
@@ -12,23 +12,31 @@ import {
   DialogTrigger,
 } from '@/shared/presentation/ui/dialog'
 import { Input } from '@/shared/presentation/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
-import { MAX_WEEKS, weeklyOccurrences } from '../../domain/RaidEvent'
 import { fromBrasiliaInputValue, toBrasilia, toBrasiliaInputValue, zonedToInstant } from '@/shared/lib/brasilia'
 import { formatFullDay, formatTime, TZ_LABEL } from '../format'
 
 const emit = defineEmits<{ schedule: [dates: Date[], note: string | null] }>()
-const props = defineProps<{ busy?: boolean; suggested?: Date | null }>()
+/** Sugestão de data com base na disponibilidade dos membros. */
+export interface ScheduleOption {
+  date: Date
+  /** Ex.: "16 de outubro, 2 de 3 livres" */
+  detail: string
+}
+
+const props = defineProps<{ busy?: boolean; suggested?: Date | null; options?: readonly ScheduleOption[] }>()
 
 const open = ref(false)
 const when = ref('')
-const weeks = ref('1')
 const note = ref('')
 const error = ref<string | null>(null)
 
-/** Sugestão: a próxima data da rotina da party ou, sem rotina, amanhã às 21h (Brasília). */
+/**
+ * Valor inicial: o melhor horário do grupo nesta semana; sem disponibilidade,
+ * a próxima data da rotina; sem rotina, amanhã às 21h (Brasília).
+ */
 function suggestion(): string {
-  if (props.suggested) return toBrasiliaInputValue(props.suggested)
+  const best = props.options?.[0]?.date ?? props.suggested
+  if (best) return toBrasiliaInputValue(best)
   const today = toBrasilia(new Date())
   return toBrasiliaInputValue(zonedToInstant(today.y, today.m, today.d + 1, 21, 0))
 }
@@ -39,33 +47,27 @@ watch(open, (isOpen) => {
   error.value = null
 })
 
-const dates = computed(() => {
-  const first = fromBrasiliaInputValue(when.value)
-  return first ? weeklyOccurrences(first, Number(weeks.value)) : []
-})
+const date = computed(() => fromBrasiliaInputValue(when.value))
 
-const summary = computed(() => {
-  const first = dates.value[0]
-  if (!first) return ''
-  const base = `${formatFullDay(first)}, às ${formatTime(first)} (${TZ_LABEL})`
-  return dates.value.length > 1 ? `${base}, e mais ${dates.value.length - 1} semanas no mesmo horário` : base
-})
+const summary = computed(() =>
+  date.value ? `${formatFullDay(date.value)}, às ${formatTime(date.value)} (${TZ_LABEL})` : '',
+)
+
+const isSelected = (option: ScheduleOption) => date.value?.getTime() === option.date.getTime()
 
 function submit() {
-  const first = dates.value[0]
-  if (!first) return
-  if (first.getTime() < Date.now()) {
+  if (!date.value) return
+  if (date.value.getTime() < Date.now()) {
     error.value = 'Escolha um horário no futuro.'
     return
   }
-  emit('schedule', dates.value, note.value.trim() || null)
+  emit('schedule', [date.value], note.value.trim() || null)
 }
 
 /** O pai fecha o diálogo quando o agendamento der certo. */
 function close() {
   open.value = false
   note.value = ''
-  weeks.value = '1'
   when.value = ''
 }
 defineExpose({ close })
@@ -84,7 +86,7 @@ defineExpose({ close })
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Agendar raid</DialogTitle>
         <DialogDescription>
-          Informe data e hora no {{ TZ_LABEL }}. Todos os horários do AbyssRaider usam essa referência.
+          Marque a raid desta semana; cada membro confirma presença nela. Data e hora no {{ TZ_LABEL }}.
         </DialogDescription>
       </DialogHeader>
 
@@ -94,19 +96,28 @@ defineExpose({ close })
           <Input v-model="when" type="datetime-local" required />
         </label>
 
-        <div class="space-y-1.5">
-          <span id="repeat-label" class="text-sm font-medium">Repetir</span>
-          <Select v-model="weeks">
-            <SelectTrigger class="w-full" aria-labelledby="repeat-label">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">Só esta vez</SelectItem>
-              <SelectItem v-for="n in MAX_WEEKS - 1" :key="n" :value="String(n + 1)">
-                Toda semana, por {{ n + 1 }} semanas
-              </SelectItem>
-            </SelectContent>
-          </Select>
+        <div v-if="options?.length" class="space-y-1.5">
+          <p class="flex items-center gap-1.5 text-sm font-medium">
+            <PhLightbulb class="text-warning" aria-hidden="true" /> Melhores horários do grupo
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <Button
+              v-for="o in options"
+              :key="o.date.getTime()"
+              type="button"
+              size="sm"
+              :variant="isSelected(o) ? 'default' : 'outline'"
+              class="h-auto flex-col items-start gap-0 px-2.5 py-1.5 text-left"
+              @click="when = toBrasiliaInputValue(o.date)"
+            >
+              <span class="text-[13px] font-medium first-letter:uppercase">
+                {{ formatFullDay(o.date) }}, {{ formatTime(o.date) }}
+              </span>
+              <span :class="['text-xs font-normal', isSelected(o) ? 'opacity-80' : 'text-muted-foreground']">
+                {{ o.detail }}
+              </span>
+            </Button>
+          </div>
         </div>
 
         <label class="block space-y-1.5">
@@ -119,7 +130,7 @@ defineExpose({ close })
 
         <DialogFooter>
           <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>
-          <Button type="submit" :disabled="!dates.length || busy">
+          <Button type="submit" :disabled="!date || busy">
             <PhCircleNotch v-if="busy" class="animate-spin" />
             Agendar
           </Button>

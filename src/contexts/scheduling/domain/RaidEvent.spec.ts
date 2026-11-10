@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { groupByDay, myRsvp, rsvpCounts, weeklyOccurrences, type RaidEvent } from './RaidEvent'
+import { groupByDay, myRsvp, rsvpCounts, type RaidEvent } from './RaidEvent'
 
 const event: RaidEvent = {
   id: 'e1',
@@ -14,17 +14,6 @@ const event: RaidEvent = {
 }
 
 describe('RaidEvent', () => {
-  it('gera ocorrências semanais no mesmo horário, com limite', () => {
-    const dates = weeklyOccurrences(new Date('2026-11-14T00:00:00Z'), 3) // sex 13/11, 21:00 em Brasília
-    expect(dates.map((d) => d.toISOString())).toEqual([
-      '2026-11-14T00:00:00.000Z',
-      '2026-11-21T00:00:00.000Z',
-      '2026-11-28T00:00:00.000Z',
-    ])
-    expect(weeklyOccurrences(new Date(), 50)).toHaveLength(8)
-    expect(weeklyOccurrences(new Date(), 0)).toHaveLength(1)
-  })
-
   it('conta respostas e acha a do membro', () => {
     expect(rsvpCounts(event)).toEqual({ going: 2, maybe: 1, declined: 0 })
     expect(myRsvp(event, 'm3')).toBe('maybe')

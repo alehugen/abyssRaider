@@ -3,6 +3,7 @@ import {
   bestSlots,
   formatRow,
   isFree,
+  nextSlotStart,
   routineFit,
   rowsToWindows,
   windowsToRows,
@@ -55,6 +56,16 @@ describe('Availability', () => {
       { days: [SAB], start: h(14), end: 0 },
     ]))
     expect(rows.map(formatRow)).toEqual(['qua e qui, 19:00 às 22:00', 'sáb, 14:00 às 00:00'])
+  })
+
+  it('acha a próxima data do horário sugerido nesta semana', () => {
+    // terça 10/11/2026, 20:00 em Brasília (23:00 UTC)
+    const now = new Date('2026-11-10T23:00:00Z')
+    expect(nextSlotStart({ weekday: QUA, start: h(19) }, now).toISOString()).toBe('2026-11-11T22:00:00.000Z')
+    // terça 19:00 já passou: vai para a próxima terça
+    expect(nextSlotStart({ weekday: 2, start: h(19) }, now).toISOString()).toBe('2026-11-17T22:00:00.000Z')
+    // terça 21:00 ainda vem hoje
+    expect(nextSlotStart({ weekday: 2, start: h(21) }, now).toISOString()).toBe('2026-11-11T00:00:00.000Z')
   })
 
   it('confere a rotina da party com a disponibilidade', () => {

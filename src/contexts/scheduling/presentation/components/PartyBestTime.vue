@@ -1,48 +1,27 @@
 <script setup lang="ts">
 import { PhClock, PhWarningCircle } from '@phosphor-icons/vue'
-import { computed, shallowRef, watch } from 'vue'
-import { getContainer } from '@/app/container'
+import { computed } from 'vue'
 import type { PartyMember } from '@/contexts/party/domain/Party'
 import { WEEKDAYS, type RaidRoutine } from '@/contexts/party/domain/RaidRoutine'
 import { TZ_LABEL } from '@/shared/lib/brasilia'
-import { errorMessage } from '@/shared/lib/errorMessage'
-import { bestSlots, formatSlot, isFree, parseTime, type TimeWindow } from '../../domain/Availability'
+import { formatSlot, isFree, parseTime } from '../../domain/Availability'
+import type { PartyAvailability } from '../usePartyAvailability'
 
 /**
  * Melhor horário em comum entre os membros aceitos, a partir da disponibilidade
  * de cada um, e quantos estão livres no horário da rotina da party.
  */
-const props = defineProps<{ members: readonly PartyMember[]; routine?: RaidRoutine | null }>()
+const props = defineProps<{
+  members: readonly PartyMember[]
+  routine?: RaidRoutine | null
+  availability: PartyAvailability
+}>()
 
-const byOwner = shallowRef<Map<string, TimeWindow[]>>(new Map())
-const loaded = shallowRef(false)
-const error = shallowRef<string | null>(null)
-
-const ownerIds = computed(() => [...new Set(props.members.map((m) => m.linked.ownerId))].sort())
-
-watch(
-  () => ownerIds.value.join(','),
-  async () => {
-    error.value = null
-    try {
-      byOwner.value = await getContainer().availabilityRepository.listByOwners(ownerIds.value)
-      loaded.value = true
-    } catch (e) {
-      error.value = errorMessage(e)
-    }
-  },
-  { immediate: true },
-)
-
-const withData = computed(() => props.members.filter((m) => byOwner.value.get(m.linked.ownerId)?.length))
-const missing = computed(() => props.members.filter((m) => !byOwner.value.get(m.linked.ownerId)?.length))
-
-const slots = computed(() =>
-  bestSlots(withData.value.map((m) => byOwner.value.get(m.linked.ownerId)!), { limit: 3 }).map((s) => {
-    const free = new Set(s.people)
-    return { ...s, out: withData.value.filter((_, i) => !free.has(i)) }
-  }),
-)
+const loaded = computed(() => props.availability.loaded.value)
+const error = computed(() => props.availability.error.value)
+const withData = computed(() => props.availability.withData.value)
+const missing = computed(() => props.availability.missing.value)
+const slots = computed(() => props.availability.slots.value)
 
 /** Por dia da rotina: quantos membros (com disponibilidade) estão livres no horário de início. */
 const routineDays = computed(() => {
@@ -51,7 +30,7 @@ const routineDays = computed(() => {
   if (!r || start == null || !withData.value.length) return []
   return r.days.map((d) => ({
     day: d,
-    free: withData.value.filter((m) => isFree(byOwner.value.get(m.linked.ownerId)!, d, start)).length,
+    free: withData.value.filter((m) => isFree(props.availability.windowsOf(m), d, start)).length,
   }))
 })
 

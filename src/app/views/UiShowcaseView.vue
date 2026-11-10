@@ -3,6 +3,8 @@ import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
+import ScheduleRaidDialog from '@/contexts/scheduling/presentation/components/ScheduleRaidDialog.vue'
+import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
 import { Button } from '@/shared/presentation/ui/button'
 
 // Dados fictícios só para visualizar os componentes (rota disponível apenas em dev).
@@ -71,6 +73,13 @@ const inspectSample: Character = {
   serverName: 'Tassin',
   combatPower: 160013,
 }
+
+// Sugestões de exemplo para o diálogo de agendar.
+const scheduleOptions = [
+  { date: nextSlotStart({ weekday: 3, start: 19 * 60 }), detail: '8 de 10 livres' },
+  { date: nextSlotStart({ weekday: 4, start: 20 * 60 }), detail: '7 de 10 livres' },
+  { date: nextSlotStart({ weekday: 6, start: 15 * 60 }), detail: '6 de 10 livres' },
+]
 </script>
 
 <template>
@@ -113,6 +122,11 @@ const inspectSample: Character = {
       <AvailabilityDialog>
         <Button id="availability-demo" variant="outline">Editar disponibilidade</Button>
       </AvailabilityDialog>
+    </section>
+
+    <section id="schedule-demo" class="space-y-4">
+      <h2 class="font-display text-xl font-semibold">Agendar raid da semana</h2>
+      <ScheduleRaidDialog :options="scheduleOptions" />
     </section>
   </div>
 </template>

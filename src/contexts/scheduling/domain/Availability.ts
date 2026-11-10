@@ -1,4 +1,5 @@
 import { WEEKDAYS } from '@/contexts/party/domain/RaidRoutine'
+import { toBrasilia, zonedToInstant } from '@/shared/lib/brasilia'
 
 /**
  * Disponibilidade semanal de um jogador, sempre no horário de Brasília.
@@ -174,6 +175,19 @@ export function bestSlots(
         a.start - b.start,
     )
     .slice(0, limit)
+}
+
+/**
+ * Próxima vez (nos próximos 7 dias) em que cai esse dia da semana e horário,
+ * em Brasília. Se for hoje e o horário já passou, vai para a semana seguinte.
+ */
+export function nextSlotStart(slot: Pick<Slot, 'weekday' | 'start'>, from = new Date()): Date {
+  const now = toBrasilia(from)
+  for (let i = 0; i <= 7; i++) {
+    const date = zonedToInstant(now.y, now.m, now.d + i, Math.floor(slot.start / 60), slot.start % 60)
+    if ((now.weekday + i) % 7 === slot.weekday && date.getTime() > from.getTime()) return date
+  }
+  return zonedToInstant(now.y, now.m, now.d + 7, Math.floor(slot.start / 60), slot.start % 60)
 }
 
 /** Está livre de `start` até `start + minutes` nesse dia (pode atravessar a meia-noite)? */
