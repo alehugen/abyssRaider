@@ -19,6 +19,8 @@ export interface PartyRepository {
   /** Cria a party com o personagem do líder já dentro. Devolve o id. */
   create(input: CreatePartyInput): Promise<string>
   remove(partyId: string): Promise<void>
+  /** Líder: grava a vaga de cada membro aceito. */
+  setLayout(partyId: string, layout: ReadonlyArray<{ memberId: string; slot: number }>): Promise<void>
 
   requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void>
   decide(memberId: string, status: 'accepted' | 'declined'): Promise<void>

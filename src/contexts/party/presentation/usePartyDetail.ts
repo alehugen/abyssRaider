@@ -75,5 +75,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     decline: (memberId: string) => run(memberId, () => repo.decide(memberId, 'declined')),
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
     removeParty: () => run('party', () => repo.remove(id())),
+    setLayout: (layout: ReadonlyArray<{ memberId: string; slot: number }>) =>
+      run('layout', () => repo.setLayout(id(), layout)),
   }
 }

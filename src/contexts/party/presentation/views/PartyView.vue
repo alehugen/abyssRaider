@@ -5,6 +5,7 @@ import {
   PhCheck,
   PhCircleNotch,
   PhDiscordLogo,
+  PhDotsSixVertical,
   PhEye,
   PhLink,
   PhSignOut,
@@ -27,7 +28,17 @@ import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
-import { assignRoles, canJoin, composition, groups, ROLE_ORDER, type PartyMember } from '../../domain/Party'
+import {
+  assignRoles,
+  canJoin,
+  composition,
+  GROUP_SIZE,
+  groups,
+  moveInLayout,
+  ROLE_ORDER,
+  type PartyMember,
+} from '../../domain/Party'
+import { useSlotDrag } from '../useSlotDrag'
 import { usePartyDetail } from '../usePartyDetail'
 import PartyNotificationsDialog from '../components/PartyNotificationsDialog.vue'
 import { nextOccurrences } from '../../domain/RaidRoutine'
@@ -45,7 +56,39 @@ if (!characters.loaded) void characters.load()
 
 const party = computed(() => p.details.value?.party ?? null)
 const nextRoutineDate = computed(() => (party.value?.routine ? (nextOccurrences(party.value.routine, 1)[0] ?? null) : null))
-const roster = computed(() => (party.value ? groups(party.value, p.accepted.value) : []))
+// --- formação: arrastar e soltar (líder). Aplica na tela na hora e grava em seguida.
+const optimistic = ref<Map<string, number> | null>(null)
+const roster = computed(() => {
+  if (!party.value) return []
+  const layout = optimistic.value
+  const members = layout ? p.accepted.value.map((m) => ({ ...m, slot: layout.get(m.id) ?? null })) : p.accepted.value
+  return groups(party.value, members)
+})
+
+async function moveMember(from: number, to: number) {
+  const layout = moveInLayout(roster.value, from, to)
+  optimistic.value = new Map(layout.map((x) => [x.memberId, x.slot]))
+  await p.setLayout(layout) // recarrega a party; se falhar, o erro aparece e a tela volta
+  optimistic.value = null
+}
+
+const {
+  from: dragFrom,
+  over: dragOver,
+  pointer: dragPointer,
+  mode: dragMode,
+  onPointerDown,
+  onKeyDown,
+} = useSlotDrag({ total: () => roster.value.length * GROUP_SIZE, onDrop: (a, b) => void moveMember(a, b) })
+
+const dragged = computed(() => (dragFrom.value != null ? (roster.value.flat()[dragFrom.value] ?? null) : null))
+const slotName = (i: number) => `grupo ${Math.floor(i / GROUP_SIZE) + 1}, vaga ${(i % GROUP_SIZE) + 1}`
+/** Anúncio para leitor de tela no modo teclado. */
+const dragStatus = computed(() =>
+  dragMode.value === 'keyboard' && dragged.value && dragOver.value != null
+    ? `Movendo ${dragged.value.linked.character.name} para ${slotName(dragOver.value)}. Enter solta, Esc cancela.`
+    : '',
+)
 const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 // Disponibilidade dos membros: melhor horário e sugestões ao agendar a raid da semana.
@@ -225,7 +268,13 @@ async function removeMember(m: PartyMember) {
           </dl>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <p v-if="p.isLeader.value && p.accepted.value.length > 1" class="-mt-2 text-[13px] text-muted-foreground">
+          Arraste pela alça <PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" /> para trocar jogadores de
+          lugar ou de grupo.
+        </p>
+        <p class="sr-only" aria-live="assertive">{{ dragStatus }}</p>
+
+        <div :class="cn('grid gap-4 md:grid-cols-2', dragMode && 'select-none')">
           <div
             v-for="(group, gi) in roster"
             :key="gi"
@@ -233,43 +282,87 @@ async function removeMember(m: PartyMember) {
           >
             <h3 class="pt-2 pb-1 text-sm font-medium text-muted-foreground">Grupo {{ gi + 1 }}</h3>
             <ul class="divide-y divide-border/60">
-              <li v-for="(member, si) in group" :key="member?.id ?? `empty-${gi}-${si}`">
-                <CharacterCard v-if="member" :character="member.linked.character" size="sm" :role="roleLabel(member)">
-                  <template #actions>
-                    <span class="hidden text-xs text-muted-foreground sm:inline">{{ member.ownerName }}</span>
-                    <InspectCharacter :character="member.linked.character">
+              <li
+                v-for="(member, si) in group"
+                :key="member?.id ?? `empty-${gi}-${si}`"
+                :data-slot-index="gi * GROUP_SIZE + si"
+                :class="
+                  cn(
+                    'flex items-center gap-1 rounded-lg transition-colors',
+                    dragFrom != null && dragOver === gi * GROUP_SIZE + si && dragFrom !== dragOver &&
+                      'bg-primary/10 ring-2 ring-primary',
+                    dragFrom === gi * GROUP_SIZE + si && 'opacity-40',
+                  )
+                "
+              >
+                <button
+                  v-if="p.isLeader.value && member"
+                  type="button"
+                  :class="
+                    cn(
+                      '-ml-2 grid h-11 w-6 flex-none cursor-grab touch-none place-items-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:cursor-grabbing',
+                      dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si && 'bg-accent text-foreground',
+                    )
+                  "
+                  :aria-label="`Mover ${member.linked.character.name} (${slotName(gi * GROUP_SIZE + si)})`"
+                  :aria-pressed="dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si"
+                  @pointerdown="onPointerDown($event, gi * GROUP_SIZE + si)"
+                  @keydown="onKeyDown($event, gi * GROUP_SIZE + si)"
+                >
+                  <PhDotsSixVertical :size="18" weight="bold" />
+                </button>
+                <span v-else-if="p.isLeader.value" class="-ml-2 w-6 flex-none" aria-hidden="true" />
+
+                <div class="min-w-0 flex-1">
+                  <CharacterCard v-if="member" :character="member.linked.character" size="sm" :role="roleLabel(member)">
+                    <template #actions>
+                      <span class="hidden text-xs text-muted-foreground sm:inline">{{ member.ownerName }}</span>
+                      <InspectCharacter :character="member.linked.character">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          class="size-8 text-muted-foreground"
+                          :aria-label="`Inspecionar ${member.linked.character.name}`"
+                          :title="`Inspecionar ${member.linked.character.name}`"
+                        >
+                          <PhEye />
+                        </Button>
+                      </InspectCharacter>
                       <Button
+                        v-if="p.isLeader.value && member.linked.linkId !== party.leaderCharacterLinkId"
                         size="icon"
                         variant="ghost"
-                        class="size-8 text-muted-foreground"
-                        :aria-label="`Inspecionar ${member.linked.character.name}`"
-                        :title="`Inspecionar ${member.linked.character.name}`"
+                        class="size-8 text-muted-foreground hover:text-destructive"
+                        :aria-label="`Remover ${member.linked.character.name}`"
+                        :disabled="p.busy.value === member.id"
+                        @click="removeMember(member)"
                       >
-                        <PhEye />
+                        <PhX />
                       </Button>
-                    </InspectCharacter>
-                    <Button
-                      v-if="p.isLeader.value && member.linked.linkId !== party.leaderCharacterLinkId"
-                      size="icon"
-                      variant="ghost"
-                      class="size-8 text-muted-foreground hover:text-destructive"
-                      :aria-label="`Remover ${member.linked.character.name}`"
-                      :disabled="p.busy.value === member.id"
-                      @click="removeMember(member)"
-                    >
-                      <PhX />
-                    </Button>
-                  </template>
-                </CharacterCard>
-                <div v-else class="flex items-center gap-3 py-2.5 text-sm text-muted-foreground">
-                  <span class="size-11 flex-none rounded-lg border-2 border-dashed" aria-hidden="true" />
-                  Vaga livre
+                    </template>
+                  </CharacterCard>
+                  <div v-else class="flex items-center gap-3 py-2.5 text-sm text-muted-foreground">
+                    <span class="size-11 flex-none rounded-lg border-2 border-dashed" aria-hidden="true" />
+                    Vaga livre
+                  </div>
                 </div>
               </li>
             </ul>
           </div>
         </div>
       </section>
+
+      <!-- Cartão que acompanha o dedo/mouse enquanto arrasta. -->
+      <div
+        v-if="dragMode === 'pointer' && dragged"
+        class="pointer-events-none fixed z-50 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2 rounded-xl border bg-popover px-3 py-2 text-sm font-semibold shadow-lg"
+        :style="{ left: `${dragPointer.x}px`, top: `${dragPointer.y}px` }"
+        aria-hidden="true"
+      >
+        <PhDotsSixVertical class="text-muted-foreground" />
+        {{ dragged.linked.character.name }}
+        <span v-if="dragOver != null" class="font-normal text-muted-foreground">→ {{ slotName(dragOver) }}</span>
+      </div>
 
       <PartyBestTime
         v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"

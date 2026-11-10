@@ -26,6 +26,8 @@ export interface PartyMember {
   ownerAvatarUrl: string | null
   status: MemberStatus
   createdAt: Date
+  /** Vaga fixa na formação (0..4 grupo 1, 5..9 grupo 2); null = encaixe automático. */
+  slot?: number | null
 }
 
 export interface PartyDetails {
@@ -137,9 +139,35 @@ export function groups(party: Party, members: readonly PartyMember[]): Array<Arr
     return leader || rank(a) - rank(b) || (b.linked.character.combatPower ?? 0) - (a.linked.character.combatPower ?? 0)
   })
   const count = Math.max(1, Math.ceil(party.sanctuary.groupSize / GROUP_SIZE))
-  return Array.from({ length: count }, (_, g) =>
-    Array.from({ length: GROUP_SIZE }, (_, i) => sorted[g * GROUP_SIZE + i] ?? null),
-  )
+  const total = count * GROUP_SIZE
+
+  // Quem tem vaga fixa (válida e livre) fica nela; o resto ocupa as livres na ordem automática.
+  const flat: Array<PartyMember | null> = Array.from({ length: total }, () => null)
+  const loose: PartyMember[] = []
+  for (const m of sorted) {
+    const slot = m.slot
+    if (slot != null && slot >= 0 && slot < total && !flat[slot]) flat[slot] = m
+    else loose.push(m)
+  }
+  for (let i = 0; i < total && loose.length; i++) if (!flat[i]) flat[i] = loose.shift()!
+
+  return Array.from({ length: count }, (_, g) => flat.slice(g * GROUP_SIZE, (g + 1) * GROUP_SIZE))
+}
+
+/**
+ * Formação completa depois de arrastar a vaga `from` para `to` (troca se `to`
+ * estiver ocupada). Devolve todas as posições, para gravar de uma vez.
+ */
+export function moveInLayout(
+  grid: ReadonlyArray<ReadonlyArray<PartyMember | null>>,
+  from: number,
+  to: number,
+): Array<{ memberId: string; slot: number }> {
+  const flat = grid.flat()
+  if (from !== to && flat[from] && to >= 0 && to < flat.length) {
+    ;[flat[from], flat[to]] = [flat[to] ?? null, flat[from]!]
+  }
+  return flat.flatMap((m, slot) => (m ? [{ memberId: m.id, slot }] : []))
 }
 
 /** Se o personagem pode pedir para entrar (mesmas regras que o banco aplica). */

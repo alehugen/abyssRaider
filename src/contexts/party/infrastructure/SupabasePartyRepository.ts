@@ -42,6 +42,7 @@ interface MemberRow {
   party_id: string
   status: MemberStatus
   created_at: string
+  slot: number | null
   character: CharacterRow
   owner: ProfileEmbed | null
 }
@@ -51,7 +52,7 @@ const PARTY_COLUMNS = `id, name, sanctuary_id, leader_id, leader_character_id, r
   raid_days, raid_time, time_zone,
   sanctuary:sanctuaries!parties_sanctuary_id_fkey(id, name, min_item_level, group_size, image_url)`
 
-const MEMBER_COLUMNS = `id, party_id, status, created_at,
+const MEMBER_COLUMNS = `id, party_id, status, created_at, slot,
   character:characters!party_members_character_id_fkey(${CHARACTER_COLUMNS}),
   owner:profiles!party_members_owner_id_fkey(display_name, avatar_url)`
 
@@ -87,6 +88,7 @@ function toMember(r: MemberRow): PartyMember {
     ownerAvatarUrl: r.owner?.avatar_url ?? null,
     status: r.status,
     createdAt: new Date(r.created_at),
+    slot: r.slot ?? null,
   }
 }
 
@@ -172,6 +174,14 @@ export class SupabasePartyRepository implements PartyRepository {
     })
     if (error) rethrow(error)
     return data as string
+  }
+
+  async setLayout(partyId: string, layout: ReadonlyArray<{ memberId: string; slot: number }>): Promise<void> {
+    const { error } = await this.client.rpc('set_party_layout', {
+      p_party_id: partyId,
+      p_layout: layout.map((x) => ({ member_id: x.memberId, slot: x.slot })),
+    })
+    if (error) rethrow(error)
   }
 
   async remove(partyId: string): Promise<void> {

@@ -52,9 +52,9 @@ watch(open, async (isOpen) => {
         </span>
         <span class="min-w-0">
           <span class="block text-xs text-muted-foreground">{{ slotLabel(gear.slotName) }}</span>
-          <span class="block truncate text-sm font-medium text-(--grade-ink)" :title="`${gear.name} ${enchantLabel(gear)}`.trim()">
+          <span class="line-clamp-2 text-sm leading-snug font-medium break-words text-(--grade-ink)" :title="`${gear.name} ${enchantLabel(gear)}`.trim()">
             {{ gear.name }}
-            <span v-if="enchantLabel(gear)" class="tabular-nums">{{ enchantLabel(gear) }}</span>
+            <span v-if="enchantLabel(gear)" class="whitespace-nowrap tabular-nums">{{ enchantLabel(gear) }}</span>
           </span>
         </span>
       </button>
@@ -64,7 +64,7 @@ watch(open, async (isOpen) => {
       <div class="space-y-3 p-4 text-sm">
         <header>
           <p class="font-display text-lg leading-tight font-semibold text-(--grade-ink)">
-            {{ gear.name }} <span v-if="enchantLabel(gear)" class="tabular-nums">{{ enchantLabel(gear) }}</span>
+            {{ gear.name }} <span v-if="enchantLabel(gear)" class="whitespace-nowrap tabular-nums">{{ enchantLabel(gear) }}</span>
           </p>
           <p v-if="detail" class="text-xs text-muted-foreground">
             {{ [detail.gradeName, detail.category, detail.level ? `nível ${detail.level}` : null].filter(Boolean).join(' · ') }}

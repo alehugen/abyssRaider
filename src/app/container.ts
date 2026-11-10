@@ -57,6 +57,7 @@ const unconfiguredParties: PartyRepository = {
   get: async () => null,
   create: notConfigured,
   remove: notConfigured,
+  setLayout: notConfigured,
   requestJoin: notConfigured,
   decide: notConfigured,
   removeMember: notConfigured,

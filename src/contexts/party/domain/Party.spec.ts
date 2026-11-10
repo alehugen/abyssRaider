@@ -5,6 +5,7 @@ import {
   canJoin,
   composition,
   groups,
+  moveInLayout,
   isFull,
   neededRolesFor,
   openRoles,
@@ -91,6 +92,36 @@ describe('Party', () => {
     const [g1, g2] = groups(party, members)
     expect(g1!.map((m) => m?.linked.linkId ?? null)).toEqual(['leader', 'tank', 'healer', 'dps', null])
     expect(g2).toEqual([null, null, null, null, null])
+  })
+
+  it('respeita vagas fixas e encaixa os outros nas livres', () => {
+    const members = [
+      { ...member('leader', { className: 'Sorcerer' }), slot: 7 },
+      member('tank', { className: 'Templar' }),
+      { ...member('healer', { className: 'Cleric' }), slot: 0 },
+      // vaga já ocupada pelo healer: vira automático
+      { ...member('dps', { className: 'Ranger' }), slot: 0 },
+    ]
+    const ids = groups(party, members).flat().map((m) => m?.linked.linkId ?? null)
+    expect(ids).toEqual(['healer', 'tank', 'dps', null, null, null, null, 'leader', null, null])
+  })
+
+  it('move ou troca de vaga e devolve a formação inteira', () => {
+    const grid = groups(party, [member('leader'), member('a'), member('b')])
+    // leader 0, a 1, b 2 -> leva o "a" para o grupo 2 (vaga vazia)
+    expect(moveInLayout(grid, 1, 6)).toEqual([
+      { memberId: 'm-leader', slot: 0 },
+      { memberId: 'm-b', slot: 2 },
+      { memberId: 'm-a', slot: 6 },
+    ])
+    // troca leader (0) com b (2)
+    expect(moveInLayout(grid, 0, 2).map((x) => [x.memberId, x.slot])).toEqual([
+      ['m-b', 0],
+      ['m-a', 1],
+      ['m-leader', 2],
+    ])
+    // arrastar vaga vazia não faz nada
+    expect(moveInLayout(grid, 5, 0)).toHaveLength(3)
   })
 
   it('sabe quando está cheia', () => {

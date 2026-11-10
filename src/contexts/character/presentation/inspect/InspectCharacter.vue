@@ -64,6 +64,15 @@ watch(open, (isOpen) => {
 })
 
 const gearGroups = computed(() => (build.value ? groupGear(build.value.equipment) : []))
+/**
+ * Duas colunas independentes, como a tela do jogo: armas e armadura de um lado,
+ * acessórios, runas e arcanas do outro. (Grade de linhas deixava buracos.)
+ */
+const LEFT = new Set(['weapons', 'armor'])
+const gearColumns = computed(() => [
+  gearGroups.value.filter((g) => LEFT.has(g.id)),
+  gearGroups.value.filter((g) => !LEFT.has(g.id)),
+])
 const skillGroups = computed(() => (build.value ? groupSkills(build.value.skills) : []))
 const baseStats = computed(() => build.value?.stats.filter((s) => s.kind === 'base') ?? [])
 const divineStats = computed(() => build.value?.stats.filter((s) => s.kind === 'divine') ?? [])
@@ -108,10 +117,22 @@ const summary = computed(() => {
         </div>
       </DialogHeader>
 
-      <div v-if="loading" class="space-y-3 px-6 pb-6" aria-busy="true">
-        <Skeleton class="h-9 w-80" />
-        <div class="grid gap-2 sm:grid-cols-2">
-          <Skeleton v-for="i in 8" :key="i" class="h-14" />
+      <!-- Skeleton com a mesma estrutura da aba de equipamento. -->
+      <div v-if="loading" class="flex min-h-0 flex-1 flex-col" aria-busy="true" aria-label="Carregando equipamento">
+        <Skeleton class="mx-6 mb-3 h-9 flex-none rounded-lg" />
+        <div class="grid min-h-0 flex-1 gap-x-6 overflow-hidden border-t px-6 pt-4 sm:grid-cols-2">
+          <div v-for="col in 2" :key="col" :class="cn('space-y-5', col === 2 && 'max-sm:hidden')">
+            <section v-for="(rows, si) in col === 1 ? [2, 8] : [8, 2]" :key="si">
+              <Skeleton class="mb-2.5 h-3 w-20" />
+              <div v-for="r in rows" :key="r" class="flex items-center gap-3 p-1.5">
+                <Skeleton class="size-11 flex-none rounded-md" />
+                <div class="min-w-0 flex-1 space-y-1.5">
+                  <Skeleton class="h-3 w-16" />
+                  <Skeleton class="h-4" :style="{ width: `${55 + ((r * 37 + si * 13 + col * 7) % 35)}%` }" />
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
 
@@ -136,46 +157,50 @@ const summary = computed(() => {
         <TabsContent value="gear" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-5">
           <p v-if="!build.equipment.length" class="text-sm text-muted-foreground">Nada equipado.</p>
           <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-            <section v-for="g in gearGroups" :key="g.id">
-              <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ g.label }}</h3>
-              <ul>
-                <li v-for="item in g.items" :key="item.slot">
-                  <GearSlot :gear="item" :character-ref="ref_" />
-                </li>
-              </ul>
-            </section>
+            <div v-for="(column, ci) in gearColumns" :key="ci" class="min-w-0 space-y-5">
+              <section v-for="g in column" :key="g.id">
+                <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ g.label }}</h3>
+                <ul>
+                  <li v-for="item in g.items" :key="item.slot">
+                    <GearSlot :gear="item" :character-ref="ref_" />
+                  </li>
+                </ul>
+              </section>
 
-            <section v-if="build.wing || build.pet">
-              <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Asas e pet</h3>
-              <ul class="space-y-1">
-                <li v-if="build.wing" :class="cn(gradeClass(build.wing.grade), 'flex items-center gap-3 p-1.5')">
-                  <img
-                    v-if="build.wing.icon"
-                    :src="build.wing.icon"
-                    alt=""
-                    class="size-11 rounded-md border-2 border-(--grade) bg-[oklch(0.22_0.02_260)] object-contain"
-                  />
-                  <span class="min-w-0">
-                    <span class="block text-xs text-muted-foreground">Asas</span>
-                    <span class="block truncate text-sm font-medium text-(--grade-ink)">
-                      {{ build.wing.name }}<template v-if="build.wing.enchantLevel"> +{{ build.wing.enchantLevel }}</template>
-                    </span>
-                  </span>
-                </li>
-                <li v-if="build.pet" class="flex items-center gap-3 p-1.5">
-                  <img
-                    v-if="build.pet.icon"
-                    :src="build.pet.icon"
-                    alt=""
-                    class="size-11 rounded-md bg-[oklch(0.22_0.02_260)] object-contain"
-                  />
-                  <span class="min-w-0">
-                    <span class="block text-xs text-muted-foreground">Pet, nível {{ build.pet.level }}</span>
-                    <span class="block truncate text-sm font-medium">{{ build.pet.name }}</span>
-                  </span>
-                </li>
-              </ul>
-            </section>
+              <template v-if="ci === 0">
+                <section v-if="build.wing || build.pet">
+                  <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Asas e pet</h3>
+                  <ul class="space-y-1">
+                    <li v-if="build.wing" :class="cn(gradeClass(build.wing.grade), 'flex items-center gap-3 p-1.5')">
+                      <img
+                        v-if="build.wing.icon"
+                        :src="build.wing.icon"
+                        alt=""
+                        class="size-11 rounded-md border-2 border-(--grade) bg-[oklch(0.22_0.02_260)] object-contain"
+                      />
+                      <span class="min-w-0">
+                        <span class="block text-xs text-muted-foreground">Asas</span>
+                        <span class="block truncate text-sm font-medium text-(--grade-ink)">
+                          {{ build.wing.name }}<template v-if="build.wing.enchantLevel"> +{{ build.wing.enchantLevel }}</template>
+                        </span>
+                      </span>
+                    </li>
+                    <li v-if="build.pet" class="flex items-center gap-3 p-1.5">
+                      <img
+                        v-if="build.pet.icon"
+                        :src="build.pet.icon"
+                        alt=""
+                        class="size-11 rounded-md bg-[oklch(0.22_0.02_260)] object-contain"
+                      />
+                      <span class="min-w-0">
+                        <span class="block text-xs text-muted-foreground">Pet, nível {{ build.pet.level }}</span>
+                        <span class="block truncate text-sm font-medium">{{ build.pet.name }}</span>
+                      </span>
+                    </li>
+                  </ul>
+                </section>
+              </template>
+            </div>
           </div>
           <p class="text-xs text-muted-foreground">Toque numa peça para ver atributos e pedras de mana.</p>
         </TabsContent>
