@@ -120,17 +120,18 @@ export class SupabasePartyRepository implements PartyRepository {
       .from('parties')
       .select(
         `${PARTY_COLUMNS},
-        leader:characters!parties_leader_character_id_fkey(name),
+        leader:characters!parties_leader_character_id_fkey(name, class_name),
         members:party_members!party_members_party_id_fkey(status)`,
       )
       .in('id', [...statusByParty.keys()])
       .order('created_at', { ascending: false })
     if (partiesError) rethrow(partiesError)
 
-    type Row = PartyRow & { leader: { name: string } | null; members: Array<{ status: MemberStatus }> }
+    type Row = PartyRow & { leader: { name: string; class_name: string } | null; members: Array<{ status: MemberStatus }> }
     return (data as unknown as Row[]).map((r) => ({
       party: toParty(r),
       leaderCharacterName: r.leader?.name ?? '?',
+      leaderClassName: r.leader?.class_name,
       acceptedCount: r.members.filter((m) => m.status === 'accepted').length,
       myStatus: r.leader_id === userId ? 'leader' : (statusByParty.get(r.id) ?? 'pending'),
     }))

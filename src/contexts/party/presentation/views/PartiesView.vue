@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { PhCaretRight, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { onMounted } from 'vue'
-import { REGION_LABEL } from '@/contexts/character/domain/Character'
-import { cn } from '@/shared/lib/utils'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import CreatePartyDialog from '../components/CreatePartyDialog.vue'
-import type { PartySummary } from '../../domain/Party'
+import PartySummaryCard from '../components/PartySummaryCard.vue'
 import { usePartiesStore } from '../usePartiesStore'
-import { formatRoutine } from '../routineFormat'
 
 const parties = usePartiesStore()
 
@@ -16,12 +13,6 @@ onMounted(() => {
   if (!parties.loaded) void parties.load()
 })
 
-const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }> = {
-  leader: { label: 'Você lidera', class: 'text-primary' },
-  accepted: { label: 'Membro', class: 'text-success' },
-  pending: { label: 'Pedido enviado', class: 'text-warning' },
-  declined: { label: 'Pedido recusado', class: 'text-destructive' },
-}
 </script>
 
 <template>
@@ -53,36 +44,9 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
       Você ainda não está em nenhuma party. Crie uma ou peça o link para o líder do seu grupo.
     </p>
 
-    <ul v-else class="divide-y divide-border/60 overflow-hidden rounded-2xl border bg-card/60">
+    <ul v-else class="space-y-3">
       <li v-for="item in parties.items" :key="item.party.id">
-        <RouterLink
-          :to="{ name: 'party', params: { id: item.party.id } }"
-          :class="
-            cn(
-              `faction-${item.party.faction}`,
-              'flex items-center gap-4 px-4 py-4 transition-colors hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none sm:px-5',
-            )
-          "
-        >
-          <span class="h-10 w-0.75 flex-none rounded-full bg-faction" aria-hidden="true" />
-          <span class="min-w-0 flex-1">
-            <span class="block truncate font-display text-xl leading-tight font-semibold">{{ item.party.name }}</span>
-            <span class="block truncate text-sm text-muted-foreground">
-              {{ item.party.sanctuary.name }}, liderada por {{ item.leaderCharacterName }},
-              {{ REGION_LABEL[item.party.region] }}
-            </span>
-            <span v-if="item.party.routine" class="block truncate text-[13px] text-muted-foreground first-letter:uppercase">
-              {{ formatRoutine(item.party.routine) }}
-            </span>
-          </span>
-          <span class="flex-none text-right">
-            <span class="block font-display text-xl leading-tight font-semibold tabular-nums">
-              {{ item.acceptedCount }}/{{ item.party.sanctuary.groupSize }}
-            </span>
-            <span :class="cn('block text-xs', STATUS[item.myStatus].class)">{{ STATUS[item.myStatus].label }}</span>
-          </span>
-          <PhCaretRight class="flex-none text-muted-foreground" aria-hidden="true" />
-        </RouterLink>
+        <PartySummaryCard :item="item" />
       </li>
     </ul>
   </div>

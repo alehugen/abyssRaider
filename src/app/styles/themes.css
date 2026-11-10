@@ -17,7 +17,8 @@
 [data-theme='elyos'] {
   --background: oklch(0.982 0.01 85);
   --foreground: oklch(0.25 0.035 255);
-  --card: oklch(1 0 0);
+  /* Marfim pastel (não branco puro): conversa com o fundo e com o ouro do tema. */
+  --card: oklch(0.962 0.024 84);
   --card-foreground: var(--foreground);
   --popover: oklch(1 0 0);
   --popover-foreground: var(--foreground);

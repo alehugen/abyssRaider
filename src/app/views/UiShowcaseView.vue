@@ -3,6 +3,8 @@ import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
+import PartySummaryCard from '@/contexts/party/presentation/components/PartySummaryCard.vue'
+import type { PartySummary } from '@/contexts/party/domain/Party'
 import PartyNotificationsDialog from '@/contexts/party/presentation/components/PartyNotificationsDialog.vue'
 import ScheduleRaidDialog from '@/contexts/scheduling/presentation/components/ScheduleRaidDialog.vue'
 import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
@@ -81,6 +83,26 @@ const scheduleOptions = [
   { date: nextSlotStart({ weekday: 4, start: 20 * 60 }), detail: '7 de 10 livres' },
   { date: nextSlotStart({ weekday: 6, start: 15 * 60 }), detail: '6 de 10 livres' },
 ]
+
+// Cards da lista de parties (arte do santuário + líder em destaque).
+const LUDRA_ART = 'https://fizz-download.playnccdn.com/download/v2/buckets/conti-upload/files/1a1a3b9ac4e-b936c323-6cbb-4357-9c39-9367df642465'
+const partySamples: PartySummary[] = [
+  { leaderCharacterName: 'BOOMSHAKALAK', leaderClassName: 'Cleric', acceptedCount: 4, myStatus: 'leader' },
+  { leaderCharacterName: 'Lyrandel', leaderClassName: 'Templar', acceptedCount: 9, myStatus: 'accepted' },
+].map((x, i) => ({
+  ...x,
+  party: {
+    id: `demo-${i}`,
+    name: i ? 'Ludra de sábado' : 'Ludra',
+    sanctuary: { id: 'ludra', name: 'Abyssal Forge: Ludra', minItemLevel: 2800, groupSize: 10, imageUrl: LUDRA_ART },
+    leaderId: 'x',
+    leaderCharacterLinkId: 'y',
+    region: 'la',
+    faction: i ? 'elyos' : 'asmodian',
+    createdAt: new Date(),
+    routine: { days: [3, 4], time: '19:00', timeZone: 'America/Sao_Paulo' },
+  },
+})) as PartySummary[]
 </script>
 
 <template>
@@ -128,6 +150,11 @@ const scheduleOptions = [
     <section id="schedule-demo" class="space-y-4">
       <h2 class="font-display text-xl font-semibold">Agendar raid da semana</h2>
       <ScheduleRaidDialog :options="scheduleOptions" />
+    </section>
+
+    <section id="party-cards" class="max-w-4xl space-y-3">
+      <h2 class="font-display text-xl font-semibold">Cards de party</h2>
+      <PartySummaryCard v-for="p in partySamples" :key="p.party.id" :item="p" />
     </section>
 
     <section id="notify-demo" class="space-y-4">

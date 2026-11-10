@@ -39,6 +39,8 @@ export interface PartyDetails {
 export interface PartySummary {
   party: Party
   leaderCharacterName: string
+  /** Classe do personagem líder (ícone no card). */
+  leaderClassName?: string
   acceptedCount: number
   /** Como o usuário logado participa. */
   myStatus: MemberStatus | 'leader'
