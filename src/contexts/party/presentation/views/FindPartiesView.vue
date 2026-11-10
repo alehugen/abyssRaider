@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { errorMessage } from '@/shared/lib/errorMessage'
-import { PhArrowLeft, PhCircleNotch, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhArrowLeft, PhCheckCircle, PhCircleNotch, PhClock, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getContainer } from '@/app/container'
@@ -15,6 +15,10 @@ import { findPartiesFor, type PartyMatch } from '../../application/findPartiesFo
 import { ROLE_ORDER } from '../../domain/Party'
 import { usePartiesStore } from '../usePartiesStore'
 import { formatRoutine } from '../routineFormat'
+import { routineFit } from '@/contexts/scheduling/domain/Availability'
+import { useAvailabilityStore } from '@/contexts/scheduling/presentation/useAvailabilityStore'
+import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
+import { WEEKDAYS } from '../../domain/RaidRoutine'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,6 +27,8 @@ const parties = usePartiesStore()
 const repo = getContainer().partyRepository
 
 if (!characters.loaded) void characters.load()
+const availability = useAvailabilityStore()
+void availability.load()
 
 /** O personagem escolhido fica na URL (?personagem=linkId) para o link poder ser compartilhado/recarregado. */
 const selectedId = computed({
@@ -76,6 +82,24 @@ async function requestJoin(match: PartyMatch) {
     requesting.value = null
   }
 }
+
+/**
+ * Parties cuja rotina bate com a disponibilidade vêm primeiro (mantendo a
+ * ordem por papel entre elas). Sem disponibilidade informada, nada muda.
+ */
+const ranked = computed(() => {
+  const mine = availability.windows
+  const list = matches.value.map((m) => {
+    const routine = m.details.party.routine
+    const fit = mine.length && routine ? routineFit(mine, routine) : null
+    return { match: m, fit }
+  })
+  if (!mine.length) return list
+  return list
+    .map((x, i) => ({ ...x, i }))
+    .sort((a, b) => Number(!!b.fit?.free.length) - Number(!!a.fit?.free.length) || a.i - b.i)
+})
+const dayList = (days: readonly number[]) => days.map((d) => WEEKDAYS[d]!.short.toLowerCase()).join(', ')
 
 const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as keyof typeof ROLE_LABEL]).join(' ou ')
 </script>
@@ -133,13 +157,24 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       <PhMagnifyingGlass :size="28" class="mx-auto text-muted-foreground" />
       <p class="font-medium">Nenhuma party precisando de {{ rolesLabel(selected.character.className) || 'você' }} agora.</p>
       <p class="text-sm text-muted-foreground">
-        Aplique o personagem em um santuário (em Meus personagens) para os líderes te encontrarem, ou crie sua própria party.
+        Tente de novo mais tarde ou crie sua própria party.
       </p>
     </div>
 
-    <ul v-else class="space-y-3">
+    <div
+      v-if="!loading && availability.loaded && !availability.windows.length && matches.length"
+      class="flex flex-wrap items-center gap-3 rounded-xl bg-muted/60 p-3 text-sm"
+    >
+      <PhClock class="text-muted-foreground" aria-hidden="true" />
+      <span class="flex-1">Informe sua disponibilidade para ver quais parties batem com seus horários.</span>
+      <AvailabilityDialog>
+        <Button size="sm" variant="outline">Informar disponibilidade</Button>
+      </AvailabilityDialog>
+    </div>
+
+    <ul v-if="!loading && matches.length" class="space-y-3">
       <li
-        v-for="m in matches"
+        v-for="{ match: m, fit } in ranked"
         :key="m.details.party.id"
         :class="
           cn(
@@ -162,6 +197,13 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
           </p>
           <p v-if="m.details.party.routine" class="text-sm first-letter:uppercase">
             {{ formatRoutine(m.details.party.routine) }}
+          </p>
+          <p v-if="fit && fit.free.length" class="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-success">
+            <PhCheckCircle aria-hidden="true" />
+            Bate com sua disponibilidade{{ fit.busy.length ? ` (${dayList(fit.free)})` : '' }}
+          </p>
+          <p v-else-if="fit" class="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <PhClock aria-hidden="true" /> Fora da sua disponibilidade
           </p>
           <p class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
             <span class="font-semibold text-success">Precisa de {{ roleList(m.needed) }}</span>

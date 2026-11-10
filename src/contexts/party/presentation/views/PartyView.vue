@@ -17,6 +17,7 @@ import { REGION_LABEL, ROLE_LABEL } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
+import PartyBestTime from '@/contexts/scheduling/presentation/components/PartyBestTime.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { cn } from '@/shared/lib/utils'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
@@ -253,6 +254,12 @@ async function removeMember(m: PartyMember) {
           </div>
         </div>
       </section>
+
+      <PartyBestTime
+        v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"
+        :members="p.accepted.value"
+        :routine="party.routine"
+      />
 
       <PartySchedule
         v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"

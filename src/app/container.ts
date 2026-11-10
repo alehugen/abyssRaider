@@ -13,7 +13,9 @@ import type { PartyRepository } from '@/contexts/party/domain/PartyRepository'
 import type { SanctuaryCatalog } from '@/contexts/party/domain/SanctuaryCatalog'
 import { SupabasePartyRepository } from '@/contexts/party/infrastructure/SupabasePartyRepository'
 import { SupabaseSanctuaryCatalog } from '@/contexts/party/infrastructure/SupabaseSanctuaryCatalog'
+import type { AvailabilityRepository } from '@/contexts/scheduling/domain/AvailabilityRepository'
 import type { RaidEventRepository } from '@/contexts/scheduling/domain/RaidEventRepository'
+import { SupabaseAvailabilityRepository } from '@/contexts/scheduling/infrastructure/SupabaseAvailabilityRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
 
@@ -24,6 +26,7 @@ export interface Container {
   sanctuaryCatalog: SanctuaryCatalog
   partyRepository: PartyRepository
   raidEventRepository: RaidEventRepository
+  availabilityRepository: AvailabilityRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -64,6 +67,13 @@ const unconfiguredEvents: RaidEventRepository = {
   respond: notConfigured,
 }
 
+const unconfiguredAvailability: AvailabilityRepository = {
+  listByOwner: async () => [],
+  listByOwners: async () => new Map(),
+  save: notConfigured,
+  demand: async () => [],
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -76,6 +86,7 @@ export function getContainer(): Container {
       sanctuaryCatalog: supabase ? new SupabaseSanctuaryCatalog(supabase) : { listActive: async () => [] },
       partyRepository: supabase ? new SupabasePartyRepository(supabase) : unconfiguredParties,
       raidEventRepository: supabase ? new SupabaseRaidEventRepository(supabase) : unconfiguredEvents,
+      availabilityRepository: supabase ? new SupabaseAvailabilityRepository(supabase) : unconfiguredAvailability,
     }
   }
   return container

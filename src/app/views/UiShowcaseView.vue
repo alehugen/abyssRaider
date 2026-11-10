@@ -2,6 +2,7 @@
 import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
+import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
 import { Button } from '@/shared/presentation/ui/button'
 
 // Dados fictícios só para visualizar os componentes (rota disponível apenas em dev).
@@ -105,6 +106,13 @@ const inspectSample: Character = {
       <InspectCharacter :character="inspectSample">
         <Button id="inspect-demo" variant="outline">Inspecionar {{ inspectSample.name }}</Button>
       </InspectCharacter>
+    </section>
+
+    <section class="space-y-4">
+      <h2 class="font-display text-xl font-semibold">Disponibilidade (editor)</h2>
+      <AvailabilityDialog>
+        <Button id="availability-demo" variant="outline">Editar disponibilidade</Button>
+      </AvailabilityDialog>
     </section>
   </div>
 </template>

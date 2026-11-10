@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { errorMessage } from '@/shared/lib/errorMessage'
-import { PhCircleNotch, PhPlus } from '@phosphor-icons/vue'
-import { computed, ref, watch } from 'vue'
+import { PhCircleNotch, PhLightbulb, PhPlus } from '@phosphor-icons/vue'
+import { computed, ref, shallowRef, watch } from 'vue'
+import { getContainer } from '@/app/container'
 import { useRouter } from 'vue-router'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { Button } from '@/shared/presentation/ui/button'
@@ -22,6 +23,8 @@ import { eligibility } from '../../domain/Sanctuary'
 import { formatNextRaid } from '../routineFormat'
 import { APP_TIME_ZONE, TZ_LABEL } from '@/shared/lib/brasilia'
 import { usePartiesStore } from '../usePartiesStore'
+import { REGION_LABEL } from '@/contexts/character/domain/Character'
+import { bestSlots, formatMinutes, type Slot } from '@/contexts/scheduling/domain/Availability'
 import { useSanctuariesStore } from '../useSanctuariesStore'
 
 const router = useRouter()
@@ -80,6 +83,35 @@ watch(open, async (isOpen) => {
   characterLinkId.value ||= characterOptions.value.find((o) => o.ok)?.linked.linkId ?? ''
 })
 
+// --- sugestão de horário: quando há mais jogadores da mesma facção e região livres
+const demandSlots = shallowRef<Slot[]>([])
+watch(
+  () => (selectedCharacter.value ? `${selectedCharacter.value.linked.character.region}:${selectedCharacter.value.linked.character.faction}` : ''),
+  async (key) => {
+    demandSlots.value = []
+    const c = selectedCharacter.value?.linked.character
+    if (!key || !c) return
+    try {
+      const windows = await getContainer().availabilityRepository.demand(c.region, c.faction)
+      // Cada faixa conta como uma pessoa: as de um mesmo jogador nunca se sobrepõem.
+      demandSlots.value = bestSlots(windows.map((w) => [w]), { limit: 3, minPeople: 2 })
+    } catch {
+      demandSlots.value = [] // sugestão é opcional: sem ela, o formulário segue igual
+    }
+  },
+  { immediate: true },
+)
+const demandScope = computed(() => {
+  const c = selectedCharacter.value?.linked.character
+  return c ? `${(c.faction === 'elyos' ? 'Elyos' : 'Asmodian')}, ${REGION_LABEL[c.region]}` : ''
+})
+
+function useSlot(slot: Slot) {
+  const day = String(slot.weekday)
+  if (!raidDays.value.includes(day)) raidDays.value = [...raidDays.value, day]
+  raidTime.value = formatMinutes(slot.start)
+}
+
 async function submit() {
   if (!canSubmit.value || !sanctuary.value) return
   submitting.value = true
@@ -116,7 +148,7 @@ async function submit() {
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Criar party</DialogTitle>
         <DialogDescription>
-          Você vira o líder. Depois é só mandar o link da party ou recrutar quem aplicou no santuário.
+          Você vira o líder. Depois é só mandar o link da party para o grupo.
         </DialogDescription>
       </DialogHeader>
 
@@ -171,6 +203,31 @@ async function submit() {
         <p class="-mt-2 text-[13px] text-muted-foreground">
           {{ routinePreview ?? 'Escolha ao menos um dia.' }}
         </p>
+
+        <div v-if="demandSlots.length" class="space-y-1.5 rounded-xl bg-muted/60 p-3">
+          <p class="flex items-center gap-1.5 text-[13px] font-medium">
+            <PhLightbulb class="text-warning" aria-hidden="true" />
+            Mais jogadores livres ({{ demandScope }})
+          </p>
+          <div class="flex flex-wrap gap-1.5">
+            <Button
+              v-for="s in demandSlots"
+              :key="`${s.weekday}-${s.start}`"
+              type="button"
+              size="sm"
+              variant="outline"
+              class="h-auto flex-col items-start gap-0 bg-background px-2.5 py-1.5 text-left"
+              :title="`Usar ${WEEKDAYS[s.weekday]!.long} às ${formatMinutes(s.start)}`"
+              @click="useSlot(s)"
+            >
+              <span class="text-[13px] font-medium">
+                {{ WEEKDAYS[s.weekday]!.short }} {{ formatMinutes(s.start) }}–{{ formatMinutes(s.end) }}
+              </span>
+              <span class="text-xs font-normal text-muted-foreground">{{ s.people.length }} jogadores</span>
+            </Button>
+          </div>
+          <p class="text-xs text-muted-foreground">Toque para usar o dia e o horário de início.</p>
+        </div>
 
         <div class="space-y-1.5">
           <span id="leader-label" class="text-sm font-medium">Seu personagem na party</span>

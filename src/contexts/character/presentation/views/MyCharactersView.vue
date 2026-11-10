@@ -11,6 +11,7 @@ import {
 import { onMounted, ref, watch } from 'vue'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import InspectCharacter from '../inspect/InspectCharacter.vue'
+import AvailabilityCard from '@/contexts/scheduling/presentation/components/AvailabilityCard.vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -58,6 +59,8 @@ async function confirmUnlink(linked: LinkedCharacter) {
 
 <template>
   <div class="space-y-10">
+    <AvailabilityCard v-if="characters.items.length" />
+
     <section class="space-y-5" aria-labelledby="roster-title">
       <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div>
