@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -9,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/presentation/ui/alert-dialog'
-import { buttonVariants } from '@/shared/presentation/ui/button'
+import { Button } from '@/shared/presentation/ui/button'
 import { confirmState, settleConfirm } from './useConfirm'
 
 /** Fechar por Esc ou clique fora conta como "cancelar". */
@@ -31,12 +30,14 @@ function onOpenChange(open: boolean) {
         <AlertDialogCancel @click="settleConfirm(false)">
           {{ confirmState.cancelText ?? 'Cancelar' }}
         </AlertDialogCancel>
-        <AlertDialogAction
-          :class="confirmState.destructive ? buttonVariants({ variant: 'destructive' }) : undefined"
-          @click="settleConfirm(true)"
-        >
+        <!--
+          Não usar AlertDialogAction aqui: ele é um "DialogClose" e fecha o diálogo antes
+          do nosso clique, e o fechamento conta como cancelar. O Button resolve "sim"
+          e o settleConfirm fecha em seguida.
+        -->
+        <Button :variant="confirmState.destructive ? 'destructive' : 'default'" @click="settleConfirm(true)">
           {{ confirmState.confirmText ?? 'Confirmar' }}
-        </AlertDialogAction>
+        </Button>
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
