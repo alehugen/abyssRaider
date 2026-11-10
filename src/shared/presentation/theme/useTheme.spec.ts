@@ -24,10 +24,18 @@ function fakeMediaQuery(matches: boolean) {
 }
 
 describe('createThemeController', () => {
+  it('sem escolha salva, começa no Abyss', () => {
+    const root = document.createElement('html')
+    const theme = createThemeController({ storage: memoryStorage(), mediaQuery: fakeMediaQuery(false).mq, root })
+    expect(theme.preference.value).toBe('abyss')
+    expect(root.dataset.theme).toBe('abyss')
+    expect(root.classList.contains('dark')).toBe(true)
+  })
+
   it('em "system" usa Asmodian no SO escuro e Elyos no claro', async () => {
     const root = document.createElement('html')
     const { mq, emit } = fakeMediaQuery(true)
-    const theme = createThemeController({ storage: memoryStorage(), mediaQuery: mq, root })
+    const theme = createThemeController({ storage: memoryStorage({ [THEME_STORAGE_KEY]: 'system' }), mediaQuery: mq, root })
 
     expect(theme.preference.value).toBe('system')
     expect(theme.theme.value.id).toBe('asmodian')
@@ -58,7 +66,7 @@ describe('createThemeController', () => {
 
   it('ignora valor inválido no storage', () => {
     const theme = createThemeController({ storage: memoryStorage({ [THEME_STORAGE_KEY]: 'roxo' }) })
-    expect(theme.preference.value).toBe('system')
+    expect(theme.preference.value).toBe('abyss')
   })
 
   it('não quebra quando o storage lança erro', () => {

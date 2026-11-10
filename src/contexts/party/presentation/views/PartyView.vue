@@ -94,10 +94,9 @@ const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanct
 // Disponibilidade dos membros: melhor horário e sugestões ao agendar a raid da semana.
 const availability = usePartyAvailability(() => p.accepted.value)
 const scheduleOptions = computed(() =>
-  availability.slots.value.map((s) => ({
-    date: nextSlotStart(s),
-    detail: `${s.people.length} de ${p.accepted.value.length} livres`,
-  })),
+  availability.bestPerDay.value
+    .map((s) => ({ date: nextSlotStart(s), detail: `${s.people.length} de ${p.accepted.value.length} livres` }))
+    .sort((a, b) => a.date.getTime() - b.date.getTime()),
 )
 
 const full = computed(() => !!party.value && p.accepted.value.length >= party.value.sanctuary.groupSize)

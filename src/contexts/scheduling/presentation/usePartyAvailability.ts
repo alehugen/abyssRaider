@@ -46,7 +46,14 @@ export function usePartyAvailability(members: MaybeRefOrGetter<readonly PartyMem
     }),
   )
 
-  return { byOwner, loaded, error, withData, missing, slots, windowsOf }
+  /** Melhor faixa de cada dia da semana (para agendar vários dias), as mais cheias primeiro. */
+  const bestPerDay = computed<Slot[]>(() => {
+    const all = bestSlots(withData.value.map(windowsOf), { limit: 200 })
+    const seen = new Set<number>()
+    return all.filter((s) => !seen.has(s.weekday) && seen.add(s.weekday)).slice(0, 5)
+  })
+
+  return { byOwner, loaded, error, withData, missing, slots, bestPerDay, windowsOf }
 }
 
 export type PartyAvailability = ReturnType<typeof usePartyAvailability>

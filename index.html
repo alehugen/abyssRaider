@@ -16,16 +16,17 @@
     />
     <script>
       // Aplica o tema antes da renderização para evitar "flash".
-      // Manter em sincronia com THEME_STORAGE_KEY / THEMES / SYSTEM_THEME.
+      // Manter em sincronia com THEME_STORAGE_KEY / THEMES / SYSTEM_THEME / DEFAULT_PREFERENCE.
       ;(function () {
         var themes = { elyos: 'light', asmodian: 'dark', abyss: 'dark' }
         var id
         try {
           id = localStorage.getItem('abyss-raider:theme')
         } catch (e) {}
-        if (!themes[id]) {
+        if (id === 'system') {
           id = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'asmodian' : 'elyos'
         }
+        if (!themes[id]) id = 'abyss' // padrão para quem ainda não escolheu
         var root = document.documentElement
         root.dataset.theme = id
         root.classList.toggle('dark', themes[id] === 'dark')

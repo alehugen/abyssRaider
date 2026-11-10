@@ -13,6 +13,9 @@ export const THEME_STORAGE_KEY = 'abyss-raider:theme'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
+/** Tema de quem ainda não escolheu (mantenha igual ao script de index.html). */
+export const DEFAULT_PREFERENCE: ThemePreference = 'abyss'
+
 type ThemeStorage = Pick<Storage, 'getItem' | 'setItem'>
 
 export interface ThemeEnvironment {
@@ -40,9 +43,9 @@ const PREFERENCES: readonly ThemePreference[] = [...THEMES.map((t) => t.id), 'sy
 function readPreference(storage: ThemeStorage | null | undefined): ThemePreference {
   try {
     const stored = storage?.getItem(THEME_STORAGE_KEY)
-    return isThemePreference(stored) ? stored : 'system'
+    return isThemePreference(stored) ? stored : DEFAULT_PREFERENCE
   } catch {
-    return 'system'
+    return DEFAULT_PREFERENCE
   }
 }
 
@@ -72,7 +75,7 @@ export function createThemeController(env: ThemeEnvironment = {}): ThemeControll
   }
   const onStorage = (event: StorageEvent) => {
     if (event.key !== THEME_STORAGE_KEY) return
-    preference.value = isThemePreference(event.newValue) ? event.newValue : 'system'
+    preference.value = isThemePreference(event.newValue) ? event.newValue : DEFAULT_PREFERENCE
   }
 
   mediaQuery?.addEventListener('change', onSystemChange)

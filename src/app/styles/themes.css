@@ -13,7 +13,6 @@
 }
 
 /* Elyos: claro, marfim, ouro e azul-celeste */
-:root,
 [data-theme='elyos'] {
   --background: oklch(0.982 0.01 85);
   --foreground: oklch(0.25 0.035 255);
@@ -74,7 +73,8 @@
   --glow: oklch(0.55 0.22 305 / 0.4);
 }
 
-/* Abyss: o vazio, azul-noite com fendas ciano e violeta */
+/* Abyss: o vazio, azul-noite com fendas ciano e violeta. Tema padrão (também sem JS). */
+:root:not([data-theme]),
 [data-theme='abyss'] {
   --background: oklch(0.13 0.03 260);
   --foreground: oklch(0.93 0.02 220);
