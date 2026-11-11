@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import type { Character } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
 import InspectCharacter from '@/contexts/character/presentation/inspect/InspectCharacter.vue'
 import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
+import NotificationBell from '@/contexts/notifications/presentation/NotificationBell.vue'
+import { useNotificationsStore } from '@/contexts/notifications/presentation/useNotificationsStore'
 import PartySummaryCard from '@/contexts/party/presentation/components/PartySummaryCard.vue'
 import type { PartySummary } from '@/contexts/party/domain/Party'
 import PartyNotificationsDialog from '@/contexts/party/presentation/components/PartyNotificationsDialog.vue'
@@ -103,6 +106,18 @@ const partySamples: PartySummary[] = [
     routine: { days: [3, 4], time: '19:00', timeZone: 'America/Sao_Paulo' },
   },
 })) as PartySummary[]
+
+// Notificações de exemplo para o sino (sem login a store não busca nada).
+const inbox = useNotificationsStore()
+const minutesAgo = (m: number) => new Date(Date.now() - m * 60_000)
+// Depois do sino montar (ele limpa a lista ao iniciar, para a conta atual).
+onMounted(() => [
+  { id: 9001, kind: 'raid_cancelled', partyId: 'demo-0', data: { party_name: 'Ludra', starts_at: new Date(Date.now() + 2 * 86400000).toISOString() }, createdAt: minutesAgo(3 * 24 * 60), readAt: minutesAgo(60) },
+  { id: 9002, kind: 'request_declined', partyId: 'demo-1', data: { party_name: 'Ludra de sábado', character_name: 'Vharkos' }, createdAt: minutesAgo(26 * 60), readAt: minutesAgo(60) },
+  { id: 9003, kind: 'invite_accepted', partyId: 'demo-0', data: { party_name: 'Ludra', character_name: 'Seraphine' }, createdAt: minutesAgo(180), readAt: null },
+  { id: 9004, kind: 'raid_scheduled', partyId: 'demo-0', data: { party_name: 'Ludra', starts_at: new Date(Date.now() + 86400000).toISOString(), note: 'levar poções' }, createdAt: minutesAgo(12), readAt: null },
+  { id: 9005, kind: 'invite_received', partyId: 'demo-1', data: { party_name: 'Ludra de sábado', character_name: 'Lyrandel', leader_name: 'BOOMSHAKALAK' }, createdAt: minutesAgo(0), readAt: null },
+].forEach((n) => inbox.add(n as never)))
 </script>
 
 <template>
@@ -150,6 +165,11 @@ const partySamples: PartySummary[] = [
     <section id="schedule-demo" class="space-y-4">
       <h2 class="font-display text-xl font-semibold">Agendar raid da semana</h2>
       <ScheduleRaidDialog :options="scheduleOptions" />
+    </section>
+
+    <section id="bell-demo" class="space-y-4">
+      <h2 class="font-display text-xl font-semibold">Notificações</h2>
+      <NotificationBell />
     </section>
 
     <section id="party-cards" class="max-w-4xl space-y-3">

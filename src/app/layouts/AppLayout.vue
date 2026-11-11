@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PhCalendarDots, PhLinkedinLogo, PhSignIn, PhSword, PhUserList, PhUsersThree } from '@phosphor-icons/vue'
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
+import NotificationBell from '@/contexts/notifications/presentation/NotificationBell.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
 import { Button } from '@/shared/presentation/ui/button'
@@ -36,6 +37,7 @@ const links = [
         </nav>
         <div class="flex items-center gap-1.5 sm:gap-2">
           <ThemePicker />
+          <NotificationBell v-if="auth.isAuthenticated" />
           <UserMenu v-if="auth.isAuthenticated" />
           <Button v-else-if="auth.status === 'anonymous'" variant="outline" size="sm" as-child>
             <RouterLink :to="{ name: 'login' }">

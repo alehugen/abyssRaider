@@ -17,6 +17,8 @@ import { SupabasePartyRepository } from '@/contexts/party/infrastructure/Supabas
 import { SupabaseSanctuaryCatalog } from '@/contexts/party/infrastructure/SupabaseSanctuaryCatalog'
 import type { AvailabilityRepository } from '@/contexts/scheduling/domain/AvailabilityRepository'
 import type { RaidEventRepository } from '@/contexts/scheduling/domain/RaidEventRepository'
+import type { NotificationRepository } from '@/contexts/notifications/domain/Notification'
+import { SupabaseNotificationRepository } from '@/contexts/notifications/infrastructure/SupabaseNotificationRepository'
 import { SupabaseAvailabilityRepository } from '@/contexts/scheduling/infrastructure/SupabaseAvailabilityRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
@@ -30,6 +32,7 @@ export interface Container {
   raidEventRepository: RaidEventRepository
   availabilityRepository: AvailabilityRepository
   partyNotificationsRepository: PartyNotificationsRepository
+  notificationRepository: NotificationRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -89,6 +92,13 @@ const unconfiguredNotifications: PartyNotificationsRepository = {
   test: notConfigured,
 }
 
+const unconfiguredInbox: NotificationRepository = {
+  list: async () => [],
+  markRead: async () => {},
+  markAllRead: async () => {},
+  subscribe: () => () => {},
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -105,6 +115,7 @@ export function getContainer(): Container {
       partyNotificationsRepository: supabase
         ? new SupabasePartyNotificationsRepository(supabase)
         : unconfiguredNotifications,
+      notificationRepository: supabase ? new SupabaseNotificationRepository(supabase) : unconfiguredInbox,
     }
   }
   return container
