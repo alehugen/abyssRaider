@@ -94,16 +94,16 @@ watch(open, async (isOpen) => {
   characterLinkId.value ||= characterOptions.value.find((o) => o.ok)?.linked.linkId ?? ''
 })
 
-// --- sugestão de horário: quando há mais jogadores da mesma facção e região livres
+// --- sugestão de horário: quando há mais jogadores da região livres (raid é entre facções)
 const demandSlots = shallowRef<Slot[]>([])
 watch(
-  () => (selectedCharacter.value ? `${selectedCharacter.value.linked.character.region}:${selectedCharacter.value.linked.character.faction}` : ''),
+  () => selectedCharacter.value?.linked.character.region ?? '',
   async (key) => {
     demandSlots.value = []
     const c = selectedCharacter.value?.linked.character
     if (!key || !c) return
     try {
-      const windows = await getContainer().availabilityRepository.demand(c.region, c.faction)
+      const windows = await getContainer().availabilityRepository.demand(c.region)
       // Cada faixa conta como uma pessoa: as de um mesmo jogador nunca se sobrepõem.
       demandSlots.value = bestSlots(windows.map((w) => [w]), { limit: 3, minPeople: 2 })
     } catch {
@@ -114,7 +114,7 @@ watch(
 )
 const demandScope = computed(() => {
   const c = selectedCharacter.value?.linked.character
-  return c ? `${(c.faction === 'elyos' ? 'Elyos' : 'Asmodian')}, ${REGION_LABEL[c.region]}` : ''
+  return c ? REGION_LABEL[c.region] : ''
 })
 
 function useSlot(slot: Slot) {
@@ -266,7 +266,7 @@ async function submit() {
             {{ selectedCharacter.reason }}
           </p>
           <p v-else class="text-[13px] text-muted-foreground">
-            A party aceita personagens da mesma facção e região que ele.
+            A party aceita personagens da mesma região que ele, Elyos ou Asmodian.
           </p>
         </div>
 

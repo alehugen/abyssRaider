@@ -1,4 +1,4 @@
-import type { Faction, Region } from '@/contexts/character/domain/Character'
+import type { Region } from '@/contexts/character/domain/Character'
 import type { TimeWindow } from './Availability'
 
 export interface AvailabilityRepository {
@@ -7,6 +7,6 @@ export interface AvailabilityRepository {
   listByOwners(ownerIds: readonly string[]): Promise<Map<string, TimeWindow[]>>
   /** Substitui toda a disponibilidade da conta logada. */
   save(windows: readonly TimeWindow[]): Promise<void>
-  /** Faixas anônimas de todos os jogadores com personagem na região e facção. */
-  demand(region: Region, faction: Faction): Promise<TimeWindow[]>
+  /** Faixas anônimas de todos os jogadores com personagem na região (as duas facções). */
+  demand(region: Region): Promise<TimeWindow[]>
 }

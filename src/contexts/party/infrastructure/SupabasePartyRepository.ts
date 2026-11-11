@@ -150,12 +150,11 @@ export class SupabasePartyRepository implements PartyRepository {
     }))
   }
 
-  async listOpen(filter: { region: Region; faction: Faction }): Promise<PartyDetails[]> {
+  async listOpen(filter: { region: Region }): Promise<PartyDetails[]> {
     const { data, error } = await this.client
       .from('parties')
       .select(`${PARTY_COLUMNS}, members:party_members!party_members_party_id_fkey(${MEMBER_COLUMNS})`)
       .eq('region', filter.region)
-      .eq('faction', filter.faction)
       .is('finished_at', null)
       .order('created_at', { ascending: false })
       .limit(100)

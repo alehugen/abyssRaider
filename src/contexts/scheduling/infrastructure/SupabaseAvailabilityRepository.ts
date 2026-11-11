@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Faction, Region } from '@/contexts/character/domain/Character'
+import type { Region } from '@/contexts/character/domain/Character'
 import { DomainError } from '@/shared/domain/DomainError'
 import type { TimeWindow } from '../domain/Availability'
 import type { AvailabilityRepository } from '../domain/AvailabilityRepository'
@@ -54,8 +54,8 @@ export class SupabaseAvailabilityRepository implements AvailabilityRepository {
     if (error) rethrow(error)
   }
 
-  async demand(region: Region, faction: Faction): Promise<TimeWindow[]> {
-    const { data, error } = await this.client.rpc('availability_demand', { p_region: region, p_faction: faction })
+  async demand(region: Region): Promise<TimeWindow[]> {
+    const { data, error } = await this.client.rpc('availability_demand', { p_region: region, p_faction: null })
     if (error) rethrow(error)
     return (data as WindowRow[]).map(toWindow)
   }

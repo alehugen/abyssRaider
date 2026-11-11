@@ -181,31 +181,18 @@ export function moveInLayout(
 }
 
 /** Se o personagem pode pedir para entrar (mesmas regras que o banco aplica). */
-const FACTION_NAME = { elyos: 'Elyos', asmodian: 'Asmodian' } as const
-
+/** Santuário é raid entre facções: só a região (e o item level) importam. */
 export function canJoin(party: Party, linked: LinkedCharacter): Eligibility {
   const c = linked.character
   if (c.region !== party.region) return { ok: false, reason: 'Região diferente da party.' }
-  if (c.faction !== party.faction) {
-    return { ok: false, reason: `${FACTION_NAME[c.faction]} (party ${FACTION_NAME[party.faction]})` }
-  }
   return eligibility(c, party.sanctuary)
 }
 
-/**
- * Por que nenhum dos personagens da conta pode entrar, em texto para a tela.
- * Facção é o caso mais comum e o menos óbvio: no Aion 2 Elyos e Asmodian
- * não fazem party juntos.
- */
+/** Por que nenhum dos personagens da conta pode entrar, em texto para a tela. */
 export function joinBlockedMessage(party: Party, characters: readonly LinkedCharacter[]): string | null {
   if (!characters.length || characters.some((l) => canJoin(party, l).ok)) return null
-  const partyFaction = FACTION_NAME[party.faction]
-  if (characters.every((l) => l.character.faction !== party.faction)) {
-    const mine = [...new Set(characters.map((l) => FACTION_NAME[l.character.faction]))].join(' e ')
-    return `Esta party é ${partyFaction} e seus personagens são ${mine}. No Aion 2 as facções não fazem party juntas: procure uma party ${mine} ou crie a sua.`
-  }
   if (characters.every((l) => l.character.region !== party.region)) {
     return 'Esta party é de outra região do servidor. Só entram personagens da mesma região.'
   }
-  return 'Nenhum dos seus personagens pode entrar nesta party (facção, região ou item level). Veja o motivo de cada um na lista.'
+  return 'Nenhum dos seus personagens pode entrar nesta party (região ou item level). Veja o motivo de cada um na lista.'
 }

@@ -15,12 +15,12 @@ export interface PartySearch {
   needYou: PartyMatch[]
   /** Dá para pedir vaga, mas a composição já tem o papel dele (o líder ainda pode aceitar). */
   noRoleSlot: PartyMatch[]
-  /** Parties da região/facção em que a conta já é líder ou membro (não aparecem nas listas). */
+  /** Parties da região em que a conta já é líder ou membro (não aparecem nas listas). */
   mine: PartyDetails[]
 }
 
 /**
- * Parties da mesma região e facção para o personagem, separadas em "precisam
+ * Parties da mesma região para o personagem (santuário é entre facções), separadas em "precisam
  * de você", "sem vaga para o seu papel" e "suas" (já lidera ou participa).
  * Parties completas e as que ele não pode entrar (item level) ficam de fora.
  */

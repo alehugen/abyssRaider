@@ -70,7 +70,7 @@ async function search() {
   loading.value = true
   error.value = null
   try {
-    const candidates = await repo.listOpen({ region: linked.character.region, faction: linked.character.faction })
+    const candidates = await repo.listOpen({ region: linked.character.region })
     if (mine !== seq) return
     result.value = findPartiesFor(linked, candidates)
   } catch (e) {
@@ -144,7 +144,7 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
     <header class="space-y-2">
       <h1 class="font-display text-4xl leading-tight font-bold">Buscar parties</h1>
       <p class="max-w-prose text-muted-foreground">
-        Parties da sua facção e região: primeiro as que precisam do papel do seu personagem, depois as que já têm
+        Parties da sua região, Elyos e Asmodian: primeiro as que precisam do papel do seu personagem, depois as que já têm
         esse papel completo.
       </p>
     </header>
@@ -169,11 +169,8 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       </Select>
       <p v-if="selected" class="flex items-center gap-2 text-sm text-muted-foreground">
         <span :class="`faction-${selected.character.faction}`"><ClassIcon :class-name="selected.character.className" /></span>
-        Procurando vaga de {{ rolesLabel(selected.character.className) || 'qualquer papel' }} em parties
-        <b class="font-semibold text-faction-ink" :class="`faction-${selected.character.faction}`">{{
-          selected.character.faction === 'elyos' ? 'Elyos' : 'Asmodian'
-        }}</b>
-        da {{ REGION_LABEL[selected.character.region] }}
+        Procurando vaga de {{ rolesLabel(selected.character.className) || 'qualquer papel' }} em
+        {{ REGION_LABEL[selected.character.region] }}
       </p>
     </div>
 

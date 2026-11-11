@@ -52,13 +52,17 @@ describe('inviteOptions', () => {
           summary('elyos', {
             party: { ...summary('elyos').party, faction: 'elyos' },
           }),
+          summary('eu', {
+            party: { ...summary('eu').party, region: 'eu' },
+          }),
         ],
         linked(),
       ),
     ).toEqual([
       ['ok', 'can-invite', null],
       ['cheia', 'blocked', 'Party completa'],
-      ['elyos', 'blocked', 'Outra região ou facção'],
+      ['elyos', 'can-invite', null], // raid é entre facções
+      ['eu', 'blocked', 'Outra região'],
     ])
     expect(states([summary('ok')], linked({ itemLevel: 2500 }))).toEqual([
       ['ok', 'blocked', 'Item level abaixo de 2800'],

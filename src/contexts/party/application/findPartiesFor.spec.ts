@@ -62,12 +62,13 @@ describe('findPartiesFor', () => {
     expect(result.noRoleSlot[0]!.needed).toEqual([])
   })
 
-  it('separa as parties da própria conta e ignora outra facção e parties cheias', () => {
+  it('mostra parties da outra facção (raid é entre facções), separa as suas e ignora cheias e outra região', () => {
     const elyos = details('e', ['Templar'], { faction: 'elyos' })
+    const outraRegiao = details('r', ['Templar'], { region: 'eu' })
     const mine = details('m', ['Templar'], { leaderId: 'me-owner' })
     const full = details('f', Array.from({ length: 10 }, () => 'Gladiator'))
-    const result = findPartiesFor(cleric, [elyos, mine, full])
-    expect(result.needYou).toEqual([])
+    const result = findPartiesFor(cleric, [elyos, outraRegiao, mine, full])
+    expect(result.needYou.map((m) => m.details.party.id)).toEqual(['e'])
     expect(result.noRoleSlot).toEqual([])
     expect(result.mine.map((d) => d.party.id)).toEqual(['m'])
   })

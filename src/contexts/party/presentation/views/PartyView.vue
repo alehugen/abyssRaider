@@ -244,7 +244,7 @@ async function removeMember(m: PartyMember) {
         <div class="min-w-0">
           <h1 class="font-display text-4xl leading-none font-bold break-words">{{ party.name }}</h1>
           <p class="mt-2 text-muted-foreground">
-            {{ party.sanctuary.name }}, <span class="text-faction-ink">{{ party.faction === 'elyos' ? 'Elyos' : 'Asmodian' }}</span>,
+            {{ party.sanctuary.name }}, Elyos e Asmodian,
             {{ REGION_LABEL[party.region] }}
           </p>
           <p v-if="party.routine" class="mt-1 flex items-center gap-1.5 text-sm">

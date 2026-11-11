@@ -102,10 +102,10 @@ describe('PlayersView', () => {
     document.body.innerHTML = ''
   })
 
-  it('busca com a região, facção e item level da party e sem os meus personagens', async () => {
+  it('busca com a região e item level da party, as duas facções e sem os meus personagens', async () => {
     const { searchPlayers } = await setup()
     expect(searchPlayers).toHaveBeenLastCalledWith(
-      expect.objectContaining({ region: 'la', faction: 'asmodian', minItemLevel: 2800, excludeOwnerId: ME }),
+      expect.objectContaining({ region: 'la', faction: null, minItemLevel: 2800, excludeOwnerId: ME }),
     )
   })
 

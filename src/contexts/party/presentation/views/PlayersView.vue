@@ -71,7 +71,7 @@ const filters = reactive({
   days: [] as string[],
 })
 
-// Preenche região, facção e item level pela party (ou pelo seu personagem) uma única vez.
+// Preenche região e item level pela party (ou pelo seu personagem). Facção fica em "Todas": raid é entre facções.
 const ready = ref(false)
 watch(
   () => [parties.loaded || !!parties.error, characters.loaded || !!characters.error, target.value?.party.id] as const,
@@ -81,11 +81,9 @@ watch(
     const mine = characters.items[0]?.character
     if (t) {
       filters.region = t.region
-      filters.faction = t.faction
       filters.minItemLevel = t.sanctuary.minItemLevel ? String(t.sanctuary.minItemLevel) : ''
     } else if (!ready.value && mine) {
       filters.region = mine.region
-      filters.faction = mine.faction
     }
     ready.value = true
   },
@@ -211,7 +209,7 @@ const number = new Intl.NumberFormat('pt-BR')
         </SelectContent>
       </Select>
       <span v-if="target" class="text-[13px] text-muted-foreground">
-        {{ target.party.sanctuary.name }}, {{ target.party.faction === 'elyos' ? 'Elyos' : 'Asmodian' }},
+        {{ target.party.sanctuary.name }},
         {{ REGION_LABEL[target.party.region] }}
       </span>
     </div>

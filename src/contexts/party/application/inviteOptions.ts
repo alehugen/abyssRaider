@@ -44,7 +44,7 @@ export function inviteOptions(
     if (summary.acceptedCount >= p.sanctuary.groupSize) return option('blocked', 'Party completa')
     if (mine?.status === 'pending') return option('requested')
 
-    if (c.region !== p.region || c.faction !== p.faction) return option('blocked', 'Outra região ou facção')
+    if (c.region !== p.region) return option('blocked', 'Outra região')
     if (p.sanctuary.minItemLevel && (c.itemLevel ?? 0) < p.sanctuary.minItemLevel) {
       return option('blocked', `Item level abaixo de ${p.sanctuary.minItemLevel}`)
     }

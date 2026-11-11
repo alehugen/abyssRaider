@@ -139,23 +139,20 @@ describe('Party', () => {
     expect(isFull(party, ten.slice(1))).toBe(false)
   })
 
-  it('valida facção, região e item level para entrar', () => {
+  it('santuário é entre facções: valida só região e item level', () => {
     expect(canJoin(party, linked('ok'))).toEqual({ ok: true })
-    expect(canJoin(party, linked('x', { faction: 'elyos' })).ok).toBe(false)
+    expect(canJoin(party, linked('x', { faction: 'elyos' }))).toEqual({ ok: true })
     expect(canJoin(party, linked('x', { region: 'eu' })).ok).toBe(false)
     expect(canJoin(party, linked('x', { itemLevel: 2500 })).ok).toBe(false)
   })
 
-  it('explica por que não dá para entrar (facção é o caso comum)', () => {
-    // party do teste: asmodian, região la
+  it('explica por que não dá para entrar', () => {
+    // party do teste: asmodian, região la; Elyos entra normalmente
     expect(joinBlockedMessage(party, [linked('ok')])).toBeNull()
     expect(joinBlockedMessage(party, [])).toBeNull()
-    expect(joinBlockedMessage(party, [linked('e', { faction: 'elyos' })])).toBe(
-      'Esta party é Asmodian e seus personagens são Elyos. No Aion 2 as facções não fazem party juntas: procure uma party Elyos ou crie a sua.',
-    )
-    expect(canJoin(party, linked('e', { faction: 'elyos' }))).toEqual({ ok: false, reason: 'Elyos (party Asmodian)' })
+    expect(joinBlockedMessage(party, [linked('e', { faction: 'elyos' })])).toBeNull()
     expect(joinBlockedMessage(party, [linked('r', { region: 'eu' })])).toContain('outra região')
-    expect(joinBlockedMessage(party, [linked('i', { itemLevel: 2500 }), linked('e', { faction: 'elyos' })])).toContain(
+    expect(joinBlockedMessage(party, [linked('i', { itemLevel: 2500 }), linked('r', { region: 'eu' })])).toContain(
       'Veja o motivo',
     )
   })

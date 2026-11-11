@@ -1,4 +1,4 @@
-import type { Faction, Region } from '@/contexts/character/domain/Character'
+import type { Region } from '@/contexts/character/domain/Character'
 import type { Membership } from '../application/inviteOptions'
 import type { PartyDetails, PartySummary } from './Party'
 import type { RaidRoutine } from './RaidRoutine'
@@ -14,8 +14,8 @@ export interface CreatePartyInput {
 
 export interface PartyRepository {
   listMine(userId: string): Promise<PartySummary[]>
-  /** Parties da mesma região e facção, com membros, para a busca por vaga. */
-  listOpen(filter: { region: Region; faction: Faction }): Promise<PartyDetails[]>
+  /** Parties ativas da região (as duas facções), com membros, para a busca por vaga. */
+  listOpen(filter: { region: Region }): Promise<PartyDetails[]>
   get(partyId: string): Promise<PartyDetails | null>
   /** Cria a party com o personagem do líder já dentro. Devolve o id. */
   create(input: CreatePartyInput): Promise<string>
