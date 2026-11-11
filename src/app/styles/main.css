@@ -110,6 +110,12 @@
 @layer base {
   html {
     color-scheme: light;
+    /*
+     * Reserva sempre o espaço da barra de rolagem. Sem isso, ao abrir menu,
+     * diálogo ou popover (que travam a rolagem) a barra some, a página ganha
+     * ~15px e os fundos fixos (wallpaper, arte da raid) esticam e piscam.
+     */
+    scrollbar-gutter: stable;
   }
   html.dark {
     color-scheme: dark;
