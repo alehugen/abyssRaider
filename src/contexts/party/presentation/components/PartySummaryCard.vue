@@ -5,6 +5,7 @@ import ClassIcon from '@/contexts/character/presentation/components/ClassIcon.vu
 import { cn } from '@/shared/lib/utils'
 import type { PartySummary } from '../../domain/Party'
 import { formatRoutine } from '../routineFormat'
+import SanctuaryArt from './SanctuaryArt.vue'
 
 /** Card da lista "Minhas parties": arte do santuário ao fundo e o líder em destaque. */
 defineProps<{ item: PartySummary }>()
@@ -30,15 +31,7 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
     "
   >
     <!-- Arte do santuário à direita, esmaecendo para o fundo do card. -->
-    <img
-      v-if="item.party.sanctuary.imageUrl"
-      :src="item.party.sanctuary.imageUrl"
-      alt=""
-      loading="lazy"
-      aria-hidden="true"
-      class="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-3/5 object-cover object-[center_25%] opacity-0 mask-l-from-35% mask-l-to-100% transition-[opacity,transform] duration-500 data-loaded:opacity-45 dark:data-loaded:opacity-55 data-loaded:group-hover:scale-105 data-loaded:group-hover:opacity-60"
-      @load="($event.target as HTMLImageElement).dataset.loaded = ''"
-    />
+    <SanctuaryArt :src="item.party.sanctuary.imageUrl" />
 
     <span class="h-12 w-0.75 flex-none rounded-full bg-faction" aria-hidden="true" />
     <span class="min-w-0 flex-1">

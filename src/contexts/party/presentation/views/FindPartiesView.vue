@@ -23,6 +23,7 @@ import { findPartiesFor, type PartyMatch, type PartySearch } from '../../applica
 import { ROLE_ORDER } from '../../domain/Party'
 import { usePartiesStore } from '../usePartiesStore'
 import { formatRoutine } from '../routineFormat'
+import SanctuaryArt from '../components/SanctuaryArt.vue'
 import { routineFit } from '@/contexts/scheduling/domain/Availability'
 import { useAvailabilityStore } from '@/contexts/scheduling/presentation/useAvailabilityStore'
 import AvailabilityDialog from '@/contexts/scheduling/presentation/components/AvailabilityDialog.vue'
@@ -228,10 +229,11 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
             :class="
               cn(
                 `faction-${m.details.party.faction}`,
-                'flex flex-wrap items-center gap-4 rounded-2xl border bg-card/60 p-4 sm:flex-nowrap sm:p-5',
+                'group relative isolate flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-card sm:flex-nowrap sm:p-5',
               )
             "
           >
+            <SanctuaryArt :src="m.details.party.sanctuary.imageUrl" />
             <span class="h-12 w-0.75 flex-none rounded-full bg-faction" aria-hidden="true" />
             <div class="min-w-0 flex-1">
               <RouterLink
