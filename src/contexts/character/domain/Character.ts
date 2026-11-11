@@ -64,6 +64,18 @@ export function roleOf(className: string): CombatRole | null {
   return rolesOf(className)[0] ?? null
 }
 
+/**
+ * Nomes de classe (como a API grava) que cumprem algum dos papéis, incluindo os
+ * nomes internos. Ex.: dano -> Gladiator, ..., Spiritmaster, Elementalist, Chanter, ...
+ */
+export function classNamesFor(roles: readonly CombatRole[]): string[] {
+  const names = CHARACTER_CLASSES.filter((c) => CLASS_ROLES[c].some((r) => roles.includes(r)))
+  const aliases = Object.entries(CLASS_ALIASES)
+    .filter(([, target]) => names.includes(target))
+    .map(([alias]) => alias)
+  return [...names, ...aliases]
+}
+
 /** "dano/cura" para híbridos. */
 export function rolesLabel(className: string): string {
   return rolesOf(className).map((r) => ROLE_LABEL[r]).join('/')

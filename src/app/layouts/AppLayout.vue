@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PhCalendarDots, PhLinkedinLogo, PhSignIn, PhSword, PhUsersThree } from '@phosphor-icons/vue'
+import { PhCalendarDots, PhLinkedinLogo, PhSignIn, PhSword, PhUserList, PhUsersThree } from '@phosphor-icons/vue'
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
@@ -10,6 +10,7 @@ const auth = useAuthStore()
 const links = [
   { to: '/me', label: 'Personagens', icon: PhSword },
   { to: '/parties', label: 'Parties', icon: PhUsersThree },
+  { to: '/jogadores', label: 'Jogadores', icon: PhUserList },
   { to: '/agenda', label: 'Agenda', icon: PhCalendarDots },
 ]
 </script>

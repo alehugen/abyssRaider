@@ -14,6 +14,13 @@ export const partyRoutes: RouteRecordRaw[] = [
     meta: { requiresAuth: true },
   },
   {
+    // Busca de jogadores (personagens vinculados) para convidar. ?party=<id> escolhe a party.
+    path: '/jogadores',
+    name: 'players',
+    component: () => import('./views/PlayersView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     // O link desta página é o convite da party.
     path: '/parties/:id',
     name: 'party',

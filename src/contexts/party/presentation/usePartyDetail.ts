@@ -2,7 +2,7 @@ import { errorMessage } from '@/shared/lib/errorMessage'
 import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
-import { acceptedMembers, pendingMembers, type PartyDetails } from '../domain/Party'
+import { acceptedMembers, invitedMembers, pendingMembers, type PartyDetails } from '../domain/Party'
 import { usePartiesStore } from './usePartiesStore'
 
 /** Estado e ações da página de uma party. Cada ação recarrega a party inteira (simples e consistente). */
@@ -23,6 +23,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
   const members = computed(() => details.value?.members ?? [])
   const accepted = computed(() => acceptedMembers(members.value))
   const pending = computed(() => pendingMembers(members.value))
+  const invited = computed(() => invitedMembers(members.value))
   /** Participação do usuário logado (qualquer status). */
   const myMembership = computed(() => members.value.find((m) => m.linked.ownerId === userId.value) ?? null)
 
@@ -67,6 +68,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     isLeader,
     accepted,
     pending,
+    invited,
     myMembership,
     load,
     requestJoin: (characterLinkId: string) =>
@@ -74,6 +76,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     accept: (memberId: string) => run(memberId, () => repo.decide(memberId, 'accepted')),
     decline: (memberId: string) => run(memberId, () => repo.decide(memberId, 'declined')),
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
+    acceptInvite: (memberId: string) => run(memberId, () => repo.acceptInvite(memberId)),
     removeParty: () => run('party', () => repo.remove(id())),
     setLayout: (layout: ReadonlyArray<{ memberId: string; slot: number }>) =>
       run('layout', () => repo.setLayout(id(), layout)),

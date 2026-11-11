@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { Character, Faction, Region } from '../domain/Character'
+import { classNamesFor, type Character, type Faction, type Region } from '../domain/Character'
 import type { CharacterRef } from '../domain/CharacterDirectory'
-import type { CharacterRepository } from '../domain/CharacterRepository'
+import type { CharacterRepository, PlayerListing, PlayerSearchFilter } from '../domain/CharacterRepository'
 import { DomainError } from '@/shared/domain/DomainError'
 import { CharacterAlreadyClaimedError, type LinkedCharacter } from '../domain/LinkedCharacter'
 
@@ -81,6 +81,32 @@ export class SupabaseCharacterRepository implements CharacterRepository {
     return (data as Row[])
       .filter((r) => wanted.has(`${r.region}:${r.server_id}:${r.aion_id}`))
       .map((r) => ({ region: r.region, serverId: r.server_id, id: r.aion_id, ownerId: r.owner_id }))
+  }
+
+  async searchPlayers(f: PlayerSearchFilter): Promise<PlayerListing[]> {
+    let q = this.client
+      .from('characters')
+      .select(`${CHARACTER_COLUMNS}, owner:profiles!characters_owner_id_fkey(display_name, avatar_url)`)
+      .eq('region', f.region)
+    if (f.faction) q = q.eq('faction', f.faction)
+    if (f.roles?.length) q = q.in('class_name', classNamesFor(f.roles))
+    if (f.minItemLevel) q = q.gte('item_level', f.minItemLevel)
+    // Tira os curingas do ilike (% e _) e vírgulas/parênteses, que quebram o filtro do PostgREST.
+    const name = f.name?.replace(/[%_,()*\\]/g, '').trim()
+    if (name) q = q.ilike('name', `%${name}%`)
+    if (f.excludeOwnerId) q = q.neq('owner_id', f.excludeOwnerId)
+
+    const { data, error } = await q
+      .order('item_level', { ascending: false, nullsFirst: false })
+      .order('combat_power', { ascending: false, nullsFirst: false })
+      .limit(f.limit ?? 60)
+    if (error) throw error
+    type Row = CharacterRow & { owner: { display_name: string; avatar_url: string | null } | null }
+    return (data as unknown as Row[]).map((r) => ({
+      linked: rowToLinked(r),
+      ownerName: r.owner?.display_name ?? 'Daeva',
+      ownerAvatarUrl: r.owner?.avatar_url ?? null,
+    }))
   }
 
   async listByOwner(ownerId: string): Promise<LinkedCharacter[]> {

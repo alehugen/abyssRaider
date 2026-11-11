@@ -3,7 +3,8 @@ import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacte
 import type { RaidRoutine } from './RaidRoutine'
 import { eligibility, type Eligibility, type Sanctuary } from './Sanctuary'
 
-export type MemberStatus = 'pending' | 'accepted' | 'declined'
+/** pending = pediu para entrar; invited = o líder convidou e o jogador ainda não respondeu. */
+export type MemberStatus = 'pending' | 'invited' | 'accepted' | 'declined'
 
 export interface Party {
   id: string
@@ -56,6 +57,11 @@ export function acceptedMembers(members: readonly PartyMember[]): PartyMember[] 
 
 export function pendingMembers(members: readonly PartyMember[]): PartyMember[] {
   return members.filter((m) => m.status === 'pending')
+}
+
+/** Convidados pelo líder que ainda não responderam. */
+export function invitedMembers(members: readonly PartyMember[]): PartyMember[] {
+  return members.filter((m) => m.status === 'invited')
 }
 
 export function isFull(party: Party, members: readonly PartyMember[]): boolean {

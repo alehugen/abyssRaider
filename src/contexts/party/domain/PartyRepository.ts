@@ -1,4 +1,5 @@
 import type { Faction, Region } from '@/contexts/character/domain/Character'
+import type { Membership } from '../application/inviteOptions'
 import type { PartyDetails, PartySummary } from './Party'
 import type { RaidRoutine } from './RaidRoutine'
 
@@ -26,4 +27,11 @@ export interface PartyRepository {
   decide(memberId: string, status: 'accepted' | 'declined'): Promise<void>
   /** Sair, cancelar pedido ou (líder) remover alguém. */
   removeMember(memberId: string): Promise<void>
+
+  /** Líder convida um personagem. Se ele já tinha pedido vaga, o pedido é aceito ('accepted'). */
+  invite(partyId: string, characterLinkId: string): Promise<'invited' | 'accepted'>
+  /** O jogador convidado aceita (recusar = removeMember). */
+  acceptInvite(memberId: string): Promise<void>
+  /** Quem está, pediu ou foi convidado nestas parties (para a busca de jogadores). */
+  listMemberships(partyIds: readonly string[]): Promise<Membership[]>
 }

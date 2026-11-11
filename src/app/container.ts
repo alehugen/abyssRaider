@@ -49,6 +49,7 @@ const unconfiguredCharacters: CharacterRepository = {
   save: notConfigured,
   remove: async () => {},
   findOwners: async () => [],
+  searchPlayers: async () => [],
 }
 
 const unconfiguredParties: PartyRepository = {
@@ -58,6 +59,9 @@ const unconfiguredParties: PartyRepository = {
   create: notConfigured,
   remove: notConfigured,
   setLayout: notConfigured,
+  invite: notConfigured,
+  acceptInvite: notConfigured,
+  listMemberships: async () => [],
   requestJoin: notConfigured,
   decide: notConfigured,
   removeMember: notConfigured,

@@ -6,6 +6,8 @@ import {
   PhCircleNotch,
   PhDiscordLogo,
   PhDotsSixVertical,
+  PhEnvelopeOpen,
+  PhUserPlus,
   PhEye,
   PhLink,
   PhSignOut,
@@ -153,10 +155,11 @@ async function leave() {
   const m = p.myMembership.value
   if (!m) return
   const pending = m.status === 'pending'
+  const invited = m.status === 'invited'
   const ok = await confirm({
-    title: pending ? 'Cancelar seu pedido?' : 'Sair desta party?',
-    description: pending ? undefined : 'Para voltar, você vai precisar pedir vaga de novo.',
-    confirmText: pending ? 'Cancelar pedido' : 'Sair',
+    title: invited ? 'Recusar o convite?' : pending ? 'Cancelar seu pedido?' : 'Sair desta party?',
+    description: pending || invited ? undefined : 'Para voltar, você vai precisar pedir vaga de novo.',
+    confirmText: invited ? 'Recusar convite' : pending ? 'Cancelar pedido' : 'Sair',
     cancelText: 'Voltar',
     destructive: !pending,
   })
@@ -243,7 +246,8 @@ async function removeMember(m: PartyMember) {
             class="text-muted-foreground"
             @click="leave"
           >
-            <PhSignOut /> {{ p.myMembership.value.status === 'pending' ? 'Cancelar pedido' : 'Sair' }}
+            <PhSignOut />
+            {{ { pending: 'Cancelar pedido', invited: 'Recusar convite' }[p.myMembership.value.status as string] ?? 'Sair' }}
           </Button>
         </div>
       </header>
@@ -251,6 +255,26 @@ async function removeMember(m: PartyMember) {
       <p v-if="p.error.value" role="alert" class="flex items-center gap-2 text-sm text-destructive">
         <PhWarningCircle :size="18" /> {{ p.error.value }}
       </p>
+
+      <!-- Convidado: aceitar ou recusar -->
+      <div
+        v-if="p.myMembership.value?.status === 'invited'"
+        role="status"
+        :class="cn(`faction-${party.faction}`, 'flex flex-wrap items-center gap-3 rounded-2xl border border-faction/60 bg-faction-soft/60 p-4')"
+      >
+        <PhEnvelopeOpen :size="22" class="flex-none text-faction-ink" aria-hidden="true" />
+        <p class="min-w-0 flex-1">
+          <span class="font-semibold">Você foi convidado</span> para esta party com
+          <span class="font-semibold">{{ p.myMembership.value.linked.character.name }}</span>.
+        </p>
+        <div class="flex gap-2">
+          <Button variant="ghost" :disabled="p.busy.value === p.myMembership.value.id" @click="leave">Recusar</Button>
+          <Button :disabled="p.busy.value === p.myMembership.value.id || full" @click="p.acceptInvite(p.myMembership.value.id)">
+            <PhCircleNotch v-if="p.busy.value === p.myMembership.value.id" class="animate-spin" />
+            Aceitar convite
+          </Button>
+        </div>
+      </div>
 
       <!-- Composição -->
       <section aria-labelledby="roster-title" class="space-y-4">
@@ -404,6 +428,37 @@ async function removeMember(m: PartyMember) {
                 <Button size="sm" :disabled="full || p.busy.value === m.id" @click="p.accept(m.id)">
                   <PhCircleNotch v-if="p.busy.value === m.id" class="animate-spin" />
                   Aceitar
+                </Button>
+              </template>
+            </CharacterCard>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Líder: convites enviados -->
+      <section v-if="p.isLeader.value" aria-labelledby="invites-title" class="space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 id="invites-title" class="font-display text-2xl font-semibold">Convites enviados</h2>
+          <Button size="sm" variant="outline" as-child>
+            <RouterLink :to="{ name: 'players', query: { party: party.id } }"><PhUserPlus /> Convidar jogadores</RouterLink>
+          </Button>
+        </div>
+        <p v-if="!p.invited.value.length" class="text-sm text-muted-foreground">
+          Nenhum convite aguardando resposta. Encontre jogadores pela disponibilidade e convide.
+        </p>
+        <ul v-else class="divide-y divide-border/60 rounded-2xl border bg-card/60 px-4">
+          <li v-for="m in p.invited.value" :key="m.id">
+            <CharacterCard :character="m.linked.character" size="sm" :role="m.ownerName">
+              <template #actions>
+                <span class="hidden text-xs text-muted-foreground sm:inline">aguardando</span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  class="text-muted-foreground hover:text-destructive"
+                  :disabled="p.busy.value === m.id"
+                  @click="p.removeMember(m.id)"
+                >
+                  Cancelar convite
                 </Button>
               </template>
             </CharacterCard>

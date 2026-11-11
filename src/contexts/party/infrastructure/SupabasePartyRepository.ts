@@ -6,6 +6,7 @@ import {
   type CharacterRow,
 } from '@/contexts/character/infrastructure/SupabaseCharacterRepository'
 import { DomainError } from '@/shared/domain/DomainError'
+import type { Membership } from '../application/inviteOptions'
 import type { MemberStatus, Party, PartyDetails, PartyMember, PartySummary } from '../domain/Party'
 import type { CreatePartyInput, PartyRepository } from '../domain/PartyRepository'
 
@@ -175,6 +176,36 @@ export class SupabasePartyRepository implements PartyRepository {
     })
     if (error) rethrow(error)
     return data as string
+  }
+
+  async invite(partyId: string, characterLinkId: string): Promise<'invited' | 'accepted'> {
+    const { data, error } = await this.client.rpc('invite_to_party', {
+      p_party_id: partyId,
+      p_character_id: characterLinkId,
+    })
+    if (error) rethrow(error)
+    return data === 'accepted' ? 'accepted' : 'invited'
+  }
+
+  async acceptInvite(memberId: string): Promise<void> {
+    const { error } = await this.client.rpc('accept_party_invite', { p_member_id: memberId })
+    if (error) rethrow(error)
+  }
+
+  async listMemberships(partyIds: readonly string[]): Promise<Membership[]> {
+    if (!partyIds.length) return []
+    const { data, error } = await this.client
+      .from('party_members')
+      .select('party_id, character_id, owner_id, status')
+      .in('party_id', [...partyIds])
+    if (error) rethrow(error)
+    type Row = { party_id: string; character_id: string; owner_id: string; status: MemberStatus }
+    return (data as Row[]).map((r) => ({
+      partyId: r.party_id,
+      characterLinkId: r.character_id,
+      ownerId: r.owner_id,
+      status: r.status,
+    }))
   }
 
   async setLayout(partyId: string, layout: ReadonlyArray<{ memberId: string; slot: number }>): Promise<void> {

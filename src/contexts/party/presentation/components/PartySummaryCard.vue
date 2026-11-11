@@ -13,6 +13,7 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
   leader: { label: 'Você lidera', class: 'text-primary' },
   accepted: { label: 'Membro', class: 'text-success' },
   pending: { label: 'Pedido enviado', class: 'text-warning' },
+  invited: { label: 'Convite recebido', class: 'text-highlight' },
   declined: { label: 'Pedido recusado', class: 'text-destructive' },
 }
 </script>
