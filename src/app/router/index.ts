@@ -4,6 +4,7 @@ import { partyRoutes } from '@/contexts/party/presentation/routes'
 import { schedulingRoutes } from '@/contexts/scheduling/presentation/routes'
 import { identityRoutes } from '@/contexts/identity/presentation/routes'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { pendingOnboardingStep } from '@/app/onboarding'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -11,6 +12,8 @@ declare module 'vue-router' {
     requiresAuth?: boolean
     /** Só para anônimos (ex.: /login); logados vão para a home. */
     guestOnly?: boolean
+    /** Abre mesmo sem os primeiros passos concluídos (a própria página deles). */
+    skipOnboarding?: boolean
   }
 }
 
@@ -25,6 +28,13 @@ export const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('@/app/views/HomeView.vue'),
+    },
+    {
+      // Primeiros passos obrigatórios: vincular personagem e informar disponibilidade.
+      path: '/comecar',
+      name: 'onboarding',
+      component: () => import('@/app/views/OnboardingView.vue'),
+      meta: { requiresAuth: true, skipOnboarding: true },
     },
     ...identityRoutes,
     ...characterRoutes,
@@ -50,6 +60,9 @@ router.beforeEach(async (to) => {
   }
   if (to.meta.guestOnly && auth.isAuthenticated) {
     return { name: 'home' }
+  }
+  if (to.meta.requiresAuth && !to.meta.skipOnboarding && (await pendingOnboardingStep())) {
+    return { name: 'onboarding', query: { next: to.fullPath } }
   }
   return true
 })
