@@ -36,6 +36,7 @@ import {
   assignRoles,
   canJoin,
   composition,
+  joinBlockedMessage,
   GROUP_SIZE,
   groups,
   moveInLayout,
@@ -124,6 +125,8 @@ const joinOptions = computed(() =>
       })
     : [],
 )
+/** Nenhum personagem pode entrar: explica (antes só ficava tudo desativado). */
+const joinBlocked = computed(() => (party.value ? joinBlockedMessage(party.value, characters.items) : null))
 const joinCharacter = ref('')
 watch(joinOptions, (opts) => {
   if (!opts.some((o) => o.linked.linkId === joinCharacter.value && o.ok)) {
@@ -535,6 +538,18 @@ async function removeMember(m: PartyMember) {
           <RouterLink to="/me" class="font-medium text-foreground underline">Meus personagens</RouterLink>
           para pedir vaga.
         </p>
+        <div v-else-if="joinBlocked && !p.myMembership.value" role="status" class="space-y-3">
+          <p class="flex items-start gap-2 text-sm">
+            <PhWarningCircle :size="18" class="mt-0.5 flex-none text-warning-ink" aria-hidden="true" />
+            {{ joinBlocked }}
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" as-child>
+              <RouterLink :to="{ name: 'find-parties' }">Buscar parties</RouterLink>
+            </Button>
+            <CreatePartyDialog />
+          </div>
+        </div>
         <form
           v-else-if="!p.myMembership.value"
           class="flex flex-col gap-2 sm:flex-row"

@@ -169,8 +169,11 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       </Select>
       <p v-if="selected" class="flex items-center gap-2 text-sm text-muted-foreground">
         <span :class="`faction-${selected.character.faction}`"><ClassIcon :class-name="selected.character.className" /></span>
-        Procurando vaga de {{ rolesLabel(selected.character.className) || 'qualquer papel' }} em
-        {{ REGION_LABEL[selected.character.region] }}
+        Procurando vaga de {{ rolesLabel(selected.character.className) || 'qualquer papel' }} em parties
+        <b class="font-semibold text-faction-ink" :class="`faction-${selected.character.faction}`">{{
+          selected.character.faction === 'elyos' ? 'Elyos' : 'Asmodian'
+        }}</b>
+        da {{ REGION_LABEL[selected.character.region] }}
       </p>
     </div>
 
