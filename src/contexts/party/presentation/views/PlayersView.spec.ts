@@ -120,6 +120,16 @@ describe('PlayersView', () => {
     expect(convidada.text()).toContain('Convidado, aguardando')
   })
 
+  it('facção "Todas" busca sem filtro de facção', async () => {
+    const { wrapper, searchPlayers } = await setup()
+    const todas = wrapper.findAll('button').find((b) => b.text() === 'Todas')!
+    await todas.trigger('click')
+    await vi.waitFor(() => expect(searchPlayers).toHaveBeenLastCalledWith(expect.objectContaining({ faction: null })), {
+      timeout: 2000,
+    })
+    expect(todas.attributes('data-state')).toBe('on')
+  })
+
   it('convida e atualiza o card', async () => {
     const { wrapper, invite } = await setup()
     const card = wrapper.findAll('li.rounded-2xl').find((c) => c.text().includes('Sem'))!

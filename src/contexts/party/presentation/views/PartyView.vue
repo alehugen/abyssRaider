@@ -292,8 +292,8 @@ async function removeMember(m: PartyMember) {
         </div>
 
         <p v-if="p.isLeader.value && p.accepted.value.length > 1" class="-mt-2 text-[13px] text-muted-foreground">
-          Arraste pela alça <PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" /> para trocar jogadores de
-          lugar ou de grupo.
+          Arraste um jogador para trocar de lugar ou de grupo. No celular, segure o dedo sobre ele e arraste (ou use a
+          alça <PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" />).
         </p>
         <p class="sr-only" aria-live="assertive">{{ dragStatus }}</p>
 
@@ -312,11 +312,14 @@ async function removeMember(m: PartyMember) {
                 :class="
                   cn(
                     'flex items-center gap-1 rounded-lg transition-colors',
+                    // Líder: a linha inteira é arrastável (no toque, segurar e arrastar).
+                    p.isLeader.value && member && 'cursor-grab select-none [-webkit-touch-callout:none] hover:bg-accent/40 active:cursor-grabbing',
                     dragFrom != null && dragOver === gi * GROUP_SIZE + si && dragFrom !== dragOver &&
                       'bg-primary/10 ring-2 ring-primary',
                     dragFrom === gi * GROUP_SIZE + si && 'opacity-40',
                   )
                 "
+                @pointerdown="p.isLeader.value && member && onPointerDown($event, gi * GROUP_SIZE + si)"
               >
                 <button
                   v-if="p.isLeader.value && member"
@@ -329,7 +332,7 @@ async function removeMember(m: PartyMember) {
                   "
                   :aria-label="`Mover ${member.linked.character.name} (${slotName(gi * GROUP_SIZE + si)})`"
                   :aria-pressed="dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si"
-                  @pointerdown="onPointerDown($event, gi * GROUP_SIZE + si)"
+                  data-drag-handle
                   @keydown="onKeyDown($event, gi * GROUP_SIZE + si)"
                 >
                   <PhDotsSixVertical :size="18" weight="bold" />

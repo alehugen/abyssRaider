@@ -243,12 +243,13 @@ const number = new Intl.NumberFormat('pt-BR')
       <fieldset class="space-y-1.5">
         <legend class="mb-1.5 text-xs font-medium text-muted-foreground">Facção</legend>
         <ToggleGroup
-          :model-value="filters.faction"
+          :model-value="filters.faction || 'all'"
           type="single"
           variant="outline"
           class="w-full"
-          @update:model-value="filters.faction = (($event as string) || '') as Faction | ''"
+          @update:model-value="(v) => v && (filters.faction = (v === 'all' ? '' : v) as Faction | '')"
         >
+          <ToggleGroupItem value="all" class="flex-1">Todas</ToggleGroupItem>
           <ToggleGroupItem value="elyos" class="flex-1">Elyos</ToggleGroupItem>
           <ToggleGroupItem value="asmodian" class="flex-1">Asmodian</ToggleGroupItem>
         </ToggleGroup>
