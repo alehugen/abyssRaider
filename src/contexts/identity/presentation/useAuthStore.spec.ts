@@ -68,7 +68,7 @@ describe('useAuthStore', () => {
     const auth = useAuthStore()
 
     await auth.signIn()
-    expect(auth.error).toBe('provider disabled')
+    expect(auth.error).toContain('login com Discord não está habilitado')
   })
 
   it('signOut limpa o usuário', async () => {

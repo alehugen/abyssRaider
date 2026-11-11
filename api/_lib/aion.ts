@@ -80,13 +80,27 @@ function toInt(value: unknown): number | null {
 }
 
 async function getJson(url: string): Promise<unknown> {
-  const res = await fetch(url, {
-    headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0 (compatible; AbyssRaider)' },
-    signal: AbortSignal.timeout(8000),
-  })
+  let res: Response
+  try {
+    res = await fetch(url, {
+      headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0 (compatible; AbyssRaider)' },
+      signal: AbortSignal.timeout(8000),
+    })
+  } catch (e) {
+    const timeout = e instanceof Error && (e.name === 'TimeoutError' || e.name === 'AbortError')
+    throw timeout
+      ? new AionApiError('A API do Aion demorou para responder. Tente de novo.', 504)
+      : new AionApiError('Não foi possível falar com a API do Aion. Tente de novo.', 502)
+  }
   if (res.status === 429) throw new AionApiError('A API do Aion está limitando requisições. Tente em instantes.', 429)
-  if (!res.ok) throw new AionApiError(`API do Aion respondeu ${res.status}`, 502)
-  return res.json()
+  if (res.status === 404) throw new AionApiError('Personagem não encontrado no Aion.', 404)
+  if (!res.ok) throw new AionApiError(`A API do Aion está com problema (erro ${res.status}). Tente mais tarde.`, 502)
+  try {
+    return await res.json()
+  } catch {
+    // Às vezes a NCSOFT devolve uma página HTML (manutenção) com status 200.
+    throw new AionApiError('A API do Aion respondeu algo inesperado (manutenção?). Tente mais tarde.', 502)
+  }
 }
 
 // ---------------------------------------------------------------- normalização
@@ -196,7 +210,9 @@ export function json(body: unknown, cacheSeconds: number, status = 200): Respons
 
 export function errorResponse(error: unknown): Response {
   const status = error instanceof AionApiError ? error.status : 502
-  const message = error instanceof Error ? error.message : 'Falha ao consultar a API do Aion'
+  // Só mensagens nossas (em português) vão para a tela; o resto vai para o log.
+  if (!(error instanceof AionApiError)) console.error(error)
+  const message = error instanceof AionApiError ? error.message : 'Falha ao consultar a API do Aion. Tente de novo.'
   return Response.json({ error: message }, { status, headers: { 'cache-control': 'no-store' } })
 }
 

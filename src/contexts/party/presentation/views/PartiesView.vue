@@ -9,9 +9,8 @@ import { usePartiesStore } from '../usePartiesStore'
 
 const parties = usePartiesStore()
 
-onMounted(() => {
-  if (!parties.loaded) void parties.load()
-})
+// Mostra o que já tem e atualiza em segundo plano (o líder pode ter aceitado/recusado algo).
+onMounted(() => void parties.load())
 
 </script>
 
@@ -40,7 +39,7 @@ onMounted(() => {
       <Skeleton v-for="i in 3" :key="i" class="h-20 rounded-2xl" />
     </div>
 
-    <p v-else-if="!parties.items.length" class="text-muted-foreground">
+    <p v-else-if="parties.loaded && !parties.items.length" class="text-muted-foreground">
       Você ainda não está em nenhuma party. Crie uma ou peça o link para o líder do seu grupo.
     </p>
 

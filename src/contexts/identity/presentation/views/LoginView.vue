@@ -4,16 +4,13 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/presentation/ui/card'
 import DiscordLoginButton from '../components/DiscordLoginButton.vue'
+import { safeNext } from '@/shared/lib/safeNext'
 import { useAuthStore } from '../useAuthStore'
 
 const route = useRoute()
 const auth = useAuthStore()
 
-const next = computed(() => {
-  const value = route.query.next
-  // Só aceita caminhos internos (evita open redirect).
-  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/'
-})
+const next = computed(() => safeNext(route.query.next))
 const callbackError = computed(() => (typeof route.query.error === 'string' ? route.query.error : null))
 </script>
 

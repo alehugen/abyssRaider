@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PhCheck, PhCheckCircle } from '@phosphor-icons/vue'
+import { PhCheck, PhCheckCircle, PhWarningCircle } from '@phosphor-icons/vue'
+import { Button } from '@/shared/presentation/ui/button'
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
@@ -17,13 +18,16 @@ const router = useRouter()
 const characters = useCharactersStore()
 const availability = useAvailabilityStore()
 
-onMounted(async () => {
+async function loadAll() {
   await Promise.all([characters.loaded ? null : characters.load(), availability.load()])
   // Já estava tudo pronto (ex.: abriu /comecar direto): segue para onde ia.
   if (characters.items.length && availability.windows.length) await finish()
-})
+}
+onMounted(loadAll)
 
 const loaded = computed(() => characters.loaded && availability.loaded)
+/** Falhou ao carregar: mostra o erro e deixa tentar de novo (antes ficava no skeleton). */
+const loadError = computed(() => (loaded.value ? null : (characters.error ?? availability.error)))
 /** 1 = vincular personagem, 2 = disponibilidade. */
 const step = computed(() => (characters.items.length ? 2 : 1))
 
@@ -74,7 +78,14 @@ async function finish() {
       </template>
     </ol>
 
-    <div v-if="!loaded" class="space-y-3">
+    <div v-if="loadError" role="alert" class="space-y-3">
+      <p class="flex items-center gap-2 text-sm text-destructive">
+        <PhWarningCircle :size="18" aria-hidden="true" /> {{ loadError }}
+      </p>
+      <Button variant="outline" size="sm" @click="loadAll">Tentar de novo</Button>
+    </div>
+
+    <div v-else-if="!loaded" class="space-y-3">
       <Skeleton class="h-8 w-64" />
       <Skeleton class="h-40 rounded-2xl" />
     </div>

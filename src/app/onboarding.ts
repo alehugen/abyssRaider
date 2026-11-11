@@ -1,4 +1,5 @@
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
+import { safeNext as safeNextPath } from '@/shared/lib/safeNext'
 import { useAvailabilityStore } from '@/contexts/scheduling/presentation/useAvailabilityStore'
 
 /**
@@ -22,7 +23,7 @@ export async function pendingOnboardingStep(): Promise<OnboardingStep | null> {
   return null
 }
 
-/** Só caminhos internos (evita redirecionar para outro site via ?next=). */
+/** Destino ao concluir os primeiros passos (padrão: parties). */
 export function safeNext(next: unknown, fallback = '/parties'): string {
-  return typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : fallback
+  return safeNextPath(next, fallback)
 }

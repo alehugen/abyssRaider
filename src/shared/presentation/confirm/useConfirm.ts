@@ -40,7 +40,3 @@ export function settleConfirm(ok: boolean) {
   confirmState.resolve = null
   resolve?.(ok)
 }
-
-export function useConfirm() {
-  return confirm
-}

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { onScopeDispose, ref } from 'vue'
 
 /** Segurar o dedo esse tempo começa a arrastar (antes disso, deslizar rola a página). */
 export const HOLD_MS = 280
@@ -22,6 +22,9 @@ export function useSlotDrag(options: { total: () => number; onDrop: (from: numbe
   const over = ref<number | null>(null)
   const pointer = ref({ x: 0, y: 0 })
   const mode = ref<'pointer' | 'keyboard' | null>(null)
+  /** Limpeza do arrasto em andamento (a página pode sair no meio dele). */
+  let active: (() => void) | null = null
+  onScopeDispose(() => active?.())
 
   function reset() {
     from.value = null
@@ -83,6 +86,7 @@ export function useSlotDrag(options: { total: () => number; onDrop: (from: numbe
     }
 
     const cleanup = () => {
+      active = null
       if (timer) clearTimeout(timer)
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', end)
@@ -112,6 +116,8 @@ export function useSlotDrag(options: { total: () => number; onDrop: (from: numbe
       else drop()
     }
 
+    active?.()
+    active = cleanup
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', end)
     window.addEventListener('pointercancel', end)

@@ -27,6 +27,14 @@ npm run build
 - Extras do projeto: `bg-highlight`, `bg-glow`, `shadow-card`, e as classes de facção `bg-faction-soft`, `text-faction-ink` e `border-faction`. Estas valem dentro de um elemento com `.faction-elyos` ou `.faction-asmodian`.
 - As variantes `dark:`, `elyos:`, `asmodian:` e `abyss:` estão disponíveis.
 
+## Banco (Supabase)
+
+- As migrations ficam em `supabase/migrations/` e rodam **em ordem de nome** no SQL Editor do Supabase.
+- Os cinco arquivos `20261110*` são a base consolidada (perfis, personagens, parties, agenda/disponibilidade e avisos do Discord); os seguintes são incrementais.
+- Os avisos do Discord e os lembretes usam as extensões gratuitas `pg_net` e `pg_cron`. Se a migration reclamar de permissão, ligue as duas em **Database → Extensions** e rode de novo.
+- O sino de notificações usa o Realtime: confira em **Database → Publications** que `notifications` está na `supabase_realtime`.
+- No front e no `.env` vão só a URL e a chave pública (`sb_publishable_...`). Nunca a `service_role`.
+
 Aviso: este projeto não tem afiliação com a NCSOFT. Aion é marca registrada da NCSOFT Corporation.
 
 ## UI

@@ -48,9 +48,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /** Sai mesmo se a chamada falhar (sem rede): a sessão local é descartada. */
   async function signOut() {
-    await getContainer().authRepository.signOut()
-    setUser(null)
+    try {
+      await getContainer().authRepository.signOut()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setUser(null)
+    }
   }
 
   function $dispose() {

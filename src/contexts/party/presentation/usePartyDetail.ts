@@ -5,6 +5,8 @@ import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { acceptedMembers, invitedMembers, pendingMembers, type PartyDetails } from '../domain/Party'
 import { usePartiesStore } from './usePartiesStore'
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 /** Estado e ações da página de uma party. Cada ação recarrega a party inteira (simples e consistente). */
 export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
   const repo = getContainer().partyRepository
@@ -27,21 +29,36 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
   /** Participação do usuário logado (qualquer status). */
   const myMembership = computed(() => members.value.find((m) => m.linked.ownerId === userId.value) ?? null)
 
+  /** Party exibida; trocou (ex.: veio de uma notificação) = começa do zero. */
+  let shownId: string | null = null
+  /** Só a resposta mais recente vale (uma lenta de outra party não sobrescreve). */
+  let seq = 0
+
   async function load() {
     const id = toValue(partyId)
+    const mine = ++seq
+    if (id !== shownId) {
+      shownId = id
+      details.value = null
+      notFound.value = false
+      loading.value = true
+    }
     error.value = null
     try {
-      const found = await repo.get(id)
+      const found = UUID.test(id) ? await repo.get(id) : null
+      if (mine !== seq) return
       details.value = found
       notFound.value = !found
     } catch (e) {
-      error.value = errorMessage(e)
+      if (mine === seq) error.value = errorMessage(e)
     } finally {
-      loading.value = false
+      if (mine === seq) loading.value = false
     }
   }
 
+  /** Uma ação por vez na página (os botões ficam desativados enquanto `busy`). */
   async function run(key: string, action: () => Promise<void>): Promise<boolean> {
+    if (busy.value) return false
     busy.value = key
     error.value = null
     try {

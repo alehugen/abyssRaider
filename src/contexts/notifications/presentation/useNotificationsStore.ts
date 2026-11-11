@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { usePartiesStore } from '@/contexts/party/presentation/usePartiesStore'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import type { AppNotification } from '../domain/Notification'
 
@@ -22,7 +23,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
     const userId = useAuthStore().user?.id
     if (!userId) return
     try {
-      items.value = await repo().list(userId)
+      const list = await repo().list(userId)
+      if (useAuthStore().user?.id !== userId) return // trocou de conta no meio
+      items.value = list
       loaded.value = true
       error.value = null
     } catch (e) {
@@ -33,6 +36,9 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function add(n: AppNotification) {
     if (items.value.some((x) => x.id === n.id)) return
     items.value = [n, ...items.value].slice(0, 50)
+    // Convite, aceite, recusa ou raid: a lista de parties mudou.
+    const parties = usePartiesStore()
+    if (parties.loaded) void parties.load()
   }
 
   function markLocal(ids: ReadonlySet<number> | null) {
@@ -44,14 +50,15 @@ export const useNotificationsStore = defineStore('notifications', () => {
     const unreadIds = ids.filter((id) => items.value.some((n) => n.id === id && !n.readAt))
     if (!unreadIds.length) return
     markLocal(new Set(unreadIds))
-    await repo().markRead(unreadIds).catch((e) => (error.value = errorMessage(e)))
+    // Falhou: volta ao estado real do servidor.
+    await repo().markRead(unreadIds).catch(() => refresh())
   }
 
   async function markAllRead() {
     const userId = useAuthStore().user?.id
     if (!userId || !unread.value) return
     markLocal(null)
-    await repo().markAllRead(userId).catch((e) => (error.value = errorMessage(e)))
+    await repo().markAllRead(userId).catch(() => refresh())
   }
 
   /** Liga para a conta logada (e desliga ao sair). Chamado uma vez pelo sino. */

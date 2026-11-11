@@ -101,8 +101,10 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
   }
 
   async cancel(eventId: string): Promise<void> {
-    const { error } = await this.client.from('raid_events').delete().eq('id', eventId)
+    const { data, error } = await this.client.from('raid_events').delete().eq('id', eventId).select('id')
     if (error) rethrow(error)
+    // A RLS não dá erro quando bloqueia: só não apaga.
+    if (!data?.length) throw new DomainError('schedule.nothing_changed', 'Não foi possível cancelar: recarregue a página.')
   }
 
   async respond(eventId: string, memberId: string, status: RsvpStatus): Promise<void> {

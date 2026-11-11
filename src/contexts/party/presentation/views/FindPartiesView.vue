@@ -59,18 +59,23 @@ const error = ref<string | null>(null)
 const requesting = ref<string | null>(null)
 const requested = ref(new Set<string>())
 
+/** Só a busca do personagem selecionado agora vale (trocar rápido não mistura resultados). */
+let seq = 0
+
 async function search() {
   const linked = selected.value
   if (!linked) return
+  const mine = ++seq
   loading.value = true
   error.value = null
   try {
     const candidates = await repo.listOpen({ region: linked.character.region, faction: linked.character.faction })
+    if (mine !== seq) return
     result.value = findPartiesFor(linked, candidates)
   } catch (e) {
-    error.value = errorMessage(e)
+    if (mine === seq) error.value = errorMessage(e)
   } finally {
-    loading.value = false
+    if (mine === seq) loading.value = false
   }
 }
 watch(selected, () => void search(), { immediate: true })
@@ -168,8 +173,8 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       </p>
     </div>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
-      <PhWarningCircle :size="18" /> {{ error }}
+    <p v-if="error || characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+      <PhWarningCircle :size="18" aria-hidden="true" /> {{ error ?? characters.error }}
     </p>
 
     <div v-if="loading" class="space-y-3">

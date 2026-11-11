@@ -37,6 +37,8 @@ const saved = ref(false)
 const form = ref<PartyNotifications>({ webhookUrl: '', ...DEFAULT_NOTIFICATIONS })
 const busy = ref<'save' | 'test' | 'remove' | null>(null)
 const error = ref<string | null>(null)
+/** Não conseguiu ler a configuração: não deixa salvar (sobrescreveria a real com os padrões). */
+const loadFailed = ref(false)
 const notice = ref<string | null>(null)
 
 const reminderValue = computed({
@@ -59,12 +61,14 @@ watch(open, async (isOpen) => {
   error.value = null
   notice.value = null
   loading.value = true
+  loadFailed.value = false
   try {
     const current = await repo.get(props.partyId)
     saved.value = !!current
     form.value = current ?? { webhookUrl: '', ...DEFAULT_NOTIFICATIONS }
   } catch (e) {
     error.value = errorMessage(e)
+    loadFailed.value = true
   } finally {
     loading.value = false
   }
@@ -215,7 +219,7 @@ async function remove() {
               Enviar teste
             </Button>
           </div>
-          <Button type="submit" :disabled="!urlOk || !!busy">
+          <Button type="submit" :disabled="!urlOk || !!busy || loadFailed">
             <PhCircleNotch v-if="busy === 'save'" class="animate-spin" />
             Salvar
           </Button>

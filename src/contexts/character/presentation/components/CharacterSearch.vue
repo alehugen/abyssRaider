@@ -2,7 +2,7 @@
 import { PhCheck, PhCircleNotch, PhLink, PhLock, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/presentation/ui/tooltip'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { REGIONS, REGION_LABEL, type CharacterSummary, type Region } from '@/contexts/character/domain/Character'
 import { Button } from '@/shared/presentation/ui/button'
 import { Input } from '@/shared/presentation/ui/input'
@@ -42,8 +42,13 @@ const resultCount = computed(() =>
   results.value.length === 1 ? '1 personagem encontrado' : `${results.value.length} personagens encontrados`,
 )
 
-function link(c: CharacterSummary) {
-  void characters.link({ region: c.region, serverId: c.serverId, id: c.id })
+/** Erro ao vincular (já vinculado por outro, limite de 12, API fora...), mostrado aqui mesmo. */
+const linkError = ref<string | null>(null)
+
+async function link(c: CharacterSummary) {
+  linkError.value = null
+  const ok = await characters.link({ region: c.region, serverId: c.serverId, id: c.id })
+  if (!ok) linkError.value = characters.error ?? 'Não foi possível vincular. Tente de novo.'
 }
 </script>
 
@@ -108,6 +113,9 @@ function link(c: CharacterSummary) {
       </Button>
     </form>
 
+    <p v-if="linkError" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive">
+      <PhWarningCircle :size="18" aria-hidden="true" /> {{ linkError }}
+    </p>
     <p v-if="error" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>

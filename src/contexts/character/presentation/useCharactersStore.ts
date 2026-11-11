@@ -1,8 +1,10 @@
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { defineStore } from 'pinia'
+import { DomainError } from '@/shared/domain/DomainError'
 import { computed, ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { usePartiesStore } from '@/contexts/party/presentation/usePartiesStore'
 import { linkCharacter } from '../application/linkCharacter'
 import type { CharacterRef } from '../domain/CharacterDirectory'
 import type { LinkedCharacter } from '../domain/LinkedCharacter'
@@ -25,7 +27,7 @@ export const useCharactersStore = defineStore('characters', () => {
 
   function ownerId(): string {
     const id = useAuthStore().user?.id
-    if (!id) throw new Error('Faça login para gerenciar personagens.')
+    if (!id) throw new DomainError('auth.required', 'Faça login para gerenciar personagens.')
     return id
   }
 
@@ -44,17 +46,24 @@ export const useCharactersStore = defineStore('characters', () => {
     }
   }
 
-  async function load() {
-    loading.value = true
-    error.value = null
-    try {
-      items.value = await getContainer().characterRepository.listByOwner(ownerId())
-      loaded.value = true
-    } catch (e) {
-      error.value = errorMessage(e)
-    } finally {
-      loading.value = false
-    }
+  /** Várias telas e o guard pedem ao mesmo tempo: uma requisição só. */
+  let inflight: Promise<void> | null = null
+
+  function load(): Promise<void> {
+    inflight ??= (async () => {
+      loading.value = true
+      error.value = null
+      try {
+        items.value = await getContainer().characterRepository.listByOwner(ownerId())
+        loaded.value = true
+      } catch (e) {
+        error.value = errorMessage(e)
+      } finally {
+        loading.value = false
+        inflight = null
+      }
+    })()
+    return inflight
   }
 
   function upsertLocal(linked: LinkedCharacter) {
@@ -82,6 +91,8 @@ export const useCharactersStore = defineStore('characters', () => {
     await withPending(linked.linkId, async () => {
       await getContainer().characterRepository.remove(linked.linkId)
       items.value = items.value.filter((l) => l.linkId !== linked.linkId)
+      // Sai das parties com ele (e apaga as que ele liderava): a lista precisa recarregar.
+      usePartiesStore().invalidate()
     })
   }
 

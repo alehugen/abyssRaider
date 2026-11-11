@@ -21,7 +21,10 @@ const error = ref<string | null>(null)
 const busy = ref<string | null>(null)
 
 async function load() {
-  if (!auth.user) return
+  if (!auth.user) {
+    loading.value = false
+    return
+  }
   try {
     entries.value = await repo.listAgenda(auth.user.id)
   } catch (e) {

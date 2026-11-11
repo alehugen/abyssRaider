@@ -34,6 +34,7 @@ const error = ref<string | null>(null)
 const dialog = ref<InstanceType<typeof ScheduleRaidDialog> | null>(null)
 
 async function load() {
+  error.value = null
   try {
     events.value = await repo.listForParty(props.partyId)
   } catch (e) {

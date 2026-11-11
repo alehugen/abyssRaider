@@ -2,6 +2,7 @@
 import { PhClock, PhPencilSimple } from '@phosphor-icons/vue'
 import { TZ_LABEL } from '@/shared/lib/brasilia'
 import { Button } from '@/shared/presentation/ui/button'
+import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { formatRow } from '../../domain/Availability'
 import { useAvailabilityStore } from '../useAvailabilityStore'
 import AvailabilityDialog from './AvailabilityDialog.vue'
@@ -17,7 +18,14 @@ void store.load()
         <h2 id="availability-title" class="flex items-center gap-2 font-display text-xl font-semibold">
           <PhClock class="text-muted-foreground" aria-hidden="true" /> Sua disponibilidade
         </h2>
-        <p v-if="!store.loaded" class="mt-1 text-sm text-muted-foreground">Carregando…</p>
+        <div v-if="!store.loaded && store.error" role="alert" class="mt-1 flex flex-wrap items-center gap-2 text-sm text-destructive">
+          {{ store.error }}
+          <Button variant="outline" size="sm" class="h-7" @click="store.load()">Tentar de novo</Button>
+        </div>
+        <div v-else-if="!store.loaded" class="mt-2 space-y-1.5" aria-busy="true">
+          <Skeleton class="h-4 w-56" />
+          <Skeleton class="h-4 w-40" />
+        </div>
         <p v-else-if="!store.rows.length" class="mt-1 max-w-prose text-sm text-muted-foreground">
           Diga quando você pode jogar. Com isso sugerimos o melhor horário para a party e mostramos as parties que
           batem com a sua agenda.
@@ -26,7 +34,6 @@ void store.load()
           <li v-for="(row, i) in store.rows" :key="i" class="first-letter:uppercase">{{ formatRow(row) }}</li>
           <li class="text-xs text-muted-foreground">{{ TZ_LABEL }}</li>
         </ul>
-        <p v-if="store.error" role="alert" class="mt-1 text-sm text-destructive">{{ store.error }}</p>
       </div>
       <AvailabilityDialog>
         <Button :variant="store.rows.length ? 'ghost' : 'default'" size="sm" :disabled="!store.loaded">

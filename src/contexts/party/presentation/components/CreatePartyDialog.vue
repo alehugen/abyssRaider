@@ -259,7 +259,7 @@ async function submit() {
           </p>
         </div>
 
-        <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
+        <p v-if="error || raid.error" role="alert" class="text-sm text-destructive">{{ error ?? raid.error }}</p>
 
         <DialogFooter>
           <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>

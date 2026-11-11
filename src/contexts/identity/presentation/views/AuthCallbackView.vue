@@ -2,15 +2,12 @@
 import { PhSpinnerGap } from '@phosphor-icons/vue'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { safeNext } from '@/shared/lib/safeNext'
 import { useAuthStore } from '../useAuthStore'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-
-function safeNext(value: unknown): string {
-  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') ? value : '/'
-}
 
 onMounted(async () => {
   // Erro devolvido pelo Discord/Supabase (ex.: usuário cancelou a autorização).

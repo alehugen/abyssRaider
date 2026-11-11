@@ -93,6 +93,9 @@ function toMember(r: MemberRow): PartyMember {
   }
 }
 
+/** A RLS não dá erro quando bloqueia: só não altera nada. Sem linha de volta = não pôde. */
+const NOTHING_CHANGED = 'Não foi possível: a party pode ter mudado ou você não tem permissão. Recarregue a página.'
+
 /** Erros levantados pelos triggers/funções (errcode P0001) já vêm em português. */
 function rethrow(error: { code?: string; message: string }): never {
   if (error.code === 'P0001') throw new DomainError('party.rule', error.message)
@@ -217,8 +220,9 @@ export class SupabasePartyRepository implements PartyRepository {
   }
 
   async remove(partyId: string): Promise<void> {
-    const { error } = await this.client.from('parties').delete().eq('id', partyId)
+    const { data, error } = await this.client.from('parties').delete().eq('id', partyId).select('id')
     if (error) rethrow(error)
+    if (!data?.length) throw new DomainError('party.nothing_changed', NOTHING_CHANGED)
   }
 
   async requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void> {
@@ -229,12 +233,14 @@ export class SupabasePartyRepository implements PartyRepository {
   }
 
   async decide(memberId: string, status: 'accepted' | 'declined'): Promise<void> {
-    const { error } = await this.client.from('party_members').update({ status }).eq('id', memberId)
+    const { data, error } = await this.client.from('party_members').update({ status }).eq('id', memberId).select('id')
     if (error) rethrow(error)
+    if (!data?.length) throw new DomainError('party.nothing_changed', NOTHING_CHANGED)
   }
 
   async removeMember(memberId: string): Promise<void> {
-    const { error } = await this.client.from('party_members').delete().eq('id', memberId)
+    const { data, error } = await this.client.from('party_members').delete().eq('id', memberId).select('id')
     if (error) rethrow(error)
+    if (!data?.length) throw new DomainError('party.nothing_changed', NOTHING_CHANGED)
   }
 }

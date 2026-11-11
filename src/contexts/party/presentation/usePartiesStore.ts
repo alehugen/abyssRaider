@@ -13,18 +13,24 @@ export const usePartiesStore = defineStore('parties', () => {
   const loaded = ref(false)
   const error = ref<string | null>(null)
 
+  /** Só a resposta mais recente vale (recarregas em sequência não se atropelam). */
+  let seq = 0
+
   async function load() {
     const userId = useAuthStore().user?.id
     if (!userId) return
+    const mine = ++seq
     loading.value = true
     error.value = null
     try {
-      items.value = await getContainer().partyRepository.listMine(userId)
+      const list = await getContainer().partyRepository.listMine(userId)
+      if (mine !== seq || useAuthStore().user?.id !== userId) return
+      items.value = list
       loaded.value = true
     } catch (e) {
-      error.value = errorMessage(e)
+      if (mine === seq) error.value = errorMessage(e)
     } finally {
-      loading.value = false
+      if (mine === seq) loading.value = false
     }
   }
 

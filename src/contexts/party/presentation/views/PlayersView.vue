@@ -99,8 +99,12 @@ const memberships = ref<Membership[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
+/** Só a busca mais recente vale (uma resposta lenta não sobrescreve a nova). */
+let seq = 0
+
 async function search() {
   if (!ready.value) return
+  const mine = ++seq
   loading.value = true
   error.value = null
   try {
@@ -116,13 +120,14 @@ async function search() {
       availabilityRepository.listByOwners(found.map((r) => r.linked.ownerId)),
       partyRepository.listMemberships(led.value.map((i) => i.party.id)),
     ])
+    if (mine !== seq) return
     results.value = found
     availability.value = avail
     memberships.value = ms
   } catch (e) {
-    error.value = errorMessage(e)
+    if (mine === seq) error.value = errorMessage(e)
   } finally {
-    loading.value = false
+    if (mine === seq) loading.value = false
   }
 }
 

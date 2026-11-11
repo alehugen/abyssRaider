@@ -68,6 +68,7 @@ const roster = computed(() => {
 })
 
 async function moveMember(from: number, to: number) {
+  if (p.busy.value) return // um salvamento por vez: senão a formação "pula" entre estados
   const layout = moveInLayout(roster.value, from, to)
   optimistic.value = new Map(layout.map((x) => [x.memberId, x.slot]))
   await p.setLayout(layout) // recarrega a party; se falhar, o erro aparece e a tela volta
@@ -195,6 +196,14 @@ async function removeMember(m: PartyMember) {
       Esta party não existe mais. O líder pode ter excluído.
     </p>
 
+    <!-- Falhou ao carregar (rede, sessão): antes a tela ficava em branco. -->
+    <div v-else-if="!party && p.error.value" role="alert" class="space-y-3">
+      <p class="flex items-center gap-2 text-sm text-destructive">
+        <PhWarningCircle :size="18" aria-hidden="true" /> {{ p.error.value }}
+      </p>
+      <Button variant="outline" size="sm" @click="p.load()">Tentar de novo</Button>
+    </div>
+
     <template v-else-if="party">
       <!-- Arte do santuário no fundo do topo da página, esmaecendo para o fundo do tema. -->
       <div
@@ -235,7 +244,7 @@ async function removeMember(m: PartyMember) {
             v-if="p.isLeader.value"
             variant="ghost"
             class="text-muted-foreground hover:text-destructive"
-            :disabled="p.busy.value === 'party'"
+            :disabled="!!p.busy.value"
             @click="deleteParty"
           >
             <PhTrash /> Excluir
@@ -268,8 +277,8 @@ async function removeMember(m: PartyMember) {
           <span class="font-semibold">{{ p.myMembership.value.linked.character.name }}</span>.
         </p>
         <div class="flex gap-2">
-          <Button variant="ghost" :disabled="p.busy.value === p.myMembership.value.id" @click="leave">Recusar</Button>
-          <Button :disabled="p.busy.value === p.myMembership.value.id || full" @click="p.acceptInvite(p.myMembership.value.id)">
+          <Button variant="ghost" :disabled="!!p.busy.value" @click="leave">Recusar</Button>
+          <Button :disabled="!!p.busy.value || full" @click="p.acceptInvite(p.myMembership.value.id)">
             <PhCircleNotch v-if="p.busy.value === p.myMembership.value.id" class="animate-spin" />
             Aceitar convite
           </Button>
@@ -360,7 +369,7 @@ async function removeMember(m: PartyMember) {
                         variant="ghost"
                         class="size-8 text-muted-foreground hover:text-destructive"
                         :aria-label="`Remover ${member.linked.character.name}`"
-                        :disabled="p.busy.value === member.id"
+                        :disabled="!!p.busy.value"
                         @click="removeMember(member)"
                       >
                         <PhX />
@@ -423,12 +432,12 @@ async function removeMember(m: PartyMember) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  :disabled="p.busy.value === m.id"
+                  :disabled="!!p.busy.value"
                   @click="p.decline(m.id)"
                 >
                   Recusar
                 </Button>
-                <Button size="sm" :disabled="full || p.busy.value === m.id" @click="p.accept(m.id)">
+                <Button size="sm" :disabled="full || !!p.busy.value" @click="p.accept(m.id)">
                   <PhCircleNotch v-if="p.busy.value === m.id" class="animate-spin" />
                   Aceitar
                 </Button>
@@ -458,7 +467,7 @@ async function removeMember(m: PartyMember) {
                   size="sm"
                   variant="ghost"
                   class="text-muted-foreground hover:text-destructive"
-                  :disabled="p.busy.value === m.id"
+                  :disabled="!!p.busy.value"
                   @click="p.removeMember(m.id)"
                 >
                   Cancelar convite
@@ -501,7 +510,7 @@ async function removeMember(m: PartyMember) {
               </SelectItem>
             </SelectContent>
           </Select>
-          <Button type="submit" :disabled="!joinCharacter || p.busy.value === 'join'">
+          <Button type="submit" :disabled="!joinCharacter || !!p.busy.value">
             <PhCircleNotch v-if="p.busy.value === 'join'" class="animate-spin" />
             Pedir para entrar
           </Button>

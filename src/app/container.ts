@@ -21,6 +21,7 @@ import type { NotificationRepository } from '@/contexts/notifications/domain/Not
 import { SupabaseNotificationRepository } from '@/contexts/notifications/infrastructure/SupabaseNotificationRepository'
 import { SupabaseAvailabilityRepository } from '@/contexts/scheduling/infrastructure/SupabaseAvailabilityRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
+import { DomainError } from '@/shared/domain/DomainError'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
 
 export interface Container {
@@ -36,7 +37,7 @@ export interface Container {
 }
 
 const notConfigured = async (): Promise<never> => {
-  throw new Error('Supabase não configurado (.env).')
+  throw new DomainError('app.not_configured', 'Supabase não configurado (.env).')
 }
 
 /** Usado quando não há .env: o app abre, mas o login avisa que falta configuração. */
