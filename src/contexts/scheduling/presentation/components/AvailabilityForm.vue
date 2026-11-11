@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { PhCircleNotch, PhPlus, PhTrash } from '@phosphor-icons/vue'
+import { PhCircleNotch, PhEraser } from '@phosphor-icons/vue'
 import { computed, ref } from 'vue'
-import { WEEKDAYS } from '@/contexts/party/domain/RaidRoutine'
+import { TZ_LABEL } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { Button } from '@/shared/presentation/ui/button'
-import { Input } from '@/shared/presentation/ui/input'
-import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
-import { formatMinutes, parseTime, rowsToWindows, windowsToRows } from '../../domain/Availability'
+import { formatRow, windowsToRows } from '../../domain/Availability'
+import { cellsToWindows, windowsToCells, type CellKey } from '../../domain/availabilityGrid'
 import { useAvailabilityStore } from '../useAvailabilityStore'
+import AvailabilityGrid from './AvailabilityGrid.vue'
 
 /**
- * Formulário da disponibilidade semanal (usado no diálogo e no passo 2 dos
- * primeiros passos). Começa com o que está salvo; exige ao menos uma faixa.
+ * Formulário da disponibilidade semanal (diálogo e passo 2 dos primeiros
+ * passos): grade da semana em meias horas. Começa com o que está salvo e
+ * exige ao menos um horário marcado.
  */
 withDefaults(defineProps<{ submitLabel?: string; cancelable?: boolean }>(), {
   submitLabel: 'Salvar',
@@ -21,51 +22,19 @@ const emit = defineEmits<{ saved: []; cancel: [] }>()
 
 const store = useAvailabilityStore()
 
-interface DraftRow {
-  key: number
-  days: string[]
-  start: string
-  end: string
-}
+const cells = ref<Set<CellKey>>(windowsToCells(store.windows))
+const windows = computed(() => cellsToWindows(cells.value))
+const summary = computed(() => windowsToRows(windows.value).map(formatRow))
 
-let nextKey = 0
-const newRow = (days: string[] = [], start = '19:00', end = '23:00'): DraftRow => ({ key: nextKey++, days, start, end })
-
-const saved = windowsToRows(store.windows)
-const draft = ref<DraftRow[]>(
-  saved.length ? saved.map((r) => newRow(r.days.map(String), formatMinutes(r.start), formatMinutes(r.end))) : [newRow()],
-)
 const saving = ref(false)
 const error = ref<string | null>(null)
 
-function rowProblem(row: DraftRow): string | null {
-  if (!row.days.length) return 'Escolha ao menos um dia.'
-  const start = parseTime(row.start)
-  const end = parseTime(row.end)
-  if (start == null || end == null) return 'Preencha início e fim.'
-  if (start === end) return 'Início e fim iguais.'
-  return null
-}
-
-/** Linhas sem dia são ignoradas; precisa de ao menos uma válida. */
-const filled = computed(() => draft.value.filter((r) => r.days.length))
-const valid = computed(() => filled.value.length > 0 && filled.value.every((r) => !rowProblem(r)))
-
-const crossesMidnight = (row: DraftRow) => {
-  const s = parseTime(row.start)
-  const e = parseTime(row.end)
-  return s != null && e != null && e < s && e > 0
-}
-
 async function save() {
-  if (!valid.value) return
+  if (!windows.value.length) return
   saving.value = true
   error.value = null
   try {
-    const windows = rowsToWindows(
-      filled.value.map((r) => ({ days: r.days.map(Number), start: parseTime(r.start)!, end: parseTime(r.end)! })),
-    )
-    await store.save(windows)
+    await store.save(windows.value)
     emit('saved')
   } catch (e) {
     error.value = errorMessage(e)
@@ -77,60 +46,31 @@ async function save() {
 
 <template>
   <form class="space-y-3" @submit.prevent="save">
-    <fieldset v-for="(row, i) in draft" :key="row.key" class="space-y-2 rounded-xl border bg-background/40 p-3">
-      <legend class="sr-only">Faixa {{ i + 1 }}</legend>
-      <ToggleGroup
-        v-model="row.days"
-        type="multiple"
-        variant="outline"
-        class="grid w-full grid-cols-7"
-        :aria-label="`Dias da faixa ${i + 1}`"
-      >
-        <ToggleGroupItem
-          v-for="d in WEEKDAYS"
-          :key="d.value"
-          :value="String(d.value)"
-          :aria-label="d.long"
-          class="px-0 text-xs data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        >
-          {{ d.short }}
-        </ToggleGroupItem>
-      </ToggleGroup>
-      <div class="flex flex-wrap items-center gap-2 text-sm">
-        <label class="flex items-center gap-2">
-          Das <Input v-model="row.start" type="time" required class="w-28" />
-        </label>
-        <label class="flex items-center gap-2">
-          às <Input v-model="row.end" type="time" required class="w-28" />
-        </label>
-        <Button
-          v-if="draft.length > 1"
-          type="button"
-          size="icon"
-          variant="ghost"
-          class="ml-auto size-8 text-muted-foreground hover:text-destructive"
-          :aria-label="`Remover faixa ${i + 1}`"
-          @click="draft.splice(i, 1)"
-        >
-          <PhTrash />
-        </Button>
-      </div>
-      <p v-if="row.days.length && rowProblem(row)" class="text-[13px] text-warning">{{ rowProblem(row) }}</p>
-      <p v-else-if="crossesMidnight(row)" class="text-[13px] text-muted-foreground">Termina no dia seguinte.</p>
-    </fieldset>
-
-    <Button type="button" variant="outline" size="sm" @click="draft.push(newRow())">
-      <PhPlus /> Adicionar faixa
-    </Button>
-
-    <p v-if="!filled.length" class="text-[13px] text-muted-foreground">
-      Marque pelo menos um dia: a disponibilidade é usada para montar as raids.
+    <p class="text-[13px] text-muted-foreground">
+      Clique e arraste para marcar quando você pode jogar ({{ TZ_LABEL }}). Começar em cima de um horário marcado apaga.
+      No menu de cada dia dá para copiar para os outros.
+      <span class="sm:hidden">No celular, role arrastando pela coluna das horas.</span>
     </p>
+
+    <AvailabilityGrid v-model="cells" />
+
+    <div class="flex flex-wrap items-start justify-between gap-2 text-[13px]">
+      <div class="min-w-0" aria-live="polite">
+        <p v-if="!summary.length" class="text-muted-foreground">Nenhum horário marcado ainda.</p>
+        <ul v-else class="space-y-0.5">
+          <li v-for="(line, i) in summary" :key="i" class="first-letter:uppercase">{{ line }}</li>
+        </ul>
+      </div>
+      <Button v-if="summary.length" type="button" variant="ghost" size="sm" class="h-7 text-muted-foreground" @click="cells = new Set()">
+        <PhEraser /> Limpar tudo
+      </Button>
+    </div>
+
     <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
 
     <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
       <Button v-if="cancelable" type="button" variant="ghost" @click="emit('cancel')">Cancelar</Button>
-      <Button type="submit" :disabled="!valid || saving">
+      <Button type="submit" :disabled="!windows.length || saving">
         <PhCircleNotch v-if="saving" class="animate-spin" />
         {{ submitLabel }}
       </Button>

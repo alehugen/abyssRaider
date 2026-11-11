@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
 import {
   Dialog,
   DialogContent,
@@ -24,10 +23,7 @@ const open = ref(false)
     <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Sua disponibilidade</DialogTitle>
-        <DialogDescription>
-          Dias e horários em que você costuma poder fazer raid, no {{ TZ_LABEL }}. Usamos isso para sugerir o melhor
-          horário para a party.
-        </DialogDescription>
+        <DialogDescription>Usamos isso para sugerir o melhor horário de raid para a party.</DialogDescription>
       </DialogHeader>
 
       <!-- O conteúdo só existe com o diálogo aberto: o formulário começa sempre do que está salvo. -->
