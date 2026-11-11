@@ -17,7 +17,9 @@ interface Row {
 
 function rethrow(error: { code?: string; message: string }): never {
   if (error.code === 'P0001') throw new DomainError('notifications.rule', error.message)
-  if (error.code === '23514') throw new DomainError('notifications.url', 'Essa não é uma URL de webhook do Discord.')
+  if (error.code === '23514' && error.message.includes('webhook_url')) {
+    throw new DomainError('notifications.url', 'Essa não é uma URL de webhook do Discord.')
+  }
   throw error
 }
 

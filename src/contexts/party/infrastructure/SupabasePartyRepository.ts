@@ -99,7 +99,14 @@ const NOTHING_CHANGED = 'Não foi possível: a party pode ter mudado ou você n�
 /** Erros levantados pelos triggers/funções (errcode P0001) já vêm em português. */
 function rethrow(error: { code?: string; message: string }): never {
   if (error.code === 'P0001') throw new DomainError('party.rule', error.message)
-  if (error.code === '23505') throw new DomainError('party.duplicate', 'Este personagem já pediu para entrar nesta party.')
+  if (error.code === '23505') {
+    throw new DomainError(
+      'party.duplicate',
+      error.message.includes('one_per_account')
+        ? 'Este jogador já tem um personagem nesta party.'
+        : 'Este personagem já está (ou já pediu para entrar) nesta party.',
+    )
+  }
   throw error
 }
 
@@ -226,9 +233,11 @@ export class SupabasePartyRepository implements PartyRepository {
   }
 
   async requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void> {
-    const { error } = await this.client
-      .from('party_members')
-      .insert({ party_id: partyId, character_id: characterLinkId, owner_id: ownerId, status: 'pending' })
+    void ownerId // o banco usa a conta logada (request_to_join confere o dono)
+    const { error } = await this.client.rpc('request_to_join', {
+      p_party_id: partyId,
+      p_character_id: characterLinkId,
+    })
     if (error) rethrow(error)
   }
 

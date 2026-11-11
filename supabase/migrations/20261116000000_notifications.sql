@@ -156,7 +156,11 @@ create trigger raid_events_notify_users
 -- O sino atualiza na hora (Realtime do Supabase respeita a RLS acima).
 do $$
 begin
-  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1 from pg_publication_tables
+        where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications'
+     ) then
     alter publication supabase_realtime add table public.notifications;
   end if;
 end;

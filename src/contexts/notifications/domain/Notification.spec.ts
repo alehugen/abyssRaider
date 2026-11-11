@@ -42,3 +42,10 @@ describe('describeNotification', () => {
     expect(timeAgo(new Date('2026-11-09T20:00:00Z'), now)).toBe('ontem')
   })
 })
+
+describe('party excluída', () => {
+  it('avisa sem link (a party não existe mais)', () => {
+    const v = describeNotification({ id: 2, kind: 'party_deleted', partyId: null, data: { party_name: 'Ludra' }, createdAt: new Date(), readAt: null })
+    expect(v).toMatchObject({ title: 'Ludra foi excluída', link: null })
+  })
+})

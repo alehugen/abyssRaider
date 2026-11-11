@@ -12,6 +12,7 @@ export type NotificationKind =
   | 'request_declined'
   | 'raid_scheduled'
   | 'raid_cancelled'
+  | 'party_deleted'
 
 export interface NotificationData {
   party_name?: string
@@ -92,6 +93,13 @@ export function describeNotification(n: AppNotification): NotificationView {
         link,
       }
     }
+    case 'party_deleted':
+      return {
+        title: `${party} foi excluída`,
+        body: 'O líder encerrou a party. As raids marcadas nela foram canceladas.',
+        tone: 'cancel',
+        link: null,
+      }
     case 'raid_cancelled': {
       const at = raidTime(n.data.starts_at)
       return {
