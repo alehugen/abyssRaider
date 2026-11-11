@@ -24,18 +24,18 @@ const links = [
           <img src="/aion2-icon.png" alt="" width="30" height="30" class="size-7.5 rounded-md shadow-sm" />
           <span :class="auth.isAuthenticated && 'hidden sm:inline'">AbyssRaider</span>
         </RouterLink>
-        <nav v-if="auth.isAuthenticated" aria-label="Principal" class="mr-auto ml-2 flex items-center gap-1 sm:ml-6">
+        <nav v-if="auth.isAuthenticated" aria-label="Principal" class="mr-auto ml-1 flex min-w-0 items-center gap-0.5 sm:ml-4 md:gap-1">
           <RouterLink
             v-for="link in links"
             :key="link.to"
             :to="link.to"
-            class="rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground [&.router-link-active]:bg-accent [&.router-link-active]:text-foreground"
+            class="rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none md:py-1.5 [&.router-link-active]:bg-accent [&.router-link-active]:text-foreground"
           >
-            <span class="hidden sm:inline">{{ link.label }}</span>
-            <component :is="link.icon" class="sm:hidden" :size="18" :aria-label="link.label" />
+            <span class="sr-only md:not-sr-only">{{ link.label }}</span>
+            <component :is="link.icon" class="md:hidden" :size="18" aria-hidden="true" />
           </RouterLink>
         </nav>
-        <div class="flex items-center gap-1.5 sm:gap-2">
+        <div class="flex flex-none items-center gap-0.5 sm:gap-1.5">
           <ThemePicker />
           <NotificationBell v-if="auth.isAuthenticated" />
           <UserMenu v-if="auth.isAuthenticated" />
@@ -65,7 +65,7 @@ const links = [
             href="https://www.linkedin.com/in/alehugen/"
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1 rounded font-medium text-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+            class="inline-flex items-center gap-1 rounded font-medium text-foreground hover:text-primary-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             Alessandro Hugen
             <PhLinkedinLogo :size="16" weight="fill" aria-label="LinkedIn" />

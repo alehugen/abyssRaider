@@ -101,7 +101,7 @@ defineExpose({ close })
       </Button>
     </DialogTrigger>
 
-    <DialogContent class="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+    <DialogContent class="sm:max-w-md">
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Agendar raids da semana</DialogTitle>
         <DialogDescription>
@@ -112,7 +112,7 @@ defineExpose({ close })
       <form class="space-y-5" @submit.prevent="submit">
         <fieldset v-if="options?.length" class="space-y-1.5">
           <legend class="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
-            <PhLightbulb class="text-warning" aria-hidden="true" /> Melhores horários do grupo
+            <PhLightbulb class="text-warning-ink" aria-hidden="true" /> Melhores horários do grupo
           </legend>
           <div class="flex flex-wrap gap-1.5">
             <Button
@@ -165,7 +165,7 @@ defineExpose({ close })
               <PhPlus /> <span class="max-sm:hidden">Adicionar</span>
             </Button>
           </div>
-          <p v-if="manualProblem" class="text-[13px] text-warning">{{ manualProblem }}</p>
+          <p v-if="manualProblem" class="text-[13px] text-warning-ink">{{ manualProblem }}</p>
         </div>
 
         <section aria-labelledby="schedule-list-title" class="space-y-1.5">
@@ -184,7 +184,7 @@ defineExpose({ close })
                 type="button"
                 size="icon"
                 variant="ghost"
-                class="size-7 text-muted-foreground hover:text-destructive"
+                class="size-8 text-muted-foreground hover:text-destructive-ink"
                 :aria-label="`Tirar ${formatFullDay(d)} às ${formatTime(d)}`"
                 @click="remove(d)"
               >
@@ -200,7 +200,7 @@ defineExpose({ close })
           <Input v-model="note" maxlength="200" placeholder="Ex.: chegar 15 min antes, levar poções" />
         </label>
 
-        <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
+        <p v-if="error" role="alert" class="text-sm text-destructive-ink">{{ error }}</p>
 
         <DialogFooter>
           <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>

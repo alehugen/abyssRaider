@@ -40,7 +40,7 @@ watch(open, async (isOpen) => {
         :aria-label="`${slotLabel(gear.slotName)}: ${gear.name} ${enchantLabel(gear)}`"
       >
         <span
-          class="relative grid size-11 flex-none place-items-center overflow-hidden rounded-md border-2 border-(--grade) bg-[oklch(0.22_0.02_260)]"
+          class="relative grid size-11 flex-none place-items-center overflow-hidden rounded-md border-2 border-(--grade) bg-icon-well"
         >
           <img v-if="gear.icon" :src="gear.icon" alt="" loading="lazy" class="size-full object-contain" />
           <span
@@ -72,7 +72,7 @@ watch(open, async (isOpen) => {
           </p>
         </header>
 
-        <p v-if="error" role="alert" class="text-destructive">{{ error }}</p>
+        <p v-if="error" role="alert" class="text-destructive-ink">{{ error }}</p>
         <p v-else-if="!detail" class="flex items-center gap-2 text-muted-foreground">
           <PhCircleNotch class="animate-spin" /> Carregando detalhes…
         </p>
@@ -82,7 +82,7 @@ watch(open, async (isOpen) => {
             <div v-for="s in detail.mainStats" :key="s.name" class="flex justify-between gap-3">
               <dt class="text-muted-foreground">{{ s.name }}</dt>
               <dd class="font-medium tabular-nums">
-                {{ s.value }}<span v-if="s.extra" class="ml-1 text-success">(+{{ s.extra }})</span>
+                {{ s.value }}<span v-if="s.extra" class="ml-1 text-success-ink">(+{{ s.extra }})</span>
               </dd>
             </div>
           </dl>

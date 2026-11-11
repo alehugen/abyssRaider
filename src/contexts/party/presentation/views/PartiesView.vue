@@ -31,12 +31,12 @@ onMounted(() => void parties.load())
       </div>
     </header>
 
-    <p v-if="parties.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="parties.error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ parties.error }}
     </p>
 
     <div v-if="parties.loading && !parties.loaded" class="space-y-3">
-      <Skeleton v-for="i in 3" :key="i" class="h-20 rounded-2xl" />
+      <Skeleton v-for="i in 3" :key="i" class="h-24 rounded-2xl" />
     </div>
 
     <p v-else-if="parties.loaded && !parties.items.length" class="text-muted-foreground">

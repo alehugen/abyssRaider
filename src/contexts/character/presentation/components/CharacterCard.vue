@@ -68,7 +68,7 @@ const ariaLabel = computed(() =>
     :class="
       cn(
         `faction-${character.faction}`,
-        'relative isolate flex min-h-36 overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card',
+        'relative isolate flex min-h-36 overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card pointer-fine:hover:shadow-card-hover',
         inactive && 'opacity-70',
       )
     "
@@ -141,7 +141,7 @@ const ariaLabel = computed(() =>
   <!-- Linha compacta -->
   <div
     v-else
-    :class="cn(`faction-${character.faction}`, 'flex items-center gap-3 py-2.5', inactive && 'opacity-70')"
+    :class="cn(`faction-${character.faction}`, 'flex flex-wrap items-center gap-x-3 gap-y-1.5 py-2.5', inactive && 'opacity-70')"
     :aria-label="ariaLabel"
     role="group"
   >
@@ -178,7 +178,7 @@ const ariaLabel = computed(() =>
       </p>
     </div>
 
-    <div v-if="$slots.actions" class="flex flex-none items-center gap-2">
+    <div v-if="$slots.actions" class="flex flex-none items-center gap-2 max-sm:ml-auto">
       <slot name="actions" />
     </div>
   </div>

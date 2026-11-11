@@ -210,7 +210,7 @@ async function submit() {
 
         <div v-if="demandSlots.length" class="space-y-1.5 rounded-xl bg-muted/60 p-3">
           <p class="flex items-center gap-1.5 text-[13px] font-medium">
-            <PhLightbulb class="text-warning" aria-hidden="true" />
+            <PhLightbulb class="text-warning-ink" aria-hidden="true" />
             Mais jogadores livres ({{ demandScope }})
           </p>
           <div class="flex flex-wrap gap-1.5">
@@ -251,7 +251,7 @@ async function submit() {
               </SelectItem>
             </SelectContent>
           </Select>
-          <p v-if="selectedCharacter && !selectedCharacter.ok" class="text-[13px] text-warning">
+          <p v-if="selectedCharacter && !selectedCharacter.ok" class="text-[13px] text-warning-ink">
             {{ selectedCharacter.reason }}
           </p>
           <p v-else class="text-[13px] text-muted-foreground">
@@ -259,7 +259,7 @@ async function submit() {
           </p>
         </div>
 
-        <p v-if="error || raid.error" role="alert" class="text-sm text-destructive">{{ error ?? raid.error }}</p>
+        <p v-if="error || raid.error" role="alert" class="text-sm text-destructive-ink">{{ error ?? raid.error }}</p>
 
         <DialogFooter>
           <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>

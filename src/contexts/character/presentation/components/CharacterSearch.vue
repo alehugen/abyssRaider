@@ -113,10 +113,10 @@ async function link(c: CharacterSummary) {
       </Button>
     </form>
 
-    <p v-if="linkError" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive">
+    <p v-if="linkError" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" aria-hidden="true" /> {{ linkError }}
     </p>
-    <p v-if="error" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error" role="alert" class="mt-3 flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>
 
@@ -142,7 +142,7 @@ async function link(c: CharacterSummary) {
               <template #actions>
                 <span
                   v-if="characters.linkedKeys.has(characterKey(c))"
-                  class="flex items-center gap-1.5 px-3 text-sm font-medium text-success"
+                  class="flex items-center gap-1.5 px-3 text-sm font-medium text-success-ink"
                 >
                   <PhCheck weight="bold" /> Vinculado
                 </span>

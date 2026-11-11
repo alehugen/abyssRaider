@@ -10,11 +10,11 @@ import { formatRoutine } from '../routineFormat'
 defineProps<{ item: PartySummary }>()
 
 const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }> = {
-  leader: { label: 'Você lidera', class: 'text-primary' },
-  accepted: { label: 'Membro', class: 'text-success' },
-  pending: { label: 'Pedido enviado', class: 'text-warning' },
-  invited: { label: 'Convite recebido', class: 'text-highlight' },
-  declined: { label: 'Pedido recusado', class: 'text-destructive' },
+  leader: { label: 'Você lidera', class: 'text-primary-ink' },
+  accepted: { label: 'Membro', class: 'text-success-ink' },
+  pending: { label: 'Pedido enviado', class: 'text-warning-ink' },
+  invited: { label: 'Convite recebido', class: 'text-highlight-ink' },
+  declined: { label: 'Pedido recusado', class: 'text-destructive-ink' },
 }
 </script>
 
@@ -35,14 +35,15 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
       alt=""
       loading="lazy"
       aria-hidden="true"
-      class="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-3/5 object-cover object-[center_25%] opacity-45 mask-l-from-35% mask-l-to-100% transition-[opacity,transform] duration-500 group-hover:scale-105 group-hover:opacity-60 dark:opacity-55"
+      class="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-3/5 object-cover object-[center_25%] opacity-0 mask-l-from-35% mask-l-to-100% transition-[opacity,transform] duration-500 data-loaded:opacity-45 dark:data-loaded:opacity-55 data-loaded:group-hover:scale-105 data-loaded:group-hover:opacity-60"
+      @load="($event.target as HTMLImageElement).dataset.loaded = ''"
     />
 
     <span class="h-12 w-0.75 flex-none rounded-full bg-faction" aria-hidden="true" />
     <span class="min-w-0 flex-1">
       <span class="block truncate font-display text-xl leading-tight font-semibold">{{ item.party.name }}</span>
       <span class="mt-1 flex min-w-0 items-center gap-1.5 text-sm">
-        <PhCrown weight="fill" class="flex-none text-primary" aria-hidden="true" />
+        <PhCrown weight="fill" class="flex-none text-primary-ink" aria-hidden="true" />
         <span class="sr-only">Líder:</span>
         <ClassIcon v-if="item.leaderClassName" :class-name="item.leaderClassName" size="sm" />
         <span class="truncate font-semibold text-faction-ink">{{ item.leaderCharacterName }}</span>

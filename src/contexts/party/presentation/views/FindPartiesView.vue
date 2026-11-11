@@ -173,7 +173,7 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       </p>
     </div>
 
-    <p v-if="error || characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error || characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" aria-hidden="true" /> {{ error ?? characters.error }}
     </p>
 
@@ -247,7 +247,7 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
               <p v-if="m.details.party.routine" class="text-sm first-letter:uppercase">
                 {{ formatRoutine(m.details.party.routine) }}
               </p>
-              <p v-if="fit && fit.free.length" class="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-success">
+              <p v-if="fit && fit.free.length" class="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-success-ink">
                 <PhCheckCircle aria-hidden="true" />
                 Bate com sua disponibilidade{{ fit.busy.length ? ` (${dayList(fit.free)})` : '' }}
               </p>
@@ -255,7 +255,7 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
                 <PhClock aria-hidden="true" /> Fora da sua disponibilidade
               </p>
               <p class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-                <span v-if="m.needed.length" class="font-semibold text-success">Precisa de {{ roleList(m.needed) }}</span>
+                <span v-if="m.needed.length" class="font-semibold text-success-ink">Precisa de {{ roleList(m.needed) }}</span>
                 <span v-else class="font-semibold text-muted-foreground">Sem vaga de {{ roleName }}</span>
                 <span class="text-muted-foreground">
                   Vagas:
@@ -275,7 +275,7 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
               <PhCircleNotch v-if="requesting === m.details.party.id" class="animate-spin" />
               Pedir vaga
             </Button>
-            <span v-else class="w-full text-sm font-medium text-success sm:w-auto">Pedido enviado</span>
+            <span v-else class="w-full text-sm font-medium text-success-ink sm:w-auto">Pedido enviado</span>
           </li>
         </ul>
       </section>

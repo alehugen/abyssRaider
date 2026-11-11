@@ -130,7 +130,7 @@ async function remove() {
       <slot />
     </DialogTrigger>
 
-    <DialogContent class="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+    <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2 font-display text-2xl">
           <PhDiscordLogo class="text-[#5865F2]" aria-hidden="true" /> Avisos no Discord
@@ -157,7 +157,7 @@ async function remove() {
             placeholder="https://discord.com/api/webhooks/…"
             :aria-invalid="urlTouched && !urlOk"
           />
-          <p v-if="urlTouched && !urlOk" class="text-[13px] text-warning">
+          <p v-if="urlTouched && !urlOk" class="text-[13px] text-warning-ink">
             Essa não parece uma URL de webhook do Discord.
           </p>
           <details class="text-[13px] text-muted-foreground">
@@ -196,8 +196,8 @@ async function remove() {
           </div>
         </fieldset>
 
-        <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
-        <p v-else-if="notice" role="status" class="flex items-center gap-1.5 text-sm text-success">
+        <p v-if="error" role="alert" class="text-sm text-destructive-ink">{{ error }}</p>
+        <p v-else-if="notice" role="status" class="flex items-center gap-1.5 text-sm text-success-ink">
           <PhCheck /> {{ notice }}
         </p>
 
@@ -207,7 +207,7 @@ async function remove() {
               v-if="saved"
               type="button"
               variant="ghost"
-              class="text-muted-foreground hover:text-destructive"
+              class="text-muted-foreground hover:text-destructive-ink"
               :disabled="!!busy"
               @click="remove"
             >

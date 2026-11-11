@@ -20,7 +20,7 @@ const open = ref(false)
       <slot />
     </DialogTrigger>
 
-    <DialogContent class="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+    <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Sua disponibilidade</DialogTitle>
         <DialogDescription>Usamos isso para sugerir o melhor horário de raid para a party.</DialogDescription>

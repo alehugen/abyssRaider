@@ -73,13 +73,13 @@ async function finish() {
           </span>
         </li>
         <li v-if="i < STEPS.length - 1" aria-hidden="true" class="h-0.5 min-w-6 flex-1 rounded-full bg-border">
-          <span :class="cn('block h-full rounded-full bg-success transition-all', step > 1 ? 'w-full' : 'w-0')" />
+          <span :class="cn('block h-full rounded-full bg-success transition-[width] duration-500', step > 1 ? 'w-full' : 'w-0')" />
         </li>
       </template>
     </ol>
 
     <div v-if="loadError" role="alert" class="space-y-3">
-      <p class="flex items-center gap-2 text-sm text-destructive">
+      <p class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" aria-hidden="true" /> {{ loadError }}
       </p>
       <Button variant="outline" size="sm" @click="loadAll">Tentar de novo</Button>
@@ -103,7 +103,7 @@ async function finish() {
           </div>
         </template>
         <div v-else class="space-y-1 rounded-2xl border bg-card/60 px-4 py-2">
-          <p class="flex items-center gap-1.5 pt-1 text-sm font-medium text-success">
+          <p class="flex items-center gap-1.5 pt-1 text-sm font-medium text-success-ink">
             <PhCheckCircle aria-hidden="true" /> Vinculado
           </p>
           <CharacterCard v-for="l in characters.items" :key="l.linkId" :character="l.character" size="sm" />
@@ -112,7 +112,7 @@ async function finish() {
       </section>
 
       <!-- Passo 2 -->
-      <section aria-labelledby="step2-title" :class="cn('space-y-3', step < 2 && 'opacity-50')">
+      <section aria-labelledby="step2-title" :class="cn('space-y-3 transition-opacity duration-300', step < 2 && 'opacity-50')">
         <h2 id="step2-title" class="font-display text-2xl font-semibold">2. Quando você costuma jogar?</h2>
         <p v-if="step < 2" class="text-sm text-muted-foreground">Liberado depois de vincular o personagem.</p>
         <template v-else>

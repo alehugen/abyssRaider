@@ -198,7 +198,7 @@ async function removeMember(m: PartyMember) {
 
     <!-- Falhou ao carregar (rede, sessão): antes a tela ficava em branco. -->
     <div v-else-if="!party && p.error.value" role="alert" class="space-y-3">
-      <p class="flex items-center gap-2 text-sm text-destructive">
+      <p class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" aria-hidden="true" /> {{ p.error.value }}
       </p>
       <Button variant="outline" size="sm" @click="p.load()">Tentar de novo</Button>
@@ -214,7 +214,8 @@ async function removeMember(m: PartyMember) {
         <img
           :src="party.sanctuary.imageUrl"
           alt=""
-          class="size-full scale-105 object-cover object-[center_20%] opacity-60 blur-[2px] mask-b-from-20% mask-b-to-100%"
+          class="size-full scale-105 object-cover object-[center_20%] opacity-0 blur-[2px] transition-opacity duration-700 mask-b-from-20% mask-b-to-100% data-loaded:opacity-60"
+          @load="($event.target as HTMLImageElement).dataset.loaded = ''"
         />
         <div class="absolute inset-0 bg-linear-to-r from-background via-background/50 to-background/10" />
       </div>
@@ -243,7 +244,7 @@ async function removeMember(m: PartyMember) {
           <Button
             v-if="p.isLeader.value"
             variant="ghost"
-            class="text-muted-foreground hover:text-destructive"
+            class="text-muted-foreground hover:text-destructive-ink"
             :disabled="!!p.busy.value"
             @click="deleteParty"
           >
@@ -261,7 +262,7 @@ async function removeMember(m: PartyMember) {
         </div>
       </header>
 
-      <p v-if="p.error.value" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+      <p v-if="p.error.value" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" /> {{ p.error.value }}
       </p>
 
@@ -335,7 +336,7 @@ async function removeMember(m: PartyMember) {
                   type="button"
                   :class="
                     cn(
-                      '-ml-2 grid h-11 w-6 flex-none cursor-grab touch-none place-items-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:cursor-grabbing',
+                      '-ml-2 grid h-11 w-8 flex-none cursor-grab touch-none place-items-center rounded text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none active:cursor-grabbing',
                       dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si && 'bg-accent text-foreground',
                     )
                   "
@@ -346,7 +347,7 @@ async function removeMember(m: PartyMember) {
                 >
                   <PhDotsSixVertical :size="18" weight="bold" />
                 </button>
-                <span v-else-if="p.isLeader.value" class="-ml-2 w-6 flex-none" aria-hidden="true" />
+                <span v-else-if="p.isLeader.value" class="-ml-2 w-8 flex-none" aria-hidden="true" />
 
                 <div class="min-w-0 flex-1">
                   <CharacterCard v-if="member" :character="member.linked.character" size="sm" :role="roleLabel(member)">
@@ -367,7 +368,7 @@ async function removeMember(m: PartyMember) {
                         v-if="p.isLeader.value && member.linked.linkId !== party.leaderCharacterLinkId"
                         size="icon"
                         variant="ghost"
-                        class="size-8 text-muted-foreground hover:text-destructive"
+                        class="size-8 text-muted-foreground hover:text-destructive-ink"
                         :aria-label="`Remover ${member.linked.character.name}`"
                         :disabled="!!p.busy.value"
                         @click="removeMember(member)"
@@ -427,7 +428,9 @@ async function removeMember(m: PartyMember) {
             <CharacterCard :character="m.linked.character" size="sm" :role="m.ownerName">
               <template #actions>
                 <InspectCharacter :character="m.linked.character">
-                  <Button size="sm" variant="ghost"><PhEye /> Inspecionar</Button>
+                  <Button size="sm" variant="ghost" :aria-label="`Inspecionar ${m.linked.character.name}`">
+                    <PhEye aria-hidden="true" /><span class="max-sm:hidden">Inspecionar</span>
+                  </Button>
                 </InspectCharacter>
                 <Button
                   size="sm"
@@ -466,7 +469,7 @@ async function removeMember(m: PartyMember) {
                 <Button
                   size="sm"
                   variant="ghost"
-                  class="text-muted-foreground hover:text-destructive"
+                  class="text-muted-foreground hover:text-destructive-ink"
                   :disabled="!!p.busy.value"
                   @click="p.removeMember(m.id)"
                 >
@@ -485,7 +488,7 @@ async function removeMember(m: PartyMember) {
         class="space-y-3 rounded-2xl border bg-card/60 p-4 sm:p-6"
       >
         <h2 id="join-title" class="font-display text-2xl font-semibold">Pedir vaga</h2>
-        <p v-if="p.myMembership.value?.status === 'declined'" class="text-sm text-destructive">
+        <p v-if="p.myMembership.value?.status === 'declined'" class="text-sm text-destructive-ink">
           O líder recusou seu pedido anterior.
         </p>
         <p v-if="full" class="text-sm text-muted-foreground">A party está completa.</p>

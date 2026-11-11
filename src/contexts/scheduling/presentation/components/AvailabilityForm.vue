@@ -66,7 +66,7 @@ async function save() {
       </Button>
     </div>
 
-    <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
+    <p v-if="error" role="alert" class="text-sm text-destructive-ink">{{ error }}</p>
 
     <div class="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
       <Button v-if="cancelable" type="button" variant="ghost" @click="emit('cancel')">Cancelar</Button>

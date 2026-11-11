@@ -60,6 +60,8 @@ async function confirmUnlink(linked: LinkedCharacter) {
 <template>
   <div class="space-y-10">
     <AvailabilityCard v-if="characters.items.length" />
+    <!-- Reserva o espaço do card enquanto carrega (sem empurrar a página depois). -->
+    <Skeleton v-else-if="!characters.loaded" class="h-28 rounded-2xl" />
 
     <section class="space-y-5" aria-labelledby="roster-title">
       <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -86,12 +88,12 @@ async function confirmUnlink(linked: LinkedCharacter) {
         </Tooltip>
       </header>
 
-      <p v-if="characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+      <p v-if="characters.error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" /> {{ characters.error }}
       </p>
 
       <div v-if="characters.loading && !characters.loaded" class="grid gap-4 lg:grid-cols-2">
-        <Skeleton v-for="i in 2" :key="i" class="h-36 rounded-2xl" />
+        <Skeleton v-for="i in 2" :key="i" class="h-48 rounded-2xl" />
       </div>
 
       <ul v-else-if="characters.items.length" class="grid gap-5 lg:grid-cols-2">
@@ -113,7 +115,7 @@ async function confirmUnlink(linked: LinkedCharacter) {
               <Button
                 size="icon"
                 variant="ghost"
-                class="size-8 text-muted-foreground hover:text-destructive"
+                class="size-8 text-muted-foreground hover:text-destructive-ink"
                 :title="`Desvincular ${linked.character.name}`"
                 :aria-label="`Desvincular ${linked.character.name}`"
                 :disabled="characters.isPending(linked.linkId)"
@@ -143,7 +145,7 @@ async function confirmUnlink(linked: LinkedCharacter) {
     <CharacterSearch v-if="characters.loaded && !characters.items.length" />
 
     <Dialog v-model:open="adding">
-      <DialogContent class="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent class="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle class="font-display text-2xl">Adicionar personagem</DialogTitle>
           <DialogDescription>

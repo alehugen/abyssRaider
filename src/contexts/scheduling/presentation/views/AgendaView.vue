@@ -64,7 +64,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
       </p>
     </header>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>
 

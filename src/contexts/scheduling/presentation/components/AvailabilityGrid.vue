@@ -155,7 +155,7 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
             Copiar para todos os dias
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem :disabled="!hasDay(d.value)" class="text-destructive" @select="clear(d.value)">
+          <DropdownMenuItem :disabled="!hasDay(d.value)" class="text-destructive-ink" @select="clear(d.value)">
             Limpar {{ d.short.toLowerCase() }}
           </DropdownMenuItem>
         </DropdownMenuContent>

@@ -26,13 +26,13 @@ async function signOut() {
 <template>
   <DropdownMenu v-if="auth.user">
     <DropdownMenuTrigger as-child>
-      <Button variant="ghost" class="h-9 gap-2 px-1.5">
+      <Button variant="ghost" class="h-9 gap-2 px-1.5" :aria-label="`Conta de ${auth.user.displayName}`">
         <Avatar class="size-7">
           <AvatarImage v-if="auth.user.avatarUrl" :src="auth.user.avatarUrl" :alt="auth.user.displayName" />
           <AvatarFallback class="text-xs font-semibold">{{ userInitials(auth.user) }}</AvatarFallback>
         </Avatar>
-        <span class="hidden max-w-32 truncate sm:inline">{{ auth.user.displayName }}</span>
-        <PhCaretDown class="text-muted-foreground" />
+        <span class="hidden max-w-32 truncate lg:inline">{{ auth.user.displayName }}</span>
+        <PhCaretDown class="hidden text-muted-foreground sm:block" aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="w-52">

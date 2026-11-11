@@ -8,9 +8,9 @@ defineProps<{ status: RsvpStatus | null; disabled?: boolean }>()
 const emit = defineEmits<{ respond: [status: RsvpStatus] }>()
 
 const OPTIONS: Array<{ value: RsvpStatus; icon: Component; active: string }> = [
-  { value: 'going', icon: PhCheck, active: 'bg-success/15 text-success ring-success/40' },
-  { value: 'maybe', icon: PhQuestion, active: 'bg-warning/15 text-warning ring-warning/40' },
-  { value: 'declined', icon: PhX, active: 'bg-destructive/15 text-destructive ring-destructive/40' },
+  { value: 'going', icon: PhCheck, active: 'bg-success/15 text-success-ink ring-success/40' },
+  { value: 'maybe', icon: PhQuestion, active: 'bg-warning/15 text-warning-ink ring-warning/40' },
+  { value: 'declined', icon: PhX, active: 'bg-destructive/15 text-destructive-ink ring-destructive/40' },
 ]
 </script>
 
@@ -25,7 +25,7 @@ const OPTIONS: Array<{ value: RsvpStatus; icon: Component; active: string }> = [
       :disabled="disabled"
       :class="
         cn(
-          'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60',
+          'inline-flex items-center gap-1.5 min-h-8 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60',
           status === o.value && ['ring-1', o.active],
         )
       "

@@ -29,11 +29,10 @@ watch(src, () => (failed.value = false))
     <TooltipTrigger as-child>
       <span
         role="img"
-        tabindex="0"
         :aria-label="label"
         :class="
           cn(
-            'relative inline-grid flex-none place-items-center overflow-hidden rounded-lg bg-[oklch(0.2_0.03_260)] ring-1 ring-faction/40 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'relative inline-grid flex-none place-items-center overflow-hidden rounded-lg bg-icon-well ring-1 ring-faction/40 outline-none focus-visible:ring-2 focus-visible:ring-ring',
             size === 'md' ? 'size-8' : 'size-6 rounded-md',
           )
         "

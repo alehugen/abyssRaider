@@ -110,7 +110,7 @@ function pendingCount(event: RaidEvent): number {
       />
     </div>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>
 
@@ -137,13 +137,13 @@ function pendingCount(event: RaidEvent): number {
           <p v-if="event.note" class="text-sm">{{ event.note }}</p>
           <p class="flex flex-wrap gap-x-4 gap-y-0.5 text-[13px] text-muted-foreground">
             <span>
-              <b class="font-semibold text-success">{{ rsvpCounts(event).going }}</b> {{ RSVP_LABEL.going.toLowerCase() }}<template
+              <b class="font-semibold text-success-ink">{{ rsvpCounts(event).going }}</b> {{ RSVP_LABEL.going.toLowerCase() }}<template
                 v-if="namesWith(event, 'going')"
                 >: {{ namesWith(event, 'going') }}</template
               >
             </span>
-            <span><b class="font-semibold text-warning">{{ rsvpCounts(event).maybe }}</b> talvez</span>
-            <span><b class="font-semibold text-destructive">{{ rsvpCounts(event).declined }}</b> não vão</span>
+            <span><b class="font-semibold text-warning-ink">{{ rsvpCounts(event).maybe }}</b> talvez</span>
+            <span><b class="font-semibold text-destructive-ink">{{ rsvpCounts(event).declined }}</b> não vão</span>
             <span v-if="pendingCount(event)">{{ pendingCount(event) }} sem resposta</span>
           </p>
         </div>
@@ -159,7 +159,7 @@ function pendingCount(event: RaidEvent): number {
             v-if="isLeader"
             size="sm"
             variant="ghost"
-            class="text-muted-foreground hover:text-destructive"
+            class="text-muted-foreground hover:text-destructive-ink"
             :disabled="busy === event.id"
             @click="cancel(event)"
           >

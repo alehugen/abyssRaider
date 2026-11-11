@@ -277,10 +277,10 @@ const number = new Intl.NumberFormat('pt-BR')
       </fieldset>
     </form>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive">
+    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ error }}
     </p>
-    <p v-else-if="notice" role="status" class="flex items-center gap-2 text-sm text-success">
+    <p v-else-if="notice" role="status" class="flex items-center gap-2 text-sm text-success-ink">
       <PhCheckCircle :size="18" /> {{ notice }}
     </p>
 
@@ -310,7 +310,7 @@ const number = new Intl.NumberFormat('pt-BR')
         {{ rows.length }} {{ rows.length === 1 ? 'personagem' : 'personagens' }}, maior item level primeiro
         <template v-if="target?.party.routine">; quem está livre no horário da party aparece antes</template>.
       </p>
-      <ul :class="cn('grid gap-3 md:grid-cols-2', loading && 'opacity-60 transition-opacity')">
+      <ul :class="cn('grid gap-3 transition-opacity duration-200 md:grid-cols-2', loading && 'opacity-60')">
         <li
           v-for="r in rows"
           :key="r.linked.linkId"
@@ -351,29 +351,32 @@ const number = new Intl.NumberFormat('pt-BR')
               </li>
             </ul>
             <p v-else class="pl-5 text-muted-foreground">Não informou.</p>
-            <p v-if="r.fit?.free.length" class="mt-1 flex items-center gap-1.5 pl-5 font-medium text-success">
+            <p v-if="r.fit?.free.length" class="mt-1 flex items-center gap-1.5 pl-5 font-medium text-success-ink">
               <PhCheckCircle aria-hidden="true" /> Livre no horário de {{ target?.party.name }}
             </p>
           </div>
 
           <div v-if="r.option" class="mt-auto flex items-center justify-end gap-2 border-t pt-3">
             <span v-if="r.option.state === 'blocked'" class="mr-auto text-[13px] text-muted-foreground">{{ r.option.reason }}</span>
-            <span v-else-if="r.option.state === 'member'" class="flex items-center gap-1.5 text-sm font-medium text-success">
+            <span v-else-if="r.option.state === 'member'" class="flex items-center gap-1.5 text-sm font-medium text-success-ink">
               <PhCheck /> Na party
             </span>
-            <span v-else-if="r.option.state === 'invited'" class="flex items-center gap-1.5 text-sm font-medium text-highlight">
+            <span v-else-if="r.option.state === 'invited'" class="flex items-center gap-1.5 text-sm font-medium text-highlight-ink">
               <PhCheck /> Convidado, aguardando
             </span>
             <Button
               v-else
               size="sm"
               :variant="r.option.state === 'requested' ? 'default' : 'outline'"
+              class="min-w-0 max-w-full"
               :disabled="inviting === r.linked.linkId"
               @click="invite(r.option, r)"
             >
               <PhCircleNotch v-if="inviting === r.linked.linkId" class="animate-spin" />
               <PhUserPlus v-else />
-              {{ r.option.state === 'requested' ? 'Pediu vaga: aceitar' : `Convidar para ${r.option.summary.party.name}` }}
+              <span class="truncate">{{
+                r.option.state === 'requested' ? 'Pediu vaga: aceitar' : `Convidar para ${r.option.summary.party.name}`
+              }}</span>
             </Button>
           </div>
         </li>

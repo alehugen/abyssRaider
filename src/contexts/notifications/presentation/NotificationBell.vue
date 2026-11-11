@@ -23,11 +23,11 @@ const open = ref(false)
 onMounted(() => store.start())
 
 const TONE: Record<NotificationTone, { icon: Component; class: string }> = {
-  invite: { icon: PhEnvelopeSimple, class: 'bg-highlight/15 text-highlight' },
-  success: { icon: PhCheckCircle, class: 'bg-success/15 text-success' },
-  warning: { icon: PhXCircle, class: 'bg-warning/15 text-warning' },
-  raid: { icon: PhCalendarCheck, class: 'bg-primary/15 text-primary' },
-  cancel: { icon: PhCalendarX, class: 'bg-destructive/15 text-destructive' },
+  invite: { icon: PhEnvelopeSimple, class: 'bg-highlight/15 text-highlight-ink' },
+  success: { icon: PhCheckCircle, class: 'bg-success/15 text-success-ink' },
+  warning: { icon: PhXCircle, class: 'bg-warning/15 text-warning-ink' },
+  raid: { icon: PhCalendarCheck, class: 'bg-primary/15 text-primary-ink' },
+  cancel: { icon: PhCalendarX, class: 'bg-destructive/15 text-destructive-ink' },
 }
 
 const views = computed(() => store.items.map((n) => ({ n, v: describeNotification(n) })))
@@ -82,7 +82,7 @@ async function select(n: AppNotification, link: string | null) {
         </Button>
       </header>
 
-      <p v-if="!store.loaded && store.error" role="alert" class="px-4 py-6 text-center text-sm text-destructive">
+      <p v-if="!store.loaded && store.error" role="alert" class="px-4 py-6 text-center text-sm text-destructive-ink">
         {{ store.error }}
       </p>
       <div v-else-if="!views.length" class="px-4 py-10 text-center text-sm text-muted-foreground">
@@ -109,7 +109,7 @@ async function select(n: AppNotification, link: string | null) {
               <span class="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{{ v.body }}</span>
               <span class="mt-1 block text-xs text-muted-foreground">{{ timeAgo(n.createdAt, now) }}</span>
             </span>
-            <span v-if="!n.readAt" class="mt-1.5 size-2 flex-none rounded-full bg-primary" aria-label="não lida" />
+            <span v-if="!n.readAt" class="mt-1.5 size-2 flex-none rounded-full bg-primary"><span class="sr-only">não lida</span></span>
           </button>
         </li>
       </ul>

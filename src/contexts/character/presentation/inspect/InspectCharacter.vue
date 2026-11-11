@@ -137,7 +137,7 @@ const summary = computed(() => {
       </div>
 
       <div v-else-if="error" role="alert" class="space-y-3 px-6 pb-6 text-sm">
-        <p class="flex items-center gap-2 text-destructive"><PhWarningCircle :size="18" /> {{ error }}</p>
+        <p class="flex items-center gap-2 text-destructive-ink"><PhWarningCircle :size="18" /> {{ error }}</p>
         <Button variant="outline" size="sm" @click="load"><PhArrowClockwise /> Tentar de novo</Button>
       </div>
 
@@ -176,7 +176,7 @@ const summary = computed(() => {
                         v-if="build.wing.icon"
                         :src="build.wing.icon"
                         alt=""
-                        class="size-11 rounded-md border-2 border-(--grade) bg-[oklch(0.22_0.02_260)] object-contain"
+                        class="size-11 rounded-md border-2 border-(--grade) bg-icon-well object-contain"
                       />
                       <span class="min-w-0">
                         <span class="block text-xs text-muted-foreground">Asas</span>
@@ -190,7 +190,7 @@ const summary = computed(() => {
                         v-if="build.pet.icon"
                         :src="build.pet.icon"
                         alt=""
-                        class="size-11 rounded-md bg-[oklch(0.22_0.02_260)] object-contain"
+                        class="size-11 rounded-md bg-icon-well object-contain"
                       />
                       <span class="min-w-0">
                         <span class="block text-xs text-muted-foreground">Pet, nível {{ build.pet.level }}</span>

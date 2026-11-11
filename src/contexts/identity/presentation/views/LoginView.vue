@@ -28,7 +28,7 @@ const callbackError = computed(() => (typeof route.query.error === 'string' ? ro
         <p
           v-if="auth.error || callbackError"
           role="alert"
-          class="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          class="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive-ink"
         >
           <PhWarningCircle :size="18" class="mt-px flex-none" />
           {{ auth.error || callbackError }}

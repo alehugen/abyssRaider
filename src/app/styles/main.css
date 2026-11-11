@@ -50,6 +50,13 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-glow: var(--glow);
+  /* Fundo escuro fixo atrás dos ícones do jogo (eles são feitos para fundo escuro). */
+  --color-icon-well: oklch(0.21 0.025 260);
+  --color-primary-ink: var(--primary-ink);
+  --color-warning-ink: var(--warning-ink);
+  --color-success-ink: var(--success-ink);
+  --color-destructive-ink: var(--destructive-ink);
+  --color-highlight-ink: var(--highlight-ink);
 
   --color-elyos: var(--elyos);
   --color-asmodian: var(--asmodian);
@@ -92,18 +99,33 @@
     opacity: 0;
     transition: opacity 0.45s ease-out;
   }
-  .glare-card:hover {
-    --lift: 1.01;
-    box-shadow: var(--card-shadow-hover);
-  }
-  .glare-card:hover::after {
-    opacity: 1;
+  /* Só com mouse: no toque o :hover "gruda" depois de tocar. A sombra do
+     hover fica no utilitário hover:shadow-card-hover (este layer perde para utilities). */
+  @media (hover: hover) and (pointer: fine) {
+    .glare-card:hover {
+      --lift: 1.01;
+    }
+    .glare-card:hover::after {
+      opacity: 1;
+    }
   }
   @media (prefers-reduced-motion: reduce) {
     .glare-card,
     .glare-card:hover {
       transform: none;
     }
+  }
+}
+
+/* Quem pede menos movimento no sistema: sem animações nem transições longas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
@@ -116,6 +138,8 @@
      * ~15px e os fundos fixos (wallpaper, arte da raid) esticam e piscam.
      */
     scrollbar-gutter: stable;
+    /* Foco/âncora não ficam escondidos atrás do cabeçalho fixo (h-14). */
+    scroll-padding-top: 4.5rem;
   }
   html.dark {
     color-scheme: dark;

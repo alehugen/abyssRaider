@@ -1,11 +1,20 @@
 <script setup lang="ts">
-import { PhDesktop, PhMoonStars, PhSpiral, PhSun } from '@phosphor-icons/vue'
-import type { Component } from 'vue'
-import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
-import { isThemePreference, THEMES, type ThemeId } from './themes'
+import { PhCheck, PhDesktop, PhMoonStars, PhSpiral, PhSun } from '@phosphor-icons/vue'
+import { computed, type Component } from 'vue'
+import { Button } from '@/shared/presentation/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/presentation/ui/dropdown-menu'
+import { THEMES, type ThemeId, type ThemePreference } from './themes'
 import { useTheme } from './useTheme'
 
-const { preference, setPreference } = useTheme()
+/** Um botão só (cabe no cabeçalho do celular), com o tema atual; o menu tem as opções. */
+const { preference, theme, setPreference } = useTheme()
 
 const icons: Record<ThemeId, Component> = {
   elyos: PhSun,
@@ -13,45 +22,46 @@ const icons: Record<ThemeId, Component> = {
   abyss: PhSpiral,
 }
 
-function onChange(value: unknown) {
-  // Clicar no item já ativo emite vazio; mantemos a escolha atual.
-  if (isThemePreference(value)) setPreference(value)
-}
+const current = computed(() => (preference.value === 'system' ? 'Sistema' : theme.value.label))
+const currentIcon = computed(() => (preference.value === 'system' ? PhDesktop : icons[theme.value.id as ThemeId]))
+const options = computed<Array<{ value: ThemePreference; label: string; hint: string; icon: Component; color?: string }>>(
+  () => [
+    ...THEMES.map((t) => ({ value: t.id, label: t.label, hint: t.description, icon: icons[t.id], color: t.swatch })),
+    { value: 'system', label: 'Sistema', hint: 'Claro: Elyos, escuro: Asmodian', icon: PhDesktop },
+  ],
+)
 </script>
 
 <template>
-  <ToggleGroup
-    type="single"
-    size="sm"
-    aria-label="Tema"
-    class="rounded-lg border bg-muted p-0.5"
-    :model-value="preference"
-    @update:model-value="onChange"
-  >
-    <ToggleGroupItem
-      v-for="t in THEMES"
-      :key="t.id"
-      :value="t.id"
-      :title="`${t.label}: ${t.description}`"
-      :aria-label="t.label"
-      class="group gap-1.5 text-xs data-[state=on]:bg-card data-[state=on]:shadow-sm"
-    >
-      <component
-        :is="icons[t.id]"
-        :size="16"
-        :weight="preference === t.id ? 'fill' : 'duotone'"
-        :color="t.swatch"
-        aria-hidden="true"
-      />
-      <span class="hidden sm:inline">{{ t.label }}</span>
-    </ToggleGroupItem>
-    <ToggleGroupItem
-      value="system"
-      title="Seguir o sistema (claro: Elyos, escuro: Asmodian)"
-      aria-label="Seguir o sistema"
-      class="data-[state=on]:bg-card data-[state=on]:shadow-sm"
-    >
-      <PhDesktop :size="16" :weight="preference === 'system' ? 'fill' : 'regular'" aria-hidden="true" />
-    </ToggleGroupItem>
-  </ToggleGroup>
+  <DropdownMenu>
+    <DropdownMenuTrigger as-child>
+      <Button variant="ghost" size="icon" class="size-9" :aria-label="`Tema: ${current}`" :title="`Tema: ${current}`">
+        <component
+          :is="currentIcon"
+          :size="20"
+          weight="duotone"
+          :color="preference === 'system' ? undefined : theme.swatch"
+          aria-hidden="true"
+        />
+      </Button>
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align="end" class="w-60">
+      <DropdownMenuLabel>Tema</DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        v-for="o in options"
+        :key="o.value"
+        class="items-start gap-2.5"
+        @select="setPreference(o.value)"
+      >
+        <component :is="o.icon" :size="18" weight="duotone" :color="o.color" class="mt-0.5" aria-hidden="true" />
+        <span class="min-w-0 flex-1">
+          <span class="block font-medium">{{ o.label }}</span>
+          <span class="block text-xs text-muted-foreground">{{ o.hint }}</span>
+        </span>
+        <PhCheck v-if="preference === o.value" class="mt-0.5" aria-hidden="true" />
+        <span v-if="preference === o.value" class="sr-only">(atual)</span>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
 </template>

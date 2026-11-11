@@ -18,7 +18,7 @@ void store.load()
         <h2 id="availability-title" class="flex items-center gap-2 font-display text-xl font-semibold">
           <PhClock class="text-muted-foreground" aria-hidden="true" /> Sua disponibilidade
         </h2>
-        <div v-if="!store.loaded && store.error" role="alert" class="mt-1 flex flex-wrap items-center gap-2 text-sm text-destructive">
+        <div v-if="!store.loaded && store.error" role="alert" class="mt-1 flex flex-wrap items-center gap-2 text-sm text-destructive-ink">
           {{ store.error }}
           <Button variant="outline" size="sm" class="h-7" @click="store.load()">Tentar de novo</Button>
         </div>

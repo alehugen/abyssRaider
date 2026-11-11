@@ -10,6 +10,13 @@
 
 :root {
   --radius: 0.75rem;
+  /* Cor de TEXTO para os tons de status (fundos/ícones usam a cor base).
+     Nos temas escuros é a própria cor; no claro, uma versão mais escura (contraste). */
+  --primary-ink: var(--primary);
+  --warning-ink: var(--warning);
+  --success-ink: var(--success);
+  --destructive-ink: var(--destructive);
+  --highlight-ink: var(--highlight);
 }
 
 /* Elyos: claro, marfim, ouro e azul-celeste */
@@ -41,6 +48,13 @@
   --warning: oklch(0.72 0.16 65);
 
   --glow: oklch(0.85 0.12 85 / 0.45);
+
+  /* Texto de status legível sobre o marfim (as cores base ficam em ~2:1). */
+  --primary-ink: oklch(0.5 0.12 75);
+  --warning-ink: oklch(0.52 0.14 60);
+  --success-ink: oklch(0.48 0.13 155);
+  --destructive-ink: oklch(0.5 0.2 25);
+  --highlight-ink: oklch(0.5 0.14 235);
 }
 
 /* Asmodian: escuro, violeta profundo e carmesim */
