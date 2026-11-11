@@ -90,6 +90,6 @@ describe('inviteOptions', () => {
   it('classes por papel incluem os nomes internos da API', () => {
     expect(classNamesFor(['healer'])).toEqual(['Cleric', 'Chanter'])
     expect(classNamesFor(['dps'])).toEqual(expect.arrayContaining(['Spiritmaster', 'Elementalist', 'Brawler', 'Fighter', 'Chanter']))
-    expect(classNamesFor(['tank'])).toEqual(['Templar'])
+    expect(classNamesFor(['tank'])).toEqual(['Gladiator', 'Templar'])
   })
 })

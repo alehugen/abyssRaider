@@ -18,10 +18,10 @@ export type CombatRole = 'tank' | 'healer' | 'dps'
 
 /**
  * Papéis que cada classe pode cumprir na party; o primeiro é o principal.
- * Chanter é híbrido: entra como dano ou como cura.
+ * Híbridos: Gladiator entra como tanque ou dano; Chanter como dano ou cura.
  */
 export const CLASS_ROLES: Record<CharacterClass, readonly CombatRole[]> = {
-  Gladiator: ['dps'],
+  Gladiator: ['tank', 'dps'],
   Templar: ['tank'],
   Assassin: ['dps'],
   Ranger: ['dps'],

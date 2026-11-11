@@ -4,6 +4,7 @@ import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacte
 import {
   canJoin,
   composition,
+  assignRoles,
   groups,
   moveInLayout,
   isFull,
@@ -92,6 +93,13 @@ describe('Party', () => {
     const [g1, g2] = groups(party, members)
     expect(g1!.map((m) => m?.linked.linkId ?? null)).toEqual(['leader', 'tank', 'healer', 'dps', null])
     expect(g2).toEqual([null, null, null, null, null])
+  })
+
+  it('Gladiator é tanque ou dano: vira tanque se falta tanque, senão dano', () => {
+    const g = member('g', { className: 'Gladiator' })
+    expect(assignRoles([member('c', { className: 'Cleric' }), g], 10).get(g.id)).toBe('tank')
+    const tanks = [member('t1', { className: 'Templar' }), member('t2', { className: 'Templar' })]
+    expect(assignRoles([...tanks, g], 10).get(g.id)).toBe('dps')
   })
 
   it('respeita vagas fixas e encaixa os outros nas livres', () => {
