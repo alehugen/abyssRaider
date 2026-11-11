@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhArrowCounterClockwise, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { computed } from 'vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { onMounted } from 'vue'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -8,6 +9,13 @@ import PartySummaryCard from '../components/PartySummaryCard.vue'
 import { usePartiesStore } from '../usePartiesStore'
 
 const parties = usePartiesStore()
+const active = computed(() => parties.items.filter((i) => !i.party.finishedAt))
+/** Mais recentes primeiro. */
+const finished = computed(() =>
+  parties.items
+    .filter((i) => i.party.finishedAt)
+    .sort((a, b) => b.party.finishedAt!.getTime() - a.party.finishedAt!.getTime()),
+)
 
 // Mostra o que já tem e atualiza em segundo plano (o líder pode ter aceitado/recusado algo).
 onMounted(() => void parties.load())
@@ -43,10 +51,33 @@ onMounted(() => void parties.load())
       Você ainda não está em nenhuma party. Crie uma ou peça o link para o líder do seu grupo.
     </p>
 
-    <ul v-else class="space-y-3">
-      <li v-for="item in parties.items" :key="item.party.id">
-        <PartySummaryCard :item="item" />
-      </li>
-    </ul>
+    <template v-else>
+      <p v-if="!active.length" class="text-muted-foreground">
+        Nenhuma party ativa. Crie uma ou peça o link para o líder do seu grupo.
+      </p>
+      <ul v-else class="space-y-3">
+        <li v-for="item in active" :key="item.party.id">
+          <PartySummaryCard :item="item" />
+        </li>
+      </ul>
+
+      <section v-if="finished.length" aria-labelledby="finished-title" class="space-y-3 pt-4">
+        <div>
+          <h2 id="finished-title" class="font-display text-2xl font-semibold">Finalizadas</h2>
+          <p class="text-sm text-muted-foreground">Histórico das raids. Para jogar de novo, crie outra party.</p>
+        </div>
+        <ul class="space-y-3">
+          <li v-for="item in finished" :key="item.party.id" class="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div class="min-w-0 flex-1"><PartySummaryCard :item="item" /></div>
+            <CreatePartyDialog
+              v-if="item.myStatus === 'leader'"
+              :prefill="{ name: item.party.name, sanctuaryId: item.party.sanctuary.id, routine: item.party.routine }"
+            >
+              <Button variant="outline" class="sm:w-auto"><PhArrowCounterClockwise /> Criar de novo</Button>
+            </CreatePartyDialog>
+          </li>
+        </ul>
+      </section>
+    </template>
   </div>
 </template>

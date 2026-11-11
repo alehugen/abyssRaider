@@ -53,7 +53,7 @@ if (!parties.loaded) void parties.load()
 if (!characters.loaded) void characters.load()
 
 // --- party para a qual se convida (?party=<id>; padrão: a primeira que lidera)
-const led = computed(() => parties.items.filter((i) => i.myStatus === 'leader'))
+const led = computed(() => parties.items.filter((i) => i.myStatus === 'leader' && !i.party.finishedAt))
 const partyId = computed({
   get: () => String(route.query.party ?? led.value[0]?.party.id ?? ''),
   set: (id: string) => void router.replace({ query: { ...route.query, party: id } }),

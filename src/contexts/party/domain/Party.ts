@@ -17,6 +17,8 @@ export interface Party {
   createdAt: Date
   /** Dias e horário em que a party costuma raidar (null em parties antigas). */
   routine?: RaidRoutine | null
+  /** Finalizada (histórico): depois da última raid ou pelo líder. */
+  finishedAt?: Date | null
 }
 
 export interface PartyMember {

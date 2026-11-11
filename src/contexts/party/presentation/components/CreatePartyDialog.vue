@@ -27,6 +27,9 @@ import { REGION_LABEL } from '@/contexts/character/domain/Character'
 import { bestSlots, formatMinutes, type Slot } from '@/contexts/scheduling/domain/Availability'
 import { useSanctuariesStore } from '../useSanctuariesStore'
 
+/** "Criar de novo": nome, santuário e horário de costume de uma party finalizada. */
+const props = defineProps<{ prefill?: { name: string; sanctuaryId: string; routine?: RaidRoutine | null } | null }>()
+
 const router = useRouter()
 const characters = useCharactersStore()
 const raid = useSanctuariesStore()
@@ -80,6 +83,12 @@ const canSubmit = computed(
 watch(open, async (isOpen) => {
   if (!isOpen) return
   error.value = null
+  if (props.prefill) {
+    name.value = props.prefill.name
+    sanctuaryId.value = props.prefill.sanctuaryId
+    raidDays.value = (props.prefill.routine?.days ?? []).map(String)
+    if (props.prefill.routine?.time) raidTime.value = props.prefill.routine.time
+  }
   await Promise.all([raid.load(), characters.loaded ? null : characters.load()])
   sanctuaryId.value ||= raid.sanctuaries[0]?.id ?? ''
   characterLinkId.value ||= characterOptions.value.find((o) => o.ok)?.linked.linkId ?? ''
@@ -140,10 +149,12 @@ async function submit() {
 <template>
   <Dialog v-model:open="open">
     <DialogTrigger as-child>
-      <Button>
-        <PhPlus />
-        Criar party
-      </Button>
+      <slot>
+        <Button>
+          <PhPlus />
+          Criar party
+        </Button>
+      </slot>
     </DialogTrigger>
 
     <DialogContent class="sm:max-w-md">

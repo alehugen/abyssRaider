@@ -4,7 +4,9 @@ import {
   PhCalendarDots,
   PhCheck,
   PhCircleNotch,
+  PhArrowCounterClockwise,
   PhDiscordLogo,
+  PhFlagCheckered,
   PhDotsSixVertical,
   PhEnvelopeOpen,
   PhUserPlus,
@@ -43,6 +45,8 @@ import {
 import { useSlotDrag } from '../useSlotDrag'
 import { usePartyDetail } from '../usePartyDetail'
 import PartyNotificationsDialog from '../components/PartyNotificationsDialog.vue'
+import CreatePartyDialog from '../components/CreatePartyDialog.vue'
+import { formatFullDay } from '@/contexts/scheduling/presentation/format'
 import { nextOccurrences } from '../../domain/RaidRoutine'
 import { formatRoutine } from '../routineFormat'
 
@@ -152,6 +156,19 @@ async function deleteParty() {
   if (await p.removeParty()) await router.push({ name: 'parties' })
 }
 
+const finishedLabel = computed(() => (party.value?.finishedAt ? formatFullDay(party.value.finishedAt) : ''))
+
+async function finishParty() {
+  if (!party.value) return
+  const ok = await confirm({
+    title: `Finalizar ${party.value.name}?`,
+    description:
+      'A party vira histórico: não recebe mais pedidos, convites nem raids, e as raids futuras são canceladas. Para jogar de novo, use "Criar de novo".',
+    confirmText: 'Finalizar party',
+  })
+  if (ok) await p.finishParty()
+}
+
 async function leave() {
   const m = p.myMembership.value
   if (!m) return
@@ -238,7 +255,16 @@ async function removeMember(m: PartyMember) {
             <PhLink v-else />
             {{ copied ? 'Link copiado' : 'Copiar link da party' }}
           </Button>
-          <PartyNotificationsDialog v-if="p.isLeader.value" :party-id="party.id">
+          <Button v-if="p.canManage.value" variant="outline" :disabled="!!p.busy.value" @click="finishParty">
+            <PhFlagCheckered /> Finalizar
+          </Button>
+          <CreatePartyDialog
+            v-if="p.isLeader.value && p.finished.value"
+            :prefill="{ name: party.name, sanctuaryId: party.sanctuary.id, routine: party.routine }"
+          >
+            <Button><PhArrowCounterClockwise /> Criar de novo</Button>
+          </CreatePartyDialog>
+          <PartyNotificationsDialog v-if="p.canManage.value" :party-id="party.id">
             <Button variant="outline"><PhDiscordLogo /> Avisos no Discord</Button>
           </PartyNotificationsDialog>
           <Button
@@ -251,7 +277,7 @@ async function removeMember(m: PartyMember) {
             <PhTrash /> Excluir
           </Button>
           <Button
-            v-else-if="p.myMembership.value && p.myMembership.value.status !== 'declined'"
+            v-else-if="!p.finished.value && p.myMembership.value && p.myMembership.value.status !== 'declined'"
             variant="ghost"
             class="text-muted-foreground"
             @click="leave"
@@ -261,6 +287,18 @@ async function removeMember(m: PartyMember) {
           </Button>
         </div>
       </header>
+
+      <div
+        v-if="p.finished.value"
+        role="status"
+        class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-muted/60 p-3 text-sm"
+      >
+        <PhFlagCheckered :size="18" class="text-muted-foreground" aria-hidden="true" />
+        <span class="flex-1">
+          <b class="font-semibold">Party finalizada</b> em {{ finishedLabel }}. Fica aqui como histórico: formação, raids e
+          quem confirmou presença.
+        </span>
+      </div>
 
       <p v-if="p.error.value" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" /> {{ p.error.value }}
@@ -301,7 +339,7 @@ async function removeMember(m: PartyMember) {
           </dl>
         </div>
 
-        <p v-if="p.isLeader.value && p.accepted.value.length > 1" class="-mt-2 text-[13px] text-muted-foreground">
+        <p v-if="p.canManage.value && p.accepted.value.length > 1" class="-mt-2 text-[13px] text-muted-foreground">
           Arraste um jogador para trocar de lugar ou de grupo. No celular, segure o dedo sobre ele e arraste (ou use a
           alça <PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" />).
         </p>
@@ -323,16 +361,16 @@ async function removeMember(m: PartyMember) {
                   cn(
                     'flex items-center gap-1 rounded-lg transition-colors',
                     // Líder: a linha inteira é arrastável (no toque, segurar e arrastar).
-                    p.isLeader.value && member && 'cursor-grab select-none [-webkit-touch-callout:none] hover:bg-accent/40 active:cursor-grabbing',
+                    p.canManage.value && member && 'cursor-grab select-none [-webkit-touch-callout:none] hover:bg-accent/40 active:cursor-grabbing',
                     dragFrom != null && dragOver === gi * GROUP_SIZE + si && dragFrom !== dragOver &&
                       'bg-primary/10 ring-2 ring-primary',
                     dragFrom === gi * GROUP_SIZE + si && 'opacity-40',
                   )
                 "
-                @pointerdown="p.isLeader.value && member && onPointerDown($event, gi * GROUP_SIZE + si)"
+                @pointerdown="p.canManage.value && member && onPointerDown($event, gi * GROUP_SIZE + si)"
               >
                 <button
-                  v-if="p.isLeader.value && member"
+                  v-if="p.canManage.value && member"
                   type="button"
                   :class="
                     cn(
@@ -347,7 +385,7 @@ async function removeMember(m: PartyMember) {
                 >
                   <PhDotsSixVertical :size="18" weight="bold" />
                 </button>
-                <span v-else-if="p.isLeader.value" class="-ml-2 w-8 flex-none" aria-hidden="true" />
+                <span v-else-if="p.canManage.value" class="-ml-2 w-8 flex-none" aria-hidden="true" />
 
                 <div class="min-w-0 flex-1">
                   <CharacterCard v-if="member" :character="member.linked.character" size="sm" :role="roleLabel(member)">
@@ -365,7 +403,7 @@ async function removeMember(m: PartyMember) {
                         </Button>
                       </InspectCharacter>
                       <Button
-                        v-if="p.isLeader.value && member.linked.linkId !== party.leaderCharacterLinkId"
+                        v-if="p.canManage.value && member.linked.linkId !== party.leaderCharacterLinkId"
                         size="icon"
                         variant="ghost"
                         class="size-8 text-muted-foreground hover:text-destructive-ink"
@@ -401,7 +439,7 @@ async function removeMember(m: PartyMember) {
       </div>
 
       <PartyBestTime
-        v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"
+        v-if="!p.finished.value && (p.isLeader.value || p.myMembership.value?.status === 'accepted')"
         :members="p.accepted.value"
         :routine="party.routine"
         :availability="availability"
@@ -411,14 +449,14 @@ async function removeMember(m: PartyMember) {
         v-if="p.isLeader.value || p.myMembership.value?.status === 'accepted'"
         :party-id="party.id"
         :members="p.accepted.value"
-        :is-leader="p.isLeader.value"
-        :my-member-id="p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
+        :is-leader="p.canManage.value"
+        :my-member-id="!p.finished.value && p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
         :suggested="nextRoutineDate"
         :options="scheduleOptions"
       />
 
       <!-- Líder: pedidos -->
-      <section v-if="p.isLeader.value" aria-labelledby="requests-title" class="space-y-3">
+      <section v-if="p.canManage.value" aria-labelledby="requests-title" class="space-y-3">
         <h2 id="requests-title" class="font-display text-2xl font-semibold">Pedidos para entrar</h2>
         <p v-if="!p.pending.value.length" class="text-sm text-muted-foreground">
           Nenhum pedido no momento. Mande o link da party para o seu grupo.
@@ -451,7 +489,7 @@ async function removeMember(m: PartyMember) {
       </section>
 
       <!-- Líder: convites enviados -->
-      <section v-if="p.isLeader.value" aria-labelledby="invites-title" class="space-y-3">
+      <section v-if="p.canManage.value" aria-labelledby="invites-title" class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 id="invites-title" class="font-display text-2xl font-semibold">Convites enviados</h2>
           <Button size="sm" variant="outline" as-child>
@@ -483,7 +521,7 @@ async function removeMember(m: PartyMember) {
 
       <!-- Visitante: pedir vaga -->
       <section
-        v-if="!p.isLeader.value && (!p.myMembership.value || p.myMembership.value.status === 'declined')"
+        v-if="!p.finished.value && !p.isLeader.value && (!p.myMembership.value || p.myMembership.value.status === 'declined')"
         aria-labelledby="join-title"
         class="space-y-3 rounded-2xl border bg-card/60 p-4 sm:p-6"
       >

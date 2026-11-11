@@ -22,6 +22,10 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
 
   const userId = computed(() => auth.user?.id ?? null)
   const isLeader = computed(() => details.value?.party.leaderId === userId.value)
+  /** Finalizada: só histórico (nada de pedidos, convites, formação ou agenda). */
+  const finished = computed(() => !!details.value?.party.finishedAt)
+  /** Líder de uma party ainda ativa: pode gerenciar. */
+  const canManage = computed(() => isLeader.value && !finished.value)
   const members = computed(() => details.value?.members ?? [])
   const accepted = computed(() => acceptedMembers(members.value))
   const pending = computed(() => pendingMembers(members.value))
@@ -83,6 +87,8 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     error,
     busy,
     isLeader,
+    finished,
+    canManage,
     accepted,
     pending,
     invited,
@@ -95,6 +101,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
     acceptInvite: (memberId: string) => run(memberId, () => repo.acceptInvite(memberId)),
     removeParty: () => run('party', () => repo.remove(id())),
+    finishParty: () => run('party', () => repo.finish(id())),
     setLayout: (layout: ReadonlyArray<{ memberId: string; slot: number }>) =>
       run('layout', () => repo.setLayout(id(), layout)),
   }

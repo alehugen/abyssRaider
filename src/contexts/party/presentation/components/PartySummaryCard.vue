@@ -24,6 +24,7 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
     :class="
       cn(
         `faction-${item.party.faction}`,
+        item.party.finishedAt && 'opacity-75 saturate-50',
         'group relative isolate flex items-center gap-4 overflow-hidden rounded-2xl border bg-card px-4 py-4 shadow-card transition-[box-shadow,border-color] hover:border-faction/60 hover:shadow-card-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:px-5',
       )
     "
@@ -59,7 +60,8 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
       <span class="block font-display text-xl leading-tight font-semibold tabular-nums">
         {{ item.acceptedCount }}/{{ item.party.sanctuary.groupSize }}
       </span>
-      <span :class="cn('block text-xs font-medium', STATUS[item.myStatus].class)">{{ STATUS[item.myStatus].label }}</span>
+      <span v-if="item.party.finishedAt" class="block text-xs font-medium text-muted-foreground">Finalizada</span>
+      <span v-else :class="cn('block text-xs font-medium', STATUS[item.myStatus].class)">{{ STATUS[item.myStatus].label }}</span>
     </span>
     <PhCaretRight class="flex-none text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
   </RouterLink>

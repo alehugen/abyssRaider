@@ -61,4 +61,19 @@ describe('usePartyDetail', () => {
     expect(await first).toBe(true)
     expect(p.busy.value).toBeNull()
   })
+
+  it('party finalizada: o líder continua líder, mas não gerencia mais', async () => {
+    setActivePinia(createPinia())
+    const { useAuthStore } = await import('@/contexts/identity/presentation/useAuthStore')
+    useAuthStore().user = { id: 'leader' } as never
+    const finished = { party: { id: A, name: 'x', leaderId: 'leader', finishedAt: new Date() }, members: [] }
+    overrideContainer({
+      partyRepository: { ...getContainer().partyRepository, get: async () => finished as unknown as PartyDetails },
+    })
+    const p = usePartyDetail(A)
+    await p.load()
+    expect(p.isLeader.value).toBe(true)
+    expect(p.finished.value).toBe(true)
+    expect(p.canManage.value).toBe(false)
+  })
 })

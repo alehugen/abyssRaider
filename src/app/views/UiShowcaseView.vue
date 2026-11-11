@@ -92,6 +92,7 @@ const LUDRA_ART = 'https://fizz-download.playnccdn.com/download/v2/buckets/conti
 const partySamples: PartySummary[] = [
   { leaderCharacterName: 'BOOMSHAKALAK', leaderClassName: 'Cleric', acceptedCount: 4, myStatus: 'leader' },
   { leaderCharacterName: 'Lyrandel', leaderClassName: 'Templar', acceptedCount: 9, myStatus: 'accepted' },
+  { leaderCharacterName: 'BOOMSHAKALAK', leaderClassName: 'Cleric', acceptedCount: 10, myStatus: 'leader' },
 ].map((x, i) => ({
   ...x,
   party: {
@@ -104,6 +105,7 @@ const partySamples: PartySummary[] = [
     faction: i ? 'elyos' : 'asmodian',
     createdAt: new Date(),
     routine: { days: [3, 4], time: '19:00', timeZone: 'America/Sao_Paulo' },
+    finishedAt: i === 2 ? new Date() : null,
   },
 })) as PartySummary[]
 

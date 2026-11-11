@@ -20,6 +20,8 @@ export interface PartyRepository {
   /** Cria a party com o personagem do líder já dentro. Devolve o id. */
   create(input: CreatePartyInput): Promise<string>
   remove(partyId: string): Promise<void>
+  /** Líder: finaliza agora (vira histórico; raids futuras são canceladas). */
+  finish(partyId: string): Promise<void>
   /** Líder: grava a vaga de cada membro aceito. */
   setLayout(partyId: string, layout: ReadonlyArray<{ memberId: string; slot: number }>): Promise<void>
 
