@@ -5,6 +5,7 @@ import { schedulingRoutes } from '@/contexts/scheduling/presentation/routes'
 import { identityRoutes } from '@/contexts/identity/presentation/routes'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { pendingOnboardingStep } from '@/app/onboarding'
+import { isChunkLoadError, reloadOnce } from './chunkReload'
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -66,3 +67,13 @@ router.beforeEach(async (to) => {
   }
   return true
 })
+
+// Aba aberta antes de um deploy: a página pedida não existe mais. Recarrega no destino.
+router.onError((error, to) => {
+  if (isChunkLoadError(error)) reloadOnce(to.fullPath)
+})
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    if (reloadOnce()) event.preventDefault()
+  })
+}
