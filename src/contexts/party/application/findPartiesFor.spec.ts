@@ -50,24 +50,31 @@ function details(id: string, classes: string[], over: Partial<Party> = {}): Part
 
 describe('findPartiesFor', () => {
   const cleric = linked('me', 'me-owner', { className: 'Cleric' })
+  const ids = (list: Array<{ details: PartyDetails }>) => list.map((m) => m.details.party.id)
 
-  it('lista só parties que precisam do papel do personagem', () => {
+  it('separa quem precisa do papel de quem já tem o papel completo', () => {
     const needsHealer = details('a', ['Templar', 'Gladiator'])
     const healersFull = details('b', ['Cleric', 'Cleric'])
     const result = findPartiesFor(cleric, [needsHealer, healersFull])
-    expect(result.map((m) => m.details.party.id)).toEqual(['a'])
-    expect(result[0]!.needed).toEqual(['healer'])
+    expect(ids(result.needYou)).toEqual(['a'])
+    expect(result.needYou[0]!.needed).toEqual(['healer'])
+    expect(ids(result.noRoleSlot)).toEqual(['b'])
+    expect(result.noRoleSlot[0]!.needed).toEqual([])
   })
 
-  it('ignora outra facção e parties onde a conta já está', () => {
+  it('separa as parties da própria conta e ignora outra facção e parties cheias', () => {
     const elyos = details('e', ['Templar'], { faction: 'elyos' })
     const mine = details('m', ['Templar'], { leaderId: 'me-owner' })
-    expect(findPartiesFor(cleric, [elyos, mine])).toEqual([])
+    const full = details('f', Array.from({ length: 10 }, () => 'Gladiator'))
+    const result = findPartiesFor(cleric, [elyos, mine, full])
+    expect(result.needYou).toEqual([])
+    expect(result.noRoleSlot).toEqual([])
+    expect(result.mine.map((d) => d.party.id)).toEqual(['m'])
   })
 
   it('Chanter casa com parties que precisam de dano ou de cura', () => {
     const chanter = linked('ch', 'ch-owner', { className: 'Chanter' })
     const result = findPartiesFor(chanter, [details('a', ['Templar', 'Cleric', 'Cleric'])])
-    expect(result[0]!.needed).toEqual(['dps'])
+    expect(result.needYou[0]!.needed).toEqual(['dps'])
   })
 })
