@@ -5,6 +5,7 @@ import {
   PhCheckCircle,
   PhCircleNotch,
   PhClock,
+  PhCrown,
   PhMagnifyingGlass,
   PhUsersThree,
   PhWarningCircle,
@@ -20,7 +21,7 @@ import { Button } from '@/shared/presentation/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { findPartiesFor, type PartyMatch, type PartySearch } from '../../application/findPartiesFor'
-import { ROLE_ORDER } from '../../domain/Party'
+import { ROLE_ORDER, type PartyDetails } from '../../domain/Party'
 import { usePartiesStore } from '../usePartiesStore'
 import { formatRoutine } from '../routineFormat'
 import SanctuaryArt from '../components/SanctuaryArt.vue'
@@ -34,6 +35,9 @@ const router = useRouter()
 const characters = useCharactersStore()
 const parties = usePartiesStore()
 const repo = getContainer().partyRepository
+
+/** Personagem do líder (para o destaque no card). */
+const leaderOf = (d: PartyDetails) => d.members.find((m) => m.linked.linkId === d.party.leaderCharacterLinkId)
 
 if (!characters.loaded) void characters.load()
 const availability = useAvailabilityStore()
@@ -242,6 +246,12 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
               >
                 {{ m.details.party.name }}
               </RouterLink>
+              <p v-if="leaderOf(m.details)" class="mt-1 flex min-w-0 items-center gap-1.5 text-sm">
+                <PhCrown weight="fill" class="flex-none text-primary-ink" aria-hidden="true" />
+                <span class="sr-only">Líder:</span>
+                <ClassIcon :class-name="leaderOf(m.details)!.linked.character.className" size="sm" />
+                <span class="truncate font-semibold text-faction-ink">{{ leaderOf(m.details)!.linked.character.name }}</span>
+              </p>
               <p class="text-sm text-muted-foreground">
                 {{ m.details.party.sanctuary.name }}, {{ m.acceptedCount }}/{{ m.details.party.sanctuary.groupSize }}
                 membros
