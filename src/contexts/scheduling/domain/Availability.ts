@@ -197,14 +197,16 @@ export function isFree(windows: readonly TimeWindow[], weekday: number, start: n
   return needed.every((n) => list.some((w) => w.weekday === n.weekday && w.start <= n.start && w.end >= n.end))
 }
 
-/** Dias da rotina (dias + horário de início) em que a pessoa está livre. */
+/** Dias da rotina (cada dia com seu horário de início) em que a pessoa está livre. */
 export function routineFit(
   windows: readonly TimeWindow[],
-  routine: { days: readonly number[]; time: string },
+  routine: { slots: readonly { day: number; time: string }[] },
 ): { free: number[]; busy: number[] } {
-  const start = parseTime(routine.time)
   const free: number[] = []
   const busy: number[] = []
-  for (const d of routine.days) (start != null && isFree(windows, d, start) ? free : busy).push(d)
+  for (const s of routine.slots) {
+    const start = parseTime(s.time)
+    ;(start != null && isFree(windows, s.day, start) ? free : busy).push(s.day)
+  }
   return { free, busy }
 }

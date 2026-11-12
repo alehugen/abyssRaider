@@ -8,10 +8,11 @@ interface EventRow {
   party_id: string
   starts_at: string
   note: string | null
+  recurring: boolean | null
   rsvps: Array<{ event_id: string; member_id: string; owner_id: string; status: RsvpStatus }>
 }
 
-const EVENT_COLUMNS = `id, party_id, starts_at, note,
+const EVENT_COLUMNS = `id, party_id, starts_at, note, recurring,
   rsvps:raid_rsvps!raid_rsvps_event_id_fkey(event_id, member_id, owner_id, status)`
 
 /** Raids que começaram há até 6 h ainda aparecem (podem estar em andamento). */
@@ -23,6 +24,7 @@ function toEvent(r: EventRow): RaidEvent {
     partyId: r.party_id,
     startsAt: new Date(r.starts_at),
     note: r.note,
+    recurring: !!r.recurring,
     rsvps: r.rsvps.map((x) => ({ eventId: x.event_id, memberId: x.member_id, ownerId: x.owner_id, status: x.status })),
   }
 }

@@ -1,14 +1,14 @@
 import type { Region } from '@/contexts/character/domain/Character'
 import type { Membership } from '../application/inviteOptions'
 import type { PartyDetails, PartySummary } from './Party'
-import type { RaidRoutine } from './RaidRoutine'
+import type { RaidRoutine, RoutineSlot } from './RaidRoutine'
 
 export interface CreatePartyInput {
   name: string
   sanctuaryId: string
   /** Personagem do líder (LinkedCharacter.linkId). */
   characterLinkId: string
-  /** Horário de costume (opcional): sem ele, cada raid sai da disponibilidade da semana. */
+  /** Recorrência (opcional): sem ela, cada raid é marcada na semana pela disponibilidade. */
   routine?: RaidRoutine | null
 }
 
@@ -24,6 +24,8 @@ export interface PartyRepository {
   finish(partyId: string): Promise<void>
   /** Líder: grava a vaga de cada membro aceito. */
   setLayout(partyId: string, layout: ReadonlyArray<{ memberId: string; slot: number }>): Promise<void>
+  /** Líder: liga, muda ou (lista vazia) desliga a recorrência. Devolve quantas raids foram criadas agora. */
+  setRecurrence(partyId: string, slots: readonly RoutineSlot[]): Promise<number>
 
   requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void>
   decide(memberId: string, status: 'accepted' | 'declined'): Promise<void>

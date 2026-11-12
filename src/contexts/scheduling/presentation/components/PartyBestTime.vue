@@ -26,12 +26,16 @@ const slots = computed(() => props.availability.slots.value)
 /** Por dia da rotina: quantos membros (com disponibilidade) estão livres no horário de início. */
 const routineDays = computed(() => {
   const r = props.routine
-  const start = r ? parseTime(r.time) : null
-  if (!r || start == null || !withData.value.length) return []
-  return r.days.map((d) => ({
-    day: d,
-    free: withData.value.filter((m) => isFree(props.availability.windowsOf(m), d, start)).length,
-  }))
+  if (!r || !withData.value.length) return []
+  return r.slots.flatMap((s) => {
+    const start = parseTime(s.time)
+    if (start == null) return []
+    return [{
+      day: s.day,
+      time: s.time,
+      free: withData.value.filter((m) => isFree(props.availability.windowsOf(m), s.day, start)).length,
+    }]
+  })
 })
 
 const names = (list: readonly PartyMember[]) => list.map((m) => m.linked.character.name).join(', ')
@@ -78,9 +82,9 @@ const names = (list: readonly PartyMember[]) => list.map((m) => m.linked.charact
         </ol>
 
         <p v-if="routineDays.length" class="text-sm">
-          <span class="text-muted-foreground">No horário da rotina ({{ routine!.time }}):</span>
+          <span class="text-muted-foreground">Na recorrência:</span>
           <template v-for="(r, i) in routineDays" :key="r.day">
-            {{ WEEKDAYS[r.day]!.short.toLowerCase() }}
+            {{ WEEKDAYS[r.day]!.short.toLowerCase() }} {{ r.time }}
             <span class="font-semibold tabular-nums">{{ r.free }} de {{ members.length }}</span><template
               v-if="i < routineDays.length - 1"
             >, </template>

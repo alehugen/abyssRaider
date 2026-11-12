@@ -120,7 +120,7 @@ with problems(check_name, detail) as (
          format('party %s (%s): última raid %s', p.id, p.name, max(e.starts_at))
     from public.parties p
     join public.raid_events e on e.party_id = p.id
-   where p.finished_at is null
+   where p.finished_at is null and jsonb_array_length(p.raid_schedule) = 0
    group by p.id, p.name
   having max(e.starts_at) < now() - interval '4 hours'
 
@@ -132,6 +132,13 @@ with problems(check_name, detail) as (
    where e.reminder_sent_at is null
      and e.starts_at < now() and e.starts_at > now() - interval '1 day'
      and e.created_at < e.starts_at - make_interval(mins => n.reminder_minutes)
+
+  union all
+  select 'party recorrente sem as raids da semana (cron parado?)',
+         format('party %s (%s): recorrência criada até %s', p.id, p.name, coalesce(p.recurrence_until::text, 'nunca'))
+    from public.parties p
+   where p.finished_at is null and jsonb_array_length(p.raid_schedule) > 0
+     and (p.recurrence_until is null or p.recurrence_until < now() + interval '6 days')
 
   -- Contas, personagens e disponibilidade ---------------------------------------------
   union all
@@ -166,7 +173,7 @@ with problems(check_name, detail) as (
   union all
   select 'rotina agendada ausente ou desligada', j.name
     from (values ('abyssraider-raid-reminders'), ('abyssraider-notifications-cleanup'),
-                 ('abyssraider-finish-parties')) as j(name)
+                 ('abyssraider-finish-parties'), ('abyssraider-recurring-raids')) as j(name)
    where not exists (select 1 from cron.job c where c.jobname = j.name and c.active)
 
   -- Notificações -----------------------------------------------------------------------

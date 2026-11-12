@@ -21,6 +21,8 @@ export interface RaidEvent {
   partyId: string
   startsAt: Date
   note: string | null
+  /** Criada sozinha pela recorrência da party. */
+  recurring?: boolean
   rsvps: Rsvp[]
 }
 

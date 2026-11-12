@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { errorMessage } from '@/shared/lib/errorMessage'
-import { PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
+import { PhCheckCircle, PhRepeat, PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
 import type { PartyMember } from '@/contexts/party/domain/Party'
+import type { RaidRoutine } from '@/contexts/party/domain/RaidRoutine'
+import RecurrenceDialog from '@/contexts/party/presentation/components/RecurrenceDialog.vue'
+import { formatRoutine } from '@/contexts/party/presentation/routineFormat'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -24,7 +27,17 @@ const props = defineProps<{
   suggested?: Date | null
   /** Melhores datas desta semana pela disponibilidade dos membros. */
   options?: readonly ScheduleOption[]
+  /** Recorrência da party (dias e horários de toda semana). */
+  routine?: RaidRoutine | null
 }>()
+const emit = defineEmits<{ 'routine-changed': [] }>()
+const notice = ref<string | null>(null)
+
+async function onRecurrenceChanged(message: string) {
+  notice.value = message
+  await load()
+  emit('routine-changed')
+}
 
 const repo = getContainer().raidEventRepository
 const events = shallowRef<RaidEvent[]>([])
@@ -100,15 +113,26 @@ function pendingCount(event: RaidEvent): number {
   <section aria-labelledby="schedule-title" class="space-y-3">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <h2 id="schedule-title" class="font-display text-2xl font-semibold">Agenda</h2>
-      <ScheduleRaidDialog
-        v-if="isLeader"
-        ref="dialog"
-        :busy="busy === 'schedule'"
-        :suggested="suggested"
-        :options="options"
-        @schedule="schedule"
-      />
+      <div v-if="isLeader" class="flex flex-wrap gap-2">
+        <RecurrenceDialog :party-id="partyId" :routine="routine" @changed="onRecurrenceChanged" />
+        <ScheduleRaidDialog
+          ref="dialog"
+          :busy="busy === 'schedule'"
+          :suggested="suggested"
+          :options="options"
+          @schedule="schedule"
+        />
+      </div>
     </div>
+
+    <p v-if="routine" class="flex items-center gap-1.5 text-sm">
+      <PhRepeat class="flex-none text-muted-foreground" aria-hidden="true" />
+      <span class="first-letter:uppercase">{{ formatRoutine(routine) }}</span>
+    </p>
+
+    <p v-if="notice" role="status" class="flex items-center gap-2 text-sm text-success-ink">
+      <PhCheckCircle :size="18" aria-hidden="true" /> {{ notice }}
+    </p>
 
     <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
       <PhWarningCircle :size="18" /> {{ error }}
@@ -133,6 +157,9 @@ function pendingCount(event: RaidEvent): number {
             <span class="font-display text-xl font-semibold tabular-nums">{{ formatTime(event.startsAt) }}</span>
             <span class="text-xs text-muted-foreground">horário de Brasília</span>
             <span class="text-sm text-muted-foreground">{{ formatRelative(event.startsAt) }}</span>
+            <span v-if="event.recurring" class="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <PhRepeat aria-hidden="true" /> recorrente
+            </span>
           </p>
           <p v-if="event.note" class="text-sm">{{ event.note }}</p>
           <p class="flex flex-wrap gap-x-4 gap-y-0.5 text-[13px] text-muted-foreground">

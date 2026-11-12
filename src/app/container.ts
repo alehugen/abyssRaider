@@ -64,6 +64,7 @@ const unconfiguredParties: PartyRepository = {
   remove: notConfigured,
   finish: notConfigured,
   setLayout: notConfigured,
+  setRecurrence: notConfigured,
   invite: notConfigured,
   acceptInvite: notConfigured,
   listMemberships: async () => [],

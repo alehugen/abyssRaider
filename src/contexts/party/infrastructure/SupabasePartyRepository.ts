@@ -9,6 +9,7 @@ import { DomainError } from '@/shared/domain/DomainError'
 import type { Membership } from '../application/inviteOptions'
 import type { MemberStatus, Party, PartyDetails, PartyMember, PartySummary } from '../domain/Party'
 import type { CreatePartyInput, PartyRepository } from '../domain/PartyRepository'
+import { normalizeSlots, type RoutineSlot } from '../domain/RaidRoutine'
 
 interface SanctuaryEmbed {
   id: string
@@ -27,8 +28,7 @@ interface PartyRow {
   region: Region
   faction: Faction
   created_at: string
-  raid_days: number[] | null
-  raid_time: string | null
+  raid_schedule: { day: number; time: string }[] | null
   time_zone: string | null
   sanctuary: SanctuaryEmbed
   finished_at: string | null
@@ -51,7 +51,7 @@ interface MemberRow {
 
 // Hints de FK explícitos: evitam ambiguidade no embed do PostgREST.
 const PARTY_COLUMNS = `id, name, sanctuary_id, leader_id, leader_character_id, region, faction, created_at,
-  raid_days, raid_time, time_zone, finished_at,
+  raid_schedule, time_zone, finished_at,
   sanctuary:sanctuaries!parties_sanctuary_id_fkey(id, name, min_item_level, group_size, image_url)`
 
 const MEMBER_COLUMNS = `id, party_id, status, created_at, slot,
@@ -75,10 +75,9 @@ function toParty(r: PartyRow): Party {
     faction: r.faction,
     createdAt: new Date(r.created_at),
     finishedAt: r.finished_at ? new Date(r.finished_at) : null,
-    routine:
-      r.raid_days?.length && r.raid_time
-        ? { days: r.raid_days, time: r.raid_time.slice(0, 5), timeZone: r.time_zone ?? 'America/Sao_Paulo' }
-        : null,
+    routine: r.raid_schedule?.length
+      ? { slots: normalizeSlots(r.raid_schedule), timeZone: r.time_zone ?? 'America/Sao_Paulo' }
+      : null,
   }
 }
 
@@ -182,12 +181,20 @@ export class SupabasePartyRepository implements PartyRepository {
       p_name: input.name,
       p_sanctuary_id: input.sanctuaryId,
       p_character_id: input.characterLinkId,
-      p_raid_days: input.routine?.days ?? [],
-      p_raid_time: input.routine?.time ?? null,
+      p_schedule: input.routine?.slots ?? [],
       p_time_zone: input.routine?.timeZone ?? 'America/Sao_Paulo',
     })
     if (error) rethrow(error)
     return data as string
+  }
+
+  async setRecurrence(partyId: string, slots: readonly RoutineSlot[]): Promise<number> {
+    const { data, error } = await this.client.rpc('set_party_recurrence', {
+      p_party_id: partyId,
+      p_schedule: normalizeSlots(slots),
+    })
+    if (error) rethrow(error)
+    return Number(data ?? 0)
   }
 
   async invite(partyId: string, characterLinkId: string): Promise<'invited' | 'accepted'> {

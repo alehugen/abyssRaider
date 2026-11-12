@@ -457,6 +457,8 @@ async function removeMember(m: PartyMember) {
         :my-member-id="!p.finished.value && p.myMembership.value?.status === 'accepted' ? p.myMembership.value.id : null"
         :suggested="nextRoutineDate"
         :options="scheduleOptions"
+        :routine="party.routine"
+        @routine-changed="p.load()"
       />
 
       <!-- Líder: pedidos -->

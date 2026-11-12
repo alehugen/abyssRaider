@@ -104,7 +104,7 @@ const partySamples: PartySummary[] = [
     region: 'la',
     faction: i ? 'elyos' : 'asmodian',
     createdAt: new Date(),
-    routine: { days: [3, 4], time: '19:00', timeZone: 'America/Sao_Paulo' },
+    routine: { slots: [{ day: 3, time: '19:00' }, { day: 4, time: '19:00' }], timeZone: 'America/Sao_Paulo' },
     finishedAt: i === 2 ? new Date() : null,
   },
 })) as PartySummary[]

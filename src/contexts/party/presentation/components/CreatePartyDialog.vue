@@ -17,17 +17,17 @@ import {
 } from '@/shared/presentation/ui/dialog'
 import { Input } from '@/shared/presentation/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
-import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
-import { formatDays, isValidTime, normalizeDays, WEEKDAYS, type RaidRoutine } from '../../domain/RaidRoutine'
+import { isValidTime, WEEKDAYS, type RaidRoutine, type RoutineSlot } from '../../domain/RaidRoutine'
 import { eligibility } from '../../domain/Sanctuary'
-import { formatNextRaid } from '../routineFormat'
-import { APP_TIME_ZONE, TZ_LABEL } from '@/shared/lib/brasilia'
+import { formatNextRaid, formatRoutine } from '../routineFormat'
+import RoutineEditor from './RoutineEditor.vue'
+import { APP_TIME_ZONE } from '@/shared/lib/brasilia'
 import { usePartiesStore } from '../usePartiesStore'
 import { REGION_LABEL } from '@/contexts/character/domain/Character'
 import { bestSlots, formatMinutes, type Slot } from '@/contexts/scheduling/domain/Availability'
 import { useSanctuariesStore } from '../useSanctuariesStore'
 
-/** "Criar de novo": nome, santuário e horário de costume de uma party finalizada. */
+/** "Criar de novo": nome, santuário e recorrência de uma party finalizada. */
 const props = defineProps<{ prefill?: { name: string; sanctuaryId: string; routine?: RaidRoutine | null } | null }>()
 
 const router = useRouter()
@@ -42,23 +42,16 @@ const characterLinkId = ref<string>('')
 const submitting = ref(false)
 const error = ref<string | null>(null)
 
-// Rotina: dias da semana (strings para o ToggleGroup) e horário de início no fuso de quem cria.
-const raidDays = ref<string[]>([])
-const raidTime = ref('21:00')
-const timeZone = APP_TIME_ZONE
-const routine = computed<RaidRoutine>(() => ({
-  days: normalizeDays(raidDays.value.map(Number)),
-  time: raidTime.value,
-  timeZone,
-}))
-/** Rotina opcional: sem dias marcados, a party fica sem horário de costume. */
-const hasRoutine = computed(() => routine.value.days.length > 0)
-const routineValid = computed(() => !hasRoutine.value || isValidTime(routine.value.time))
+// Recorrência opcional: dias da semana, cada um com seu horário (Brasília).
+const slots = ref<RoutineSlot[]>([])
+const routine = computed<RaidRoutine>(() => ({ slots: slots.value, timeZone: APP_TIME_ZONE }))
+const hasRoutine = computed(() => slots.value.length > 0)
+const routineValid = computed(() => slots.value.every((s) => isValidTime(s.time)))
 const routinePreview = computed(() => {
   if (!hasRoutine.value || !routineValid.value) return null
   const next = formatNextRaid(routine.value)
-  const days = formatDays(routine.value.days)
-  return `${days.charAt(0).toUpperCase()}${days.slice(1)} às ${routine.value.time}.${next ? ` Próxima: ${next}.` : ''}`
+  const text = formatRoutine(routine.value)
+  return `${text.charAt(0).toUpperCase()}${text.slice(1)}.${next ? ` Próxima: ${next}.` : ''}`
 })
 
 const sanctuary = computed(() => raid.sanctuaries.find((s) => s.id === sanctuaryId.value) ?? null)
@@ -86,8 +79,7 @@ watch(open, async (isOpen) => {
   if (props.prefill) {
     name.value = props.prefill.name
     sanctuaryId.value = props.prefill.sanctuaryId
-    raidDays.value = (props.prefill.routine?.days ?? []).map(String)
-    if (props.prefill.routine?.time) raidTime.value = props.prefill.routine.time
+    slots.value = [...(props.prefill.routine?.slots ?? [])]
   }
   await Promise.all([raid.load(), characters.loaded ? null : characters.load()])
   sanctuaryId.value ||= raid.sanctuaries[0]?.id ?? ''
@@ -118,9 +110,8 @@ const demandScope = computed(() => {
 })
 
 function useSlot(slot: Slot) {
-  const day = String(slot.weekday)
-  if (!raidDays.value.includes(day)) raidDays.value = [...raidDays.value, day]
-  raidTime.value = formatMinutes(slot.start)
+  const time = formatMinutes(slot.start)
+  slots.value = [...slots.value.filter((s) => s.day !== slot.weekday), { day: slot.weekday, time }].sort((a, b) => a.day - b.day)
 }
 
 async function submit() {
@@ -136,7 +127,7 @@ async function submit() {
     })
     open.value = false
     name.value = ''
-    raidDays.value = []
+    slots.value = []
     await router.push({ name: 'party', params: { id } })
   } catch (e) {
     error.value = errorMessage(e)
@@ -190,34 +181,17 @@ async function submit() {
 
         <fieldset class="space-y-1.5">
           <legend class="text-sm font-medium">
-            Horário de costume <span class="font-normal text-muted-foreground">(opcional)</span>
+            Recorrência <span class="font-normal text-muted-foreground">(opcional)</span>
           </legend>
-          <ToggleGroup
-            v-model="raidDays"
-            type="multiple"
-            variant="outline"
-            class="grid w-full grid-cols-7"
-            aria-label="Dias da semana"
-          >
-            <ToggleGroupItem
-              v-for="d in WEEKDAYS"
-              :key="d.value"
-              :value="String(d.value)"
-              :aria-label="d.long"
-              class="px-0 text-xs data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {{ d.short }}
-            </ToggleGroupItem>
-          </ToggleGroup>
+          <RoutineEditor v-model="slots" id-prefix="create-routine" />
+          <p class="text-[13px] text-muted-foreground">
+            {{
+              routinePreview
+                ? `${routinePreview} As raids da semana são criadas sozinhas.`
+                : 'Sem dias marcados, cada raid é marcada na semana pela disponibilidade do grupo.'
+            }}
+          </p>
         </fieldset>
-
-        <label v-if="hasRoutine" class="block space-y-1.5">
-          <span class="text-sm font-medium">Horário de início <span class="font-normal text-muted-foreground">({{ TZ_LABEL }})</span></span>
-          <Input v-model="raidTime" type="time" required class="w-36" />
-        </label>
-        <p class="-mt-2 text-[13px] text-muted-foreground">
-          {{ routinePreview ?? 'Sem dias marcados, cada raid é marcada na semana pela disponibilidade do grupo.' }}
-        </p>
 
         <div v-if="demandSlots.length" class="space-y-1.5 rounded-xl bg-muted/60 p-3">
           <p class="flex items-center gap-1.5 text-[13px] font-medium">

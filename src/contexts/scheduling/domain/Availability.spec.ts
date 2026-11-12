@@ -70,8 +70,8 @@ describe('Availability', () => {
 
   it('confere a rotina da party com a disponibilidade', () => {
     const w = rowsToWindows([{ days: [QUA, QUI], start: h(19), end: h(22) }])
-    expect(routineFit(w, { days: [QUA, QUI, SEX], time: '21:00' })).toEqual({ free: [QUA, QUI], busy: [SEX] })
+    expect(routineFit(w, { slots: [QUA, QUI, SEX].map((day) => ({ day, time: '21:00' })) })).toEqual({ free: [QUA, QUI], busy: [SEX] })
     // 21:30 só deixa 30 min livres
-    expect(routineFit(w, { days: [QUA], time: '21:30' })).toEqual({ free: [], busy: [QUA] })
+    expect(routineFit(w, { slots: [{ day: QUA, time: '21:30' }] })).toEqual({ free: [], busy: [QUA] })
   })
 })

@@ -1,9 +1,9 @@
 import { APP_TIME_ZONE, TZ_LABEL } from '@/shared/lib/brasilia'
-import { formatDays, nextOccurrences, type RaidRoutine } from '../domain/RaidRoutine'
+import { formatSlots, nextOccurrences, type RaidRoutine } from '../domain/RaidRoutine'
 
-/** "quinta e sábado às 21:00 (horário de Brasília)" */
+/** "quinta e sábado às 21:00, toda semana (horário de Brasília)" */
 export function formatRoutine(routine: RaidRoutine): string {
-  return `${formatDays(routine.days)} às ${routine.time} (${TZ_LABEL})`
+  return `${formatSlots(routine.slots)}, toda semana (${TZ_LABEL})`
 }
 
 const nextFormat = new Intl.DateTimeFormat('pt-BR', {

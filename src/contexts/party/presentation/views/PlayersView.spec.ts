@@ -45,7 +45,7 @@ const ludra: PartySummary = {
     region: 'la',
     faction: 'asmodian',
     createdAt: new Date(),
-    routine: { days: [3], time: '20:00', timeZone: 'America/Sao_Paulo' },
+    routine: { slots: [{ day: 3, time: '20:00' }], timeZone: 'America/Sao_Paulo' },
   },
   leaderCharacterName: 'Eu',
   acceptedCount: 4,
