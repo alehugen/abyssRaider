@@ -55,7 +55,7 @@ export class SupabaseAvailabilityRepository implements AvailabilityRepository {
   }
 
   async demand(region: Region): Promise<TimeWindow[]> {
-    const { data, error } = await this.client.rpc('availability_demand', { p_region: region, p_faction: null })
+    const { data, error } = await this.client.rpc('availability_demand', { p_region: region })
     if (error) rethrow(error)
     return (data as WindowRow[]).map(toWindow)
   }

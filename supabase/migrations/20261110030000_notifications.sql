@@ -12,7 +12,8 @@ create table public.notifications (
                'request_accepted',  -- seu pedido foi aceito
                'request_declined',  -- seu pedido foi recusado
                'raid_scheduled',    -- raid marcada na sua party
-               'raid_cancelled'     -- raid cancelada na sua party
+               'raid_cancelled',    -- raid cancelada na sua party
+               'party_deleted'      -- a party foi excluída
              )),
   party_id   uuid references public.parties (id) on delete cascade,
   -- party_name, character_name, leader_name, starts_at, note (conforme o kind)
@@ -44,27 +45,40 @@ revoke insert, update on public.notifications from anon, authenticated;
 grant update (read_at) on public.notifications to authenticated;
 
 
--- 1. Utilitário --------------------------------------------------------------------
--- Ninguém é notificado da própria ação (ex.: o líder que marcou a raid).
+-- 1. Utilitário ----------------------------------------------------------------------------
+-- Ninguém é notificado da própria ação (ex.: o líder que marcou a raid) nem quem
+-- já não tem perfil (conta sendo excluída). Anti-spam: a mesma notificação (tipo,
+-- party e dados) em 10 min é ignorada.
 create function public.notify_user(p_user uuid, p_kind text, p_party uuid, p_data jsonb)
 returns void
 language plpgsql
 security definer
 set search_path = ''
 as $$
+declare
+  payload jsonb := jsonb_strip_nulls(p_data);
 begin
   if p_user is null or p_user = auth.uid() then
     return;
   end if;
-  insert into public.notifications (user_id, kind, party_id, data)
-  values (p_user, p_kind, p_party, jsonb_strip_nulls(p_data));
+  if not exists (select 1 from public.profiles where id = p_user) then
+    return;
+  end if;
+  if exists (
+    select 1 from public.notifications n
+     where n.user_id = p_user and n.kind = p_kind and n.party_id is not distinct from p_party
+       and n.data = payload and n.created_at > now() - interval '10 minutes'
+  ) then
+    return;
+  end if;
+  insert into public.notifications (user_id, kind, party_id, data) values (p_user, p_kind, p_party, payload);
 end;
 $$;
 
 revoke execute on function public.notify_user(uuid, text, uuid, jsonb) from public, anon, authenticated;
 
 
--- 2. Convites e pedidos -----------------------------------------------------------
+-- 2. Convites e pedidos --------------------------------------------------------------------
 create function public.party_members_notify_users()
 returns trigger
 language plpgsql
@@ -110,7 +124,7 @@ create trigger party_members_notify_users
   for each row execute function public.party_members_notify_users();
 
 
--- 3. Agenda -------------------------------------------------------------------------
+-- 3. Agenda ----------------------------------------------------------------------------------
 -- Avisa cada conta com membro aceito na party (menos quem fez a ação).
 create function public.raid_events_notify_users()
 returns trigger
@@ -151,7 +165,41 @@ create trigger raid_events_notify_users
   for each row execute function public.raid_events_notify_users();
 
 
--- 4. Tempo real e limpeza ----------------------------------------------------------
+-- 4. Party excluída ---------------------------------------------------------------------------
+-- Avisa membros, pedidos e convites (menos o líder). Party finalizada é histórico:
+-- excluir não avisa ninguém.
+create function public.parties_notify_deleted()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  owner uuid;
+begin
+  if old.finished_at is not null then
+    return old;
+  end if;
+  for owner in
+    select distinct m.owner_id from public.party_members m
+     where m.party_id = old.id and m.status in ('accepted', 'pending', 'invited')
+       and m.owner_id <> old.leader_id
+  loop
+    -- party_id nulo (a party não existe mais); o id vai nos dados para não
+    -- confundir duas parties de mesmo nome no anti-spam.
+    perform public.notify_user(owner, 'party_deleted', null,
+      jsonb_build_object('party_name', old.name, 'deleted_party_id', old.id));
+  end loop;
+  return old;
+end;
+$$;
+
+create trigger parties_notify_deleted
+  before delete on public.parties
+  for each row execute function public.parties_notify_deleted();
+
+
+-- 5. Tempo real e limpeza ---------------------------------------------------------------------
 
 -- O sino atualiza na hora (Realtime do Supabase respeita a RLS acima).
 do $$
