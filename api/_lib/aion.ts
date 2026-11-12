@@ -278,6 +278,12 @@ export interface AionItemDetail {
   level: number | null
   enchantLevel: number
   maxEnchantLevel: number | null
+  /** Até onde dá para superar depois do máximo (+15 +5); null = não informado. */
+  maxExceedLevel: number | null
+  enchantable: boolean
+  surpassable: boolean
+  /** Encaixes de pedra de mana da peça (0 = sem encaixe). */
+  stoneSlots: number
   mainStats: Array<{ name: string; value: string; extra: string | null }>
   subStats: Array<{ name: string; value: string }>
   skills: Array<{ name: string; icon: string | null; level: number }>
@@ -378,6 +384,10 @@ export function normalizeItem(raw: unknown): AionItemDetail | null {
     level: toInt(r.level),
     enchantLevel: toInt(r.enchantLevel) ?? 0,
     maxEnchantLevel: toInt(r.maxEnchantLevel),
+    maxExceedLevel: toInt(r.maxExceedEnchantLevel),
+    enchantable: r.enchantable !== false,
+    surpassable: r.surpassable === true,
+    stoneSlots: toInt(r.magicStoneSlotCount) ?? 0,
     mainStats: arr(r.mainStats).map((s) => ({ name: str(s.name), value: str(s.value), extra: extra(s.extra) })),
     subStats: arr(r.subStats).map((s) => ({ name: str(s.name), value: str(s.value) })),
     skills: arr(r.subSkills).map((s) => ({ name: str(s.name), icon: url(s.icon), level: toInt(s.level) ?? 0 })),

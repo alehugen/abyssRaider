@@ -125,7 +125,13 @@ const ariaLabel = computed(() =>
             <span :title="s.title">{{ s.text }}</span>
           </dd>
         </div>
-        <p v-if="footnote" class="basis-full text-xs text-muted-foreground sm:ml-auto sm:basis-auto">{{ footnote }}</p>
+        <div
+          v-if="footnote || $slots.aside"
+          class="flex basis-full flex-wrap items-center gap-x-3 gap-y-1 sm:ml-auto sm:basis-auto sm:flex-col sm:items-end"
+        >
+          <slot name="aside" />
+          <p v-if="footnote" class="text-xs text-muted-foreground">{{ footnote }}</p>
+        </div>
       </dl>
 
       <div v-if="$slots.footer" class="border-t border-border/60 pt-3">

@@ -5,12 +5,14 @@ import {
   PhEye,
   PhMagnifyingGlass,
   PhTrash,
+  PhTrendUp,
   PhUserPlus,
   PhWarningCircle,
 } from '@phosphor-icons/vue'
 import { onMounted, ref, watch } from 'vue'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import InspectCharacter from '../inspect/InspectCharacter.vue'
+import StrengthPathDialog from '../strength/StrengthPathDialog.vue'
 import AvailabilityCard from '@/contexts/scheduling/presentation/components/AvailabilityCard.vue'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
@@ -123,6 +125,13 @@ async function confirmUnlink(linked: LinkedCharacter) {
               >
                 <PhTrash />
               </Button>
+            </template>
+            <template #aside>
+              <StrengthPathDialog :character="linked.character">
+                <Button size="sm" variant="outline" class="h-7 px-2.5 text-xs">
+                  <PhTrendUp /> Caminho de Fortalecimento
+                </Button>
+              </StrengthPathDialog>
             </template>
             <template #footer>
               <div class="flex flex-wrap items-center gap-2">

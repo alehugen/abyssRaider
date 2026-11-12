@@ -54,6 +54,12 @@ export interface GearDetail {
   level: number | null
   enchantLevel: number
   maxEnchantLevel: number | null
+  /** Até onde dá para superar depois do máximo (+15 +5); null = não informado. */
+  maxExceedLevel: number | null
+  enchantable: boolean
+  surpassable: boolean
+  /** Encaixes de pedra de mana da peça (0 = sem encaixe). */
+  stoneSlots: number
   mainStats: Array<{ name: string; value: string; extra: string | null }>
   subStats: Array<{ name: string; value: string }>
   skills: Array<{ name: string; icon: string | null; level: number }>

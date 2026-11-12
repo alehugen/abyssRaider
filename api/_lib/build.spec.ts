@@ -91,6 +91,10 @@ describe('normalizeItem', () => {
       level: 86,
       enchantLevel: 15,
       maxEnchantLevel: 15,
+      maxExceedEnchantLevel: 5,
+      enchantable: true,
+      surpassable: true,
+      magicStoneSlotCount: 4,
       mainStats: [
         { name: 'Ataque', value: '508', extra: '146' },
         { name: 'Precisão', value: '100', extra: '0' },
@@ -104,6 +108,8 @@ describe('normalizeItem', () => {
       { name: 'Precisão', value: '100', extra: null },
     ])
     expect(item.gradeName).toBe('Único')
+    expect([item.maxExceedLevel, item.enchantable, item.surpassable, item.stoneSlots]).toEqual([5, true, true, 4])
+    expect(normalizeItem({ id: 1, maxEnchantLevel: 10 })).toMatchObject({ maxExceedLevel: null, enchantable: true, surpassable: false, stoneSlots: 0 })
     expect(item.manastones).toEqual([{ name: 'Defesa', value: '+100', grade: 'Unique' }])
     expect(item.skills[0]!.name).toBe('Golpe Aéreo')
   })
