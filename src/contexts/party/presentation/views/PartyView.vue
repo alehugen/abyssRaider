@@ -47,6 +47,7 @@ import { useSlotDrag } from '../useSlotDrag'
 import { usePartyDetail } from '../usePartyDetail'
 import PartyNotificationsDialog from '../components/PartyNotificationsDialog.vue'
 import CreatePartyDialog from '../components/CreatePartyDialog.vue'
+import AnnounceDiscordButton from '../components/AnnounceDiscordButton.vue'
 import { formatFullDay } from '@/contexts/scheduling/presentation/format'
 import { nextOccurrences } from '../../domain/RaidRoutine'
 import { formatRoutine } from '../routineFormat'
@@ -495,9 +496,12 @@ async function removeMember(m: PartyMember) {
       <section v-if="p.canManage.value" aria-labelledby="invites-title" class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2 id="invites-title" class="font-display text-2xl font-semibold">Convites enviados</h2>
-          <Button size="sm" variant="outline" as-child>
-            <RouterLink :to="{ name: 'players', query: { party: party.id } }"><PhUserPlus /> Convidar jogadores</RouterLink>
-          </Button>
+          <div class="flex flex-wrap gap-2">
+            <AnnounceDiscordButton :party-id="party.id" :invited-count="p.invited.value.length" />
+            <Button size="sm" variant="outline" as-child>
+              <RouterLink :to="{ name: 'players', query: { party: party.id } }"><PhUserPlus /> Convidar jogadores</RouterLink>
+            </Button>
+          </div>
         </div>
         <p v-if="!p.invited.value.length" class="text-sm text-muted-foreground">
           Nenhum convite aguardando resposta. Encontre jogadores pela disponibilidade e convide.

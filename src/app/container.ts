@@ -92,6 +92,7 @@ const unconfiguredNotifications: PartyNotificationsRepository = {
   save: notConfigured,
   remove: notConfigured,
   test: notConfigured,
+  announce: notConfigured,
 }
 
 const unconfiguredInbox: NotificationRepository = {

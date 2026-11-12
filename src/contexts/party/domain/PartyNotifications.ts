@@ -44,4 +44,6 @@ export interface PartyNotificationsRepository {
   remove(partyId: string): Promise<void>
   /** Manda uma mensagem de teste para o canal. */
   test(partyId: string): Promise<void>
+  /** Posta a party no canal e marca os convidados que não responderam. Devolve quantos foram marcados. */
+  announce(partyId: string): Promise<number>
 }

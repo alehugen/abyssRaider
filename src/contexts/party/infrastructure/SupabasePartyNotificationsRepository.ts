@@ -74,4 +74,10 @@ export class SupabasePartyNotificationsRepository implements PartyNotificationsR
     const { error } = await this.client.rpc('test_party_notifications', { p_party_id: partyId })
     if (error) rethrow(error)
   }
+
+  async announce(partyId: string): Promise<number> {
+    const { data, error } = await this.client.rpc('announce_party', { p_party_id: partyId })
+    if (error) rethrow(error)
+    return Number(data ?? 0)
+  }
 }
