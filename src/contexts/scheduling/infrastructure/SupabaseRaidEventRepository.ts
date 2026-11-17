@@ -59,7 +59,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
       .select(
         `id, party_id,
         character:characters!party_members_character_id_fkey(name),
-        party:parties!party_members_party_id_fkey(name, faction, leader_id, sanctuary:sanctuaries!parties_sanctuary_id_fkey(name))`,
+        party:parties!party_members_party_id_fkey(name, faction, leader_id, sanctuary:sanctuaries!parties_sanctuary_id_fkey(name, image_url))`,
       )
       .eq('owner_id', userId)
       .eq('status', 'accepted')
@@ -69,7 +69,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
       id: string
       party_id: string
       character: { name: string } | null
-      party: { name: string; faction: 'elyos' | 'asmodian'; leader_id: string; sanctuary: { name: string } | null } | null
+      party: { name: string; faction: 'elyos' | 'asmodian'; leader_id: string; sanctuary: { name: string; image_url: string | null } | null } | null
     }
     const byParty = new Map((memberships as unknown as Membership[]).map((m) => [m.party_id, m]))
     if (!byParty.size) return []
@@ -89,6 +89,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
         event: toEvent(row),
         partyName: m.party?.name ?? 'Party',
         sanctuaryName: m.party?.sanctuary?.name ?? '',
+        sanctuaryImageUrl: m.party?.sanctuary?.image_url ?? null,
         faction: m.party?.faction ?? 'elyos',
         myMemberId: m.id,
         myCharacterName: m.character?.name ?? '',

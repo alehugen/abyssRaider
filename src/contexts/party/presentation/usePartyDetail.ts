@@ -100,6 +100,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     decline: (memberId: string) => run(memberId, () => repo.decide(memberId, 'declined')),
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
     acceptInvite: (memberId: string) => run(memberId, () => repo.acceptInvite(memberId)),
+    rename: (name: string) => run('rename', () => repo.rename(id(), name)),
     removeParty: () => run('party', () => repo.remove(id())),
     finishParty: () => run('party', () => repo.finish(id())),
     setLayout: (layout: ReadonlyArray<{ memberId: string; slot: number }>) =>

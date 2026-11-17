@@ -8,6 +8,7 @@ import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { groupByDay, myRsvp, rsvpCounts, type AgendaEntry, type RsvpStatus } from '../../domain/RaidEvent'
+import SanctuaryArt from '@/contexts/party/presentation/components/SanctuaryArt.vue'
 import RaidDateBadge from '../components/RaidDateBadge.vue'
 import RemindButton from '../components/RemindButton.vue'
 import RsvpButtons from '../components/RsvpButtons.vue'
@@ -93,10 +94,11 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
           :class="
             cn(
               `faction-${entry.faction}`,
-              'flex flex-wrap items-center gap-4 rounded-2xl border bg-card/60 p-4 sm:flex-nowrap',
+              'group relative isolate flex flex-wrap items-center gap-4 overflow-hidden rounded-2xl border bg-card/60 p-4 sm:flex-nowrap',
             )
           "
         >
+          <SanctuaryArt :src="entry.sanctuaryImageUrl" />
           <RaidDateBadge :date="entry.event.startsAt" />
           <div class="min-w-0 flex-1">
             <p class="flex flex-wrap items-baseline gap-x-2">

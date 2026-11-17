@@ -12,6 +12,7 @@ import {
   PhUserPlus,
   PhEye,
   PhLink,
+  PhPencilSimple,
   PhSignOut,
   PhTrash,
   PhWarningCircle,
@@ -30,6 +31,7 @@ import { useCharactersStore } from '@/contexts/character/presentation/useCharact
 import { cn } from '@/shared/lib/utils'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
+import { Input } from '@/shared/presentation/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import {
@@ -63,6 +65,26 @@ watch(partyId, () => void p.load(), { immediate: true })
 if (!characters.loaded) void characters.load()
 
 const party = computed(() => p.details.value?.party ?? null)
+// --- renomear (líder): o título vira um campo de texto.
+const editingName = ref(false)
+const draftName = ref('')
+const nameValid = computed(() => {
+  const n = draftName.value.trim()
+  return n.length >= 2 && n.length <= 40
+})
+function startRename() {
+  draftName.value = party.value?.name ?? ''
+  editingName.value = true
+}
+async function saveName() {
+  if (!nameValid.value) return
+  if (draftName.value.trim() === party.value?.name) {
+    editingName.value = false
+    return
+  }
+  if (await p.rename(draftName.value)) editingName.value = false
+}
+
 const nextRoutineDate = computed(() => (party.value?.routine ? (nextOccurrences(party.value.routine, 1)[0] ?? null) : null))
 // --- formação: arrastar e soltar (líder). Aplica na tela na hora e grava em seguida.
 const optimistic = ref<Map<string, number> | null>(null)
@@ -243,7 +265,36 @@ async function removeMember(m: PartyMember) {
 
       <header :class="cn(`faction-${party.faction}`, 'flex flex-wrap items-end justify-between gap-4')">
         <div class="min-w-0">
-          <h1 class="font-display text-4xl leading-none font-bold break-words">{{ party.name }}</h1>
+          <form v-if="editingName" class="flex flex-wrap items-center gap-2" @submit.prevent="saveName">
+            <label for="party-name" class="sr-only">Nome da party</label>
+            <Input
+              id="party-name"
+              v-model="draftName"
+              maxlength="40"
+              autocomplete="off"
+              autofocus
+              class="h-11 w-72 max-w-full font-display text-2xl font-bold"
+              @keydown.esc="editingName = false"
+            />
+            <Button type="submit" size="sm" :disabled="!nameValid || !!p.busy.value">
+              <PhCheck /> Salvar
+            </Button>
+            <Button type="button" size="sm" variant="ghost" @click="editingName = false">Cancelar</Button>
+          </form>
+          <div v-else class="flex items-center gap-1">
+            <h1 class="font-display text-4xl leading-none font-bold break-words">{{ party.name }}</h1>
+            <Button
+              v-if="p.canManage.value"
+              size="icon"
+              variant="ghost"
+              class="size-8 flex-none text-muted-foreground"
+              aria-label="Renomear party"
+              title="Renomear party"
+              @click="startRename"
+            >
+              <PhPencilSimple />
+            </Button>
+          </div>
           <p class="mt-2 text-muted-foreground">
             {{ party.sanctuary.name }}, Elyos e Asmodian,
             {{ REGION_LABEL[party.region] }}

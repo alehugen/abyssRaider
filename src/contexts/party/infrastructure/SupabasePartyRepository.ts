@@ -240,6 +240,16 @@ export class SupabasePartyRepository implements PartyRepository {
     if (error) rethrow(error)
   }
 
+  async rename(partyId: string, name: string): Promise<void> {
+    const trimmed = name.trim()
+    if (trimmed.length < 2 || trimmed.length > 40) {
+      throw new DomainError('party.invalid_name', 'O nome da party precisa ter de 2 a 40 letras.')
+    }
+    const { data, error } = await this.client.from('parties').update({ name: trimmed }).eq('id', partyId).select('id')
+    if (error) rethrow(error)
+    if (!data?.length) throw new DomainError('party.nothing_changed', NOTHING_CHANGED)
+  }
+
   async remove(partyId: string): Promise<void> {
     const { data, error } = await this.client.from('parties').delete().eq('id', partyId).select('id')
     if (error) rethrow(error)

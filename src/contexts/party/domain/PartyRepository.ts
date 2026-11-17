@@ -20,6 +20,8 @@ export interface PartyRepository {
   /** Cria a party com o personagem do líder já dentro. Devolve o id. */
   create(input: CreatePartyInput): Promise<string>
   remove(partyId: string): Promise<void>
+  /** Líder: muda o nome da party (2 a 40 letras). */
+  rename(partyId: string, name: string): Promise<void>
   /** Líder: finaliza agora (vira histórico; raids futuras são canceladas). */
   finish(partyId: string): Promise<void>
   /** Líder: grava a vaga de cada membro aceito. */

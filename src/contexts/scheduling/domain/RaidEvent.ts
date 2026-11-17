@@ -31,6 +31,8 @@ export interface AgendaEntry {
   event: RaidEvent
   partyName: string
   sanctuaryName: string
+  /** Arte do santuário (fundo do card), quando cadastrada. */
+  sanctuaryImageUrl: string | null
   faction: 'elyos' | 'asmodian'
   /** Participação do usuário logado nessa party (para responder). */
   myMemberId: string
