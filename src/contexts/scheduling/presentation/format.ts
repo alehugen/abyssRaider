@@ -1,5 +1,5 @@
 /** Formatação de horários, sempre no horário de Brasília (ver shared/lib/brasilia). */
-import { APP_TIME_ZONE, brasiliaDayKey, TZ_LABEL } from '@/shared/lib/brasilia'
+import { APP_TIME_ZONE, brasiliaDayKey, tzLabel } from '@/shared/lib/brasilia'
 
 const opts = { timeZone: APP_TIME_ZONE } as const
 const time = new Intl.DateTimeFormat('pt-BR', { ...opts, hour: '2-digit', minute: '2-digit' })
@@ -11,7 +11,7 @@ const relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 
 const clean = (s: string) => s.replace('.', '')
 
-export { TZ_LABEL }
+export { tzLabel }
 export const formatTime = (d: Date) => time.format(d)
 export const formatWeekday = (d: Date) => clean(weekday.format(d))
 export const formatMonth = (d: Date) => clean(month.format(d))

@@ -14,7 +14,7 @@ import {
 import { Input } from '@/shared/presentation/ui/input'
 import { fromBrasiliaInputValue, toBrasilia, toBrasiliaInputValue, zonedToInstant } from '@/shared/lib/brasilia'
 import { addDate, hasDate, MAX_SCHEDULE_DATES, removeDate, toggleDate } from '../../domain/dateSelection'
-import { formatFullDay, formatTime, TZ_LABEL } from '../format'
+import { formatFullDay, formatTime, tzLabel } from '../format'
 
 const emit = defineEmits<{ schedule: [dates: Date[], note: string | null] }>()
 /** Sugestão de data com base na disponibilidade dos membros. */
@@ -105,7 +105,7 @@ defineExpose({ close })
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Agendar raids da semana</DialogTitle>
         <DialogDescription>
-          Escolha um ou mais dias; cada raid tem a sua confirmação de presença. Horários no {{ TZ_LABEL }}.
+          Escolha um ou mais dias; cada raid tem a sua confirmação de presença. Horários no {{ tzLabel() }}.
         </DialogDescription>
       </DialogHeader>
 
@@ -150,7 +150,7 @@ defineExpose({ close })
         <div class="space-y-1.5">
           <label for="schedule-when" class="text-sm font-medium">
             {{ options?.length ? 'Outro dia' : 'Data e hora' }}
-            <span class="font-normal text-muted-foreground">({{ TZ_LABEL }})</span>
+            <span class="font-normal text-muted-foreground">({{ tzLabel() }})</span>
           </label>
           <div class="flex gap-2">
             <Input id="schedule-when" v-model="when" type="datetime-local" class="min-w-0 flex-1" @keydown.enter.prevent="addManual" />

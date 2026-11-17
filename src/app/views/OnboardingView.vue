@@ -8,7 +8,7 @@ import CharacterSearch from '@/contexts/character/presentation/components/Charac
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import AvailabilityForm from '@/contexts/scheduling/presentation/components/AvailabilityForm.vue'
 import { useAvailabilityStore } from '@/contexts/scheduling/presentation/useAvailabilityStore'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { cn } from '@/shared/lib/utils'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { safeNext } from '../onboarding'
@@ -117,7 +117,7 @@ async function finish() {
         <p v-if="step < 2" class="text-sm text-muted-foreground">Liberado depois de vincular o personagem.</p>
         <template v-else>
           <p class="max-w-prose text-sm text-muted-foreground">
-            Marque os dias e as faixas de horário em que você costuma poder fazer raid, no {{ TZ_LABEL }}. Dá para
+            Marque os dias e as faixas de horário em que você costuma poder fazer raid, no {{ tzLabel() }}. Dá para
             mudar quando quiser, em Personagens.
           </p>
           <div class="rounded-2xl border bg-card/60 p-4 sm:p-6">

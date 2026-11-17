@@ -4,8 +4,11 @@
  * jogadores em outros fusos do Brasil e de fora.
  * No banco os instantes continuam em UTC (timestamptz).
  */
+import { t } from '@/shared/i18n'
+
 export const APP_TIME_ZONE = 'America/Sao_Paulo'
-export const TZ_LABEL = 'horário de Brasília'
+/** "horário de Brasília" no idioma da tela. */
+export const tzLabel = () => t('common.tzLabel')
 
 export interface WallClock {
   y: number

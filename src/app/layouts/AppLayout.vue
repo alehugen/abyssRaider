@@ -4,6 +4,7 @@ import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import NotificationBell from '@/contexts/notifications/presentation/NotificationBell.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
+import LanguagePicker from '@/shared/presentation/i18n/LanguagePicker.vue'
 import { Button } from '@/shared/presentation/ui/button'
 
 const auth = useAuthStore()
@@ -37,6 +38,7 @@ const links = [
           </RouterLink>
         </nav>
         <div class="flex flex-none items-center gap-0.5 sm:gap-1.5">
+          <LanguagePicker />
           <ThemePicker />
           <NotificationBell v-if="auth.isAuthenticated" />
           <UserMenu v-if="auth.isAuthenticated" />

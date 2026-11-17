@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { Input } from '@/shared/presentation/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { normalizeSlots, WEEKDAYS, type RoutineSlot } from '../../domain/RaidRoutine'
 
 /** Dias da semana, cada um com seu horário de início (horário de Brasília). */
@@ -51,7 +51,7 @@ function setTime(day: number, time: string) {
           type="time"
           required
           class="h-8 w-28"
-          :aria-label="`Horário de ${WEEKDAYS[s.day]!.long} (${TZ_LABEL})`"
+          :aria-label="`Horário de ${WEEKDAYS[s.day]!.long} (${tzLabel()})`"
           @update:model-value="setTime(s.day, String($event))"
         />
       </li>

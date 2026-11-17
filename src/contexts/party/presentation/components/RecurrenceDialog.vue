@@ -2,7 +2,7 @@
 import { PhCircleNotch, PhRepeat } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
-import { APP_TIME_ZONE, TZ_LABEL } from '@/shared/lib/brasilia'
+import { APP_TIME_ZONE, tzLabel } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
@@ -107,7 +107,7 @@ async function turnOff() {
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle class="font-display text-2xl">Dias e horários da raid</DialogTitle>
-        <DialogDescription>Escolha os dias e o horário de cada um ({{ TZ_LABEL }}).</DialogDescription>
+        <DialogDescription>Escolha os dias e o horário de cada um ({{ tzLabel() }}).</DialogDescription>
       </DialogHeader>
 
       <form class="space-y-5" @submit.prevent="submit">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { PhClock, PhPencilSimple } from '@phosphor-icons/vue'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { formatRow } from '../../domain/Availability'
@@ -32,7 +32,7 @@ void store.load()
         </p>
         <ul v-else class="mt-1 space-y-0.5 text-sm">
           <li v-for="(row, i) in store.rows" :key="i" class="first-letter:uppercase">{{ formatRow(row) }}</li>
-          <li class="text-xs text-muted-foreground">{{ TZ_LABEL }}</li>
+          <li class="text-xs text-muted-foreground">{{ tzLabel() }}</li>
         </ul>
       </div>
       <AvailabilityDialog>

@@ -29,7 +29,7 @@ import InspectCharacter from '@/contexts/character/presentation/inspect/InspectC
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { formatRow, routineFit, windowsToRows, type TimeWindow } from '@/contexts/scheduling/domain/Availability'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -185,7 +185,7 @@ const number = new Intl.NumberFormat('pt-BR')
     <header class="space-y-2">
       <h1 class="font-display text-4xl leading-tight font-bold">Jogadores</h1>
       <p class="max-w-prose text-muted-foreground">
-        Personagens vinculados por outros jogadores, com a disponibilidade de cada um ({{ TZ_LABEL }}).
+        Personagens vinculados por outros jogadores, com a disponibilidade de cada um ({{ tzLabel() }}).
         <template v-if="led.length">Convide quem combina com a sua party.</template>
       </p>
     </header>

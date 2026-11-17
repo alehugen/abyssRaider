@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PhCircleNotch, PhEraser } from '@phosphor-icons/vue'
 import { computed, ref } from 'vue'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { Button } from '@/shared/presentation/ui/button'
 import { formatRow, windowsToRows } from '../../domain/Availability'
@@ -47,7 +47,7 @@ async function save() {
 <template>
   <form class="space-y-3" @submit.prevent="save">
     <p class="text-[13px] text-muted-foreground">
-      Clique e arraste para marcar quando você pode jogar ({{ TZ_LABEL }}). Começar em cima de um horário marcado apaga.
+      Clique e arraste para marcar quando você pode jogar ({{ tzLabel() }}). Começar em cima de um horário marcado apaga.
       No menu de cada dia dá para copiar para os outros.
       <span class="sm:hidden">No celular, role arrastando pela coluna das horas.</span>
     </p>

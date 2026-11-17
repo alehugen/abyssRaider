@@ -46,3 +46,23 @@ describe('safeNext', () => {
     expect(safeNext(undefined, '/parties')).toBe('/parties')
   })
 })
+
+describe('errorMessage em outros idiomas', () => {
+  afterEach(async () => {
+    const { i18n } = await import('@/shared/i18n')
+    i18n.global.locale.value = 'pt-BR'
+  })
+
+  it('traduz mensagens do banco (com valores variáveis) e erros conhecidos', async () => {
+    const { i18n } = await import('@/shared/i18n')
+    i18n.global.locale.value = 'en'
+    expect(errorMessage({ message: 'Ludra requer item level 2800.', code: 'P0001' })).toBe('Ludra requires item level 2800.')
+    expect(errorMessage({ message: 'x', code: '42501' })).toBe("You don't have permission to do that.")
+    i18n.global.locale.value = 'es'
+    expect(errorMessage({ message: 'A party já está completa (8 vagas).', code: 'P0001' })).toBe(
+      'La party ya está completa (8 puestos).',
+    )
+    // Sem tradução conhecida: mostra o original.
+    expect(errorMessage({ message: 'Mensagem nova do banco.', code: 'P0001' })).toBe('Mensagem nova do banco.')
+  })
+})

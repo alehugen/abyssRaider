@@ -12,7 +12,7 @@ import SanctuaryArt from '@/contexts/party/presentation/components/SanctuaryArt.
 import RaidDateBadge from '../components/RaidDateBadge.vue'
 import RemindButton from '../components/RemindButton.vue'
 import RsvpButtons from '../components/RsvpButtons.vue'
-import { formatFullDay, formatRelative, formatTime, TZ_LABEL } from '../format'
+import { formatFullDay, formatRelative, formatTime, tzLabel } from '../format'
 
 const auth = useAuthStore()
 const repo = getContainer().raidEventRepository
@@ -59,7 +59,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
     <header class="space-y-2">
       <h1 class="font-display text-4xl leading-tight font-bold">Agenda</h1>
       <p class="max-w-prose text-muted-foreground">
-        Próximas raids de todas as suas parties. Horários no {{ TZ_LABEL }}.
+        Próximas raids de todas as suas parties. Horários no {{ tzLabel() }}.
         <template v-if="pendingAnswers">
           Faltam <b class="font-semibold text-foreground">{{ pendingAnswers }}</b> confirmações suas.
         </template>

@@ -3,7 +3,7 @@ import { PhClock, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed } from 'vue'
 import type { PartyMember } from '@/contexts/party/domain/Party'
 import { WEEKDAYS, type RaidRoutine } from '@/contexts/party/domain/RaidRoutine'
-import { TZ_LABEL } from '@/shared/lib/brasilia'
+import { tzLabel } from '@/shared/lib/brasilia'
 import { formatSlot, isFree, parseTime } from '../../domain/Availability'
 import type { PartyAvailability } from '../usePartyAvailability'
 
@@ -48,7 +48,7 @@ const names = (list: readonly PartyMember[]) => list.map((m) => m.linked.charact
         <PhClock class="text-muted-foreground" aria-hidden="true" /> Melhor horário do grupo
       </h2>
       <p class="text-sm text-muted-foreground">
-        Pela disponibilidade de cada membro, no {{ TZ_LABEL }}.
+        Pela disponibilidade de cada membro, no {{ tzLabel() }}.
       </p>
     </div>
 
