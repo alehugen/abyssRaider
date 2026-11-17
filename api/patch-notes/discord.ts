@@ -14,7 +14,7 @@ export async function GET(request: Request): Promise<Response> {
     const notes = await Promise.all(latest.map((s) => getPatchNote(s.id)))
     return json(
       { posts: notes.map((n) => ({ id: n.id, postedAt: n.postedAt, title: n.title, embed: discordEmbed(n, banner) })) },
-      600,
+      300,
     )
   } catch (error) {
     return errorResponse(error)

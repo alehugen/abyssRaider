@@ -5,7 +5,7 @@ import { listPatchNotes } from '../_lib/patchNotes.js'
 export async function GET(request: Request): Promise<Response> {
   const limit = Number(new URL(request.url).searchParams.get('limit') ?? 10) || 10
   try {
-    return json({ notes: await listPatchNotes(limit) }, 900)
+    return json({ notes: await listPatchNotes(limit) }, 300)
   } catch (error) {
     return errorResponse(error)
   }

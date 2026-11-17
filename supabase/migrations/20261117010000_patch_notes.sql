@@ -1,6 +1,6 @@
 -- Patch notes do AION 2 num canal do Discord.
 --
--- A cada 30 min o pg_cron roda patch_notes_tick():
+-- A cada 5 min o pg_cron roda patch_notes_tick() (patch novo chega ao canal em uns 10 min):
 --   1. lê a resposta da consulta anterior (pg_net é assíncrono): o endpoint
 --      /api/patch-notes/discord do app devolve os 3 patch notes mais recentes já
 --      resumidos em embed;
@@ -134,4 +134,4 @@ $$;
 
 revoke execute on function public.patch_notes_tick() from public, anon, authenticated;
 
-select cron.schedule('abyssraider-patch-notes', '*/30 * * * *', 'select public.patch_notes_tick()');
+select cron.schedule('abyssraider-patch-notes', '*/5 * * * *', 'select public.patch_notes_tick()');
