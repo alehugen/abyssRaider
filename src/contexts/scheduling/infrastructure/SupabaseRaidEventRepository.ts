@@ -59,7 +59,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
       .select(
         `id, party_id,
         character:characters!party_members_character_id_fkey(name),
-        party:parties!party_members_party_id_fkey(name, faction, sanctuary:sanctuaries!parties_sanctuary_id_fkey(name))`,
+        party:parties!party_members_party_id_fkey(name, faction, leader_id, sanctuary:sanctuaries!parties_sanctuary_id_fkey(name))`,
       )
       .eq('owner_id', userId)
       .eq('status', 'accepted')
@@ -69,7 +69,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
       id: string
       party_id: string
       character: { name: string } | null
-      party: { name: string; faction: 'elyos' | 'asmodian'; sanctuary: { name: string } | null } | null
+      party: { name: string; faction: 'elyos' | 'asmodian'; leader_id: string; sanctuary: { name: string } | null } | null
     }
     const byParty = new Map((memberships as unknown as Membership[]).map((m) => [m.party_id, m]))
     if (!byParty.size) return []
@@ -92,6 +92,7 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
         faction: m.party?.faction ?? 'elyos',
         myMemberId: m.id,
         myCharacterName: m.character?.name ?? '',
+        isLeader: m.party?.leader_id === userId,
       }
     })
   }
@@ -100,6 +101,13 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
     const rows = startsAt.map((d) => ({ party_id: partyId, starts_at: d.toISOString(), note }))
     const { error } = await this.client.from('raid_events').insert(rows)
     if (error) rethrow(error)
+  }
+
+  async remind(eventId: string): Promise<{ notified: number; discord: boolean }> {
+    const { data, error } = await this.client.rpc('send_manual_reminder', { p_event_id: eventId })
+    if (error) rethrow(error)
+    const r = (data ?? {}) as { notified?: number; discord?: boolean }
+    return { notified: Number(r.notified ?? 0), discord: !!r.discord }
   }
 
   async cancel(eventId: string): Promise<void> {

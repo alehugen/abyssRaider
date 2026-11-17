@@ -29,6 +29,9 @@ describe('describeNotification', () => {
     expect(v.title).toBe('Raid marcada em Ludra')
     expect(v.body).toContain('quarta-feira, 11 de novembro, às 21:00 (horário de Brasília)')
     expect(v.body).toContain('levar poções')
+    expect(describeNotification(n('raid_reminder', { starts_at: '2026-11-12T00:00:00Z' })).title).toBe(
+      'Lembrete: raid em Ludra',
+    )
     expect(describeNotification(n('raid_cancelled', { starts_at: '2026-11-12T00:00:00Z' })).body).toContain(
       'quarta-feira, 11 de novembro, às 21:00',
     )

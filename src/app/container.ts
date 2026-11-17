@@ -79,6 +79,7 @@ const unconfiguredEvents: RaidEventRepository = {
   schedule: notConfigured,
   cancel: notConfigured,
   respond: notConfigured,
+  remind: notConfigured,
 }
 
 const unconfiguredAvailability: AvailabilityRepository = {

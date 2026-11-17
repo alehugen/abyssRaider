@@ -8,4 +8,6 @@ export interface RaidEventRepository {
   schedule(partyId: string, startsAt: readonly Date[], note: string | null): Promise<void>
   cancel(eventId: string): Promise<void>
   respond(eventId: string, memberId: string, status: RsvpStatus): Promise<void>
+  /** Líder: lembrete manual (sino dos membros e, se configurado, o canal do Discord). */
+  remind(eventId: string): Promise<{ notified: number; discord: boolean }>
 }

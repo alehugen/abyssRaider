@@ -13,6 +13,7 @@ export type NotificationKind =
   | 'raid_scheduled'
   | 'raid_cancelled'
   | 'party_deleted'
+  | 'raid_reminder'
 
 export interface NotificationData {
   party_name?: string
@@ -86,6 +87,17 @@ export function describeNotification(n: AppNotification): NotificationView {
       const at = raidTime(n.data.starts_at)
       return {
         title: `Raid marcada em ${party}`,
+        body: [at && `${at} (horário de Brasília). Confirme sua presença.`, n.data.note && `“${n.data.note}”`]
+          .filter(Boolean)
+          .join(' '),
+        tone: 'raid',
+        link,
+      }
+    }
+    case 'raid_reminder': {
+      const at = raidTime(n.data.starts_at)
+      return {
+        title: `Lembrete: raid em ${party}`,
         body: [at && `${at} (horário de Brasília). Confirme sua presença.`, n.data.note && `“${n.data.note}”`]
           .filter(Boolean)
           .join(' '),

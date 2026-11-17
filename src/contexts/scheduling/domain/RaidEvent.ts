@@ -35,6 +35,8 @@ export interface AgendaEntry {
   /** Participação do usuário logado nessa party (para responder). */
   myMemberId: string
   myCharacterName: string
+  /** O usuário é o líder da party (pode mandar lembrete). */
+  isLeader: boolean
 }
 
 export function rsvpCounts(event: RaidEvent): Record<RsvpStatus, number> {

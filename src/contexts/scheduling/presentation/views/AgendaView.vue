@@ -9,6 +9,7 @@ import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { groupByDay, myRsvp, rsvpCounts, type AgendaEntry, type RsvpStatus } from '../../domain/RaidEvent'
 import RaidDateBadge from '../components/RaidDateBadge.vue'
+import RemindButton from '../components/RemindButton.vue'
 import RsvpButtons from '../components/RsvpButtons.vue'
 import { formatFullDay, formatRelative, formatTime, TZ_LABEL } from '../format'
 
@@ -115,11 +116,18 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
             </p>
             <p v-if="entry.event.note" class="mt-1 text-sm">{{ entry.event.note }}</p>
           </div>
-          <RsvpButtons
-            :status="myRsvp(entry.event, entry.myMemberId)"
-            :disabled="busy === entry.event.id"
-            @respond="respond(entry, $event)"
-          />
+          <div class="flex w-full flex-col items-end gap-1 sm:w-auto">
+            <RsvpButtons
+              :status="myRsvp(entry.event, entry.myMemberId)"
+              :disabled="busy === entry.event.id"
+              @respond="respond(entry, $event)"
+            />
+            <RemindButton
+              v-if="entry.isLeader && entry.event.startsAt.getTime() > Date.now()"
+              :event-id="entry.event.id"
+              :party-name="entry.partyName"
+            />
+          </div>
         </li>
       </ul>
     </section>

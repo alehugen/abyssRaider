@@ -13,6 +13,7 @@ import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import { myRsvp, rsvpCounts, RSVP_LABEL, type RaidEvent, type RsvpStatus } from '../../domain/RaidEvent'
 import { formatRelative, formatTime } from '../format'
 import RaidDateBadge from './RaidDateBadge.vue'
+import RemindButton from './RemindButton.vue'
 import RsvpButtons from './RsvpButtons.vue'
 import ScheduleRaidDialog, { type ScheduleOption } from './ScheduleRaidDialog.vue'
 
@@ -182,16 +183,18 @@ function pendingCount(event: RaidEvent): number {
             :disabled="busy === event.id"
             @respond="respond(event, $event)"
           />
-          <Button
-            v-if="isLeader"
-            size="sm"
-            variant="ghost"
-            class="text-muted-foreground hover:text-destructive-ink"
-            :disabled="busy === event.id"
-            @click="cancel(event)"
-          >
-            <PhTrash /> Cancelar raid
-          </Button>
+          <div v-if="isLeader" class="flex flex-wrap items-start justify-end gap-1">
+            <RemindButton v-if="event.startsAt.getTime() > Date.now()" :event-id="event.id" />
+            <Button
+              size="sm"
+              variant="ghost"
+              class="text-muted-foreground hover:text-destructive-ink"
+              :disabled="busy === event.id"
+              @click="cancel(event)"
+            >
+              <PhTrash /> Cancelar raid
+            </Button>
+          </div>
         </div>
       </li>
     </ul>
