@@ -34,6 +34,7 @@ npm run build
 - `supabase/manutencao/` guarda scripts de uma vez só para o banco que já está no ar (ex.: depois de uma consolidação). Banco novo não precisa deles.
 - `supabase/checks/consistency.sql` confere os dados (só leitura): nenhuma linha = tudo consistente.
 - Os avisos do Discord e os lembretes usam as extensões gratuitas `pg_net` e `pg_cron`. Se a migration reclamar de permissão, ligue as duas em **Database → Extensions** e rode de novo.
+- Patch notes no Discord: a cada 30 min o banco (`patch_notes_tick`) consulta `/api/patch-notes/discord` e posta no canal só os patches novos. O webhook do canal fica em `patch_notes_feed`, que o app não lê; a configuração está no topo de `20261117010000_patch_notes.sql`. Para ver como está: `select last_status, last_run_at from public.patch_notes_feed`.
 - O sino de notificações usa o Realtime: confira em **Database → Publications** que `notifications` está na `supabase_realtime`.
 - No front e no `.env` vão só a URL e a chave pública (`sb_publishable_...`). Nunca a `service_role`.
 

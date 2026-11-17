@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { characterRoutes } from '@/contexts/character/presentation/routes'
 import { partyRoutes } from '@/contexts/party/presentation/routes'
 import { schedulingRoutes } from '@/contexts/scheduling/presentation/routes'
+import { patchNotesRoutes } from '@/contexts/patchnotes/presentation/routes'
 import { identityRoutes } from '@/contexts/identity/presentation/routes'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { pendingOnboardingStep } from '@/app/onboarding'
@@ -41,6 +42,7 @@ export const router = createRouter({
     ...characterRoutes,
     ...partyRoutes,
     ...schedulingRoutes,
+    ...patchNotesRoutes,
     ...devRoutes,
     {
       path: '/:pathMatch(.*)*',

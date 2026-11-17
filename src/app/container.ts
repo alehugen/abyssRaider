@@ -21,6 +21,8 @@ import type { NotificationRepository } from '@/contexts/notifications/domain/Not
 import { SupabaseNotificationRepository } from '@/contexts/notifications/infrastructure/SupabaseNotificationRepository'
 import { SupabaseAvailabilityRepository } from '@/contexts/scheduling/infrastructure/SupabaseAvailabilityRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
+import type { PatchNotesRepository } from '@/contexts/patchnotes/domain/PatchNote'
+import { HttpPatchNotesRepository } from '@/contexts/patchnotes/infrastructure/HttpPatchNotesRepository'
 import { DomainError } from '@/shared/domain/DomainError'
 import { getSupabase, isSupabaseConfigured } from '@/shared/infrastructure/supabase/client'
 
@@ -34,6 +36,7 @@ export interface Container {
   availabilityRepository: AvailabilityRepository
   partyNotificationsRepository: PartyNotificationsRepository
   notificationRepository: NotificationRepository
+  patchNotesRepository: PatchNotesRepository
 }
 
 const notConfigured = async (): Promise<never> => {
@@ -122,6 +125,7 @@ export function getContainer(): Container {
         ? new SupabasePartyNotificationsRepository(supabase)
         : unconfiguredNotifications,
       notificationRepository: supabase ? new SupabaseNotificationRepository(supabase) : unconfiguredInbox,
+      patchNotesRepository: new HttpPatchNotesRepository(),
     }
   }
   return container
