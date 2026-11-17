@@ -69,6 +69,8 @@ describe('patch notes (HTML do site oficial)', () => {
     expect(embed.description).toContain('__**Conteúdo & Sistemas**__\n**Santuário**\n• A Reforja Abissal: Ludra (Normal)')
     expect(embed.description).not.toContain('30% para 100%')
     expect(embed.description).toMatch(/\[Ler completo no site oficial\]\(https:\/\/aion2\.plaync\.com.+abc\)$/)
+    const banner = discordEmbed(note, 'https://app/patch-notes-banner.jpg') as { image: { url: string } }
+    expect(banner.image.url).toBe('https://app/patch-notes-banner.jpg')
   })
 
   it('corta o resumo no limite do Discord e diz quantos tópicos ficaram de fora', () => {

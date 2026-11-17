@@ -117,7 +117,7 @@ function select(id: string) {
         </div>
 
         <div v-else-if="loadingNote || loadingList" class="space-y-4" aria-busy="true">
-          <Skeleton class="aspect-[21/9] w-full rounded-2xl" />
+          <Skeleton class="aspect-[1920/622] w-full rounded-2xl" />
           <Skeleton class="h-8 w-2/3" />
           <Skeleton v-for="i in 6" :key="i" class="h-4" :style="{ width: `${55 + ((i * 23) % 40)}%` }" />
         </div>
@@ -125,10 +125,11 @@ function select(id: string) {
         <article v-else-if="note" class="space-y-8">
           <header class="space-y-4">
             <img
-              v-if="note.imageUrl"
-              :src="note.imageUrl"
+              src="/patch-notes-banner.jpg"
               alt=""
-              class="aspect-[21/9] w-full rounded-2xl border object-cover"
+              width="1920"
+              height="622"
+              class="aspect-[1920/622] w-full rounded-2xl border object-cover"
             />
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>

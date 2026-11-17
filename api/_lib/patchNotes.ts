@@ -283,9 +283,11 @@ const shorten = (s: string, max: number) => (s.length > max ? `${s.slice(0, max 
 /**
  * Embed do Discord com os principais pontos: cada seção, seus grupos e os
  * tópicos de primeiro nível (os detalhes ficam no link do site oficial).
- * Respeita o limite de 4096 caracteres da descrição.
+ * Respeita o limite de 4096 caracteres da descrição. `bannerUrl` (o banner do
+ * AbyssRaider) substitui a imagem do post do site.
  */
-export function discordEmbed(note: PatchNote): Record<string, unknown> {
+export function discordEmbed(note: PatchNote, bannerUrl?: string): Record<string, unknown> {
+  const image = bannerUrl ?? note.imageUrl
   const lines: string[] = []
   let size = 0
   let skipped = 0
@@ -323,7 +325,7 @@ export function discordEmbed(note: PatchNote): Record<string, unknown> {
     url: note.url,
     color: 0xc9a227,
     description,
-    ...(note.imageUrl ? { image: { url: note.imageUrl } } : {}),
+    ...(image ? { image: { url: image } } : {}),
     footer: { text: 'AION 2 · Atualizações (site oficial)' },
     timestamp: note.postedAt,
   }
