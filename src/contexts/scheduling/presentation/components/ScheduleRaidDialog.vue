@@ -28,9 +28,9 @@ export interface ScheduleOption {
 const props = defineProps<{ busy?: boolean; suggested?: Date | null; options?: readonly ScheduleOption[] }>()
 
 const open = ref(false)
-/** Datas que serão agendadas (cada uma vira uma raid com confirmação própria). */
+/** Datas já adicionadas à lista (sugestões marcadas e o botão Adicionar). */
 const dates = ref<Date[]>([])
-/** Campo para adicionar uma data fora das sugestões. */
+/** Qualquer dia e horário: o que estiver aqui também é agendado. */
 const when = ref('')
 const note = ref('')
 const error = ref<string | null>(null)
@@ -44,20 +44,27 @@ function tomorrowAt21(): string {
 watch(open, (isOpen) => {
   if (!isOpen) return
   error.value = null
-  // Começa com o melhor horário do grupo; sem disponibilidade, a data da rotina.
-  const best = props.options?.[0]?.date ?? props.suggested
-  if (!dates.value.length && best && best.getTime() > Date.now()) dates.value = [best]
-  when.value ||= tomorrowAt21()
+  // Sugestão é só sugestão: nada vem marcado. Sem sugestões, o campo já traz um ponto de partida.
+  if (props.options?.length) return
+  const routine = props.suggested && props.suggested.getTime() > Date.now() ? props.suggested : null
+  when.value ||= routine ? toBrasiliaInputValue(routine) : tomorrowAt21()
 })
 
 const full = computed(() => dates.value.length >= MAX_SCHEDULE_DATES)
 const manual = computed(() => fromBrasiliaInputValue(when.value))
+const manualIsPast = computed(() => !!manual.value && manual.value.getTime() < Date.now())
 const manualProblem = computed(() => {
   if (!manual.value) return null
-  if (manual.value.getTime() < Date.now()) return t('scheduling.scheduleDialog.pastTime')
+  if (manualIsPast.value) return t('scheduling.scheduleDialog.pastTime')
   if (hasDate(dates.value, manual.value)) return t('scheduling.scheduleDialog.duplicate')
   return null
 })
+/** Data digitada que ainda não está na lista. */
+const typed = computed(() => (manual.value && !manualProblem.value ? manual.value : null))
+/** O que será agendado de fato: a lista mais a data digitada. */
+const toSchedule = computed(() => (typed.value ? addDate(dates.value, typed.value) : dates.value))
+/** Não agenda deixando para trás, sem avisar, o que está digitado no campo. */
+const blocked = computed(() => manualIsPast.value || (!!typed.value && full.value))
 
 function toggle(option: ScheduleOption) {
   error.value = null
@@ -72,15 +79,16 @@ function addManual() {
 
 function remove(date: Date) {
   dates.value = removeDate(dates.value, date)
+  if (manual.value?.getTime() === date.getTime()) when.value = ''
 }
 
 function submit() {
-  if (!dates.value.length) return
-  if (dates.value.some((d) => d.getTime() < Date.now())) {
+  if (!toSchedule.value.length || blocked.value) return
+  if (toSchedule.value.some((d) => d.getTime() < Date.now())) {
     error.value = t('scheduling.scheduleDialog.pastDate')
     return
   }
-  emit('schedule', [...dates.value], note.value.trim() || null)
+  emit('schedule', [...toSchedule.value], note.value.trim() || null)
 }
 
 /** O pai fecha o diálogo quando o agendamento der certo. */
@@ -171,13 +179,13 @@ defineExpose({ close })
 
         <section aria-labelledby="schedule-list-title" class="space-y-1.5">
           <h3 id="schedule-list-title" class="text-sm font-medium">
-            {{ t('scheduling.scheduleDialog.toSchedule') }} <span class="font-normal text-muted-foreground tabular-nums">({{ dates.length }})</span>
+            {{ t('scheduling.scheduleDialog.toSchedule') }} <span class="font-normal text-muted-foreground tabular-nums">({{ toSchedule.length }})</span>
           </h3>
-          <p v-if="!dates.length" class="rounded-lg border border-dashed px-3 py-2.5 text-sm text-muted-foreground">
+          <p v-if="!toSchedule.length" class="rounded-lg border border-dashed px-3 py-2.5 text-sm text-muted-foreground">
             {{ t('scheduling.scheduleDialog.noDates') }}
           </p>
           <ul v-else class="divide-y rounded-lg border">
-            <li v-for="d in dates" :key="d.getTime()" class="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-3 text-sm">
+            <li v-for="d in toSchedule" :key="d.getTime()" class="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-3 text-sm">
               <span class="first-letter:uppercase">
                 {{ formatFullDay(d) }}, <b class="font-semibold tabular-nums">{{ formatTime(d) }}</b>
               </span>
@@ -205,9 +213,9 @@ defineExpose({ close })
 
         <DialogFooter>
           <Button type="button" variant="ghost" @click="open = false">{{ t('common.actions.cancel') }}</Button>
-          <Button type="submit" :disabled="!dates.length || busy">
+          <Button type="submit" :disabled="!toSchedule.length || blocked || busy">
             <PhCircleNotch v-if="busy" class="animate-spin" />
-            {{ t('scheduling.scheduleDialog.submit', dates.length) }}
+            {{ t('scheduling.scheduleDialog.submit', toSchedule.length) }}
           </Button>
         </DialogFooter>
       </form>
