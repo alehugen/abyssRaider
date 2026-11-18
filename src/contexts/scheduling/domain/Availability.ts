@@ -28,6 +28,7 @@ export interface AvailabilityRow {
 export interface Slot {
   weekday: number
   start: number
+  /** Passa de 1440 quando a faixa atravessa a meia-noite (1500 = 01:00 do dia seguinte). */
   end: number
   /** Índices das pessoas livres (na ordem recebida). */
   people: number[]
@@ -125,11 +126,20 @@ export function formatSlot(slot: Pick<Slot, 'weekday' | 'start' | 'end'>): strin
   return range(weekdayLong(slot.weekday), slot.start, slot.end)
 }
 
+/** 120 -> "2 h"; 90 -> "1 h 30 min"; 45 -> "45 min" */
+export function formatDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (!h) return t('scheduling.bestTime.duration.minutes', { m })
+  return m ? t('scheduling.bestTime.duration.both', { h, m }) : t('scheduling.bestTime.duration.hours', { h })
+}
+
 /**
  * Melhores horários em comum. Para cada dia, corta nos pontos em que alguém
  * entra ou sai e vê quem está livre em cada trecho. Para cada grupo de pessoas
  * encontrado, estende o trecho para os lados enquanto todas elas continuam
  * livres: assim um trecho curto com mais gente não "quebra" a faixa maior.
+ * A mesma turma livre até 24:00 e desde 00:00 do dia seguinte vira uma faixa só.
  * Ordena por mais pessoas e, no empate, pela faixa mais longa. Ignora faixas
  * menores que `minMinutes`.
  *
@@ -174,6 +184,23 @@ export function bestSlots(
       }
       found.set(`${weekday}:${slot.start}:${slot.end}:${slot.people.join(',')}`, slot)
     })
+  }
+
+  // Atravessa a meia-noite (dias inteiros continuam separados, como em windowsToRows).
+  for (const slot of [...found.values()]) {
+    if (slot.end !== DAY_MINUTES || slot.start === 0) continue
+    const nextKey = [...found.keys()].find((key) => {
+      const next = found.get(key)!
+      return (
+        next.weekday === (slot.weekday + 1) % 7 &&
+        next.start === 0 &&
+        next.end < DAY_MINUTES &&
+        next.people.join() === slot.people.join()
+      )
+    })
+    if (!nextKey) continue
+    slot.end = DAY_MINUTES + found.get(nextKey)!.end
+    found.delete(nextKey)
   }
 
   return [...found.values()]

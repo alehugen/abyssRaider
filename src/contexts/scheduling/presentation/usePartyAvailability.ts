@@ -4,6 +4,9 @@ import type { PartyMember } from '@/contexts/party/domain/Party'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { bestSlots, type Slot, type TimeWindow } from '../domain/Availability'
 
+/** Sugestão de horário não exige duração mínima: quem decide é o líder, vendo a duração. */
+const ANY_LENGTH = 1
+
 export interface MemberSlot extends Slot {
   /** Membros (com disponibilidade) que estão fora dessa faixa. */
   out: PartyMember[]
@@ -39,8 +42,19 @@ export function usePartyAvailability(members: MaybeRefOrGetter<readonly PartyMem
   const withData = computed(() => list.value.filter((m) => windowsOf(m).length))
   const missing = computed(() => list.value.filter((m) => !windowsOf(m).length))
 
+  const allWindows = computed(() => withData.value.map(windowsOf))
+
+  /** Todos os horários em que todos (que informaram) podem, sem duração mínima; os mais longos primeiro. */
+  const common = computed(() =>
+    allWindows.value.length
+      ? bestSlots(allWindows.value, { minMinutes: ANY_LENGTH, minPeople: allWindows.value.length, limit: Infinity })
+      : [],
+  )
+  const everyoneFits = computed(() => common.value.length > 0)
+
+  /** Os horários em comum; se não houver nenhum, os 3 que juntam mais gente. */
   const slots = computed<MemberSlot[]>(() =>
-    bestSlots(withData.value.map(windowsOf), { limit: 3 }).map((s) => {
+    (everyoneFits.value ? common.value : bestSlots(allWindows.value, { minMinutes: ANY_LENGTH, limit: 3 })).map((s) => {
       const free = new Set(s.people)
       return { ...s, out: withData.value.filter((_, i) => !free.has(i)) }
     }),
@@ -48,12 +62,12 @@ export function usePartyAvailability(members: MaybeRefOrGetter<readonly PartyMem
 
   /** Melhor faixa de cada dia da semana (para agendar vários dias), as mais cheias primeiro. */
   const bestPerDay = computed<Slot[]>(() => {
-    const all = bestSlots(withData.value.map(windowsOf), { limit: 200 })
+    const all = bestSlots(allWindows.value, { minMinutes: ANY_LENGTH, limit: 200 })
     const seen = new Set<number>()
     return all.filter((s) => !seen.has(s.weekday) && seen.add(s.weekday)).slice(0, 5)
   })
 
-  return { byOwner, loaded, error, withData, missing, slots, bestPerDay, windowsOf }
+  return { byOwner, loaded, error, withData, missing, everyoneFits, slots, bestPerDay, windowsOf }
 }
 
 export type PartyAvailability = ReturnType<typeof usePartyAvailability>

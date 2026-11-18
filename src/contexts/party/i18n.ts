@@ -234,7 +234,7 @@ export default defineMessages(
     view: {
       slotName: 'grupo {group}, vaga {slot}',
       dragStatus: 'Movendo {name} para {slot}. Enter solta, Esc cancela.',
-      freeOf: '{free} de {total} livres',
+      freeOf: '{free} de {total} livres, {duration}',
       leader: 'Líder',
       copyPrompt: 'Copie o link da party:',
       deleteTitle: 'Excluir {name}?',
@@ -522,7 +522,7 @@ export default defineMessages(
     view: {
       slotName: 'group {group}, slot {slot}',
       dragStatus: 'Moving {name} to {slot}. Enter drops, Esc cancels.',
-      freeOf: '{free} of {total} free',
+      freeOf: '{free} of {total} free, {duration}',
       leader: 'Leader',
       copyPrompt: 'Copy the party link:',
       deleteTitle: 'Delete {name}?',
@@ -810,7 +810,7 @@ export default defineMessages(
     view: {
       slotName: 'grupo {group}, lugar {slot}',
       dragStatus: 'Moviendo a {name} a {slot}. Enter suelta, Esc cancela.',
-      freeOf: '{free} de {total} libres',
+      freeOf: '{free} de {total} libres, {duration}',
       leader: 'Líder',
       copyPrompt: 'Copia el enlace de la party:',
       deleteTitle: '¿Eliminar {name}?',

@@ -26,7 +26,7 @@ import InspectCharacter from '@/contexts/character/presentation/inspect/InspectC
 import PartySchedule from '@/contexts/scheduling/presentation/components/PartySchedule.vue'
 import PartyBestTime from '@/contexts/scheduling/presentation/components/PartyBestTime.vue'
 import { usePartyAvailability } from '@/contexts/scheduling/presentation/usePartyAvailability'
-import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
+import { formatDuration, nextSlotStart } from '@/contexts/scheduling/domain/Availability'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
@@ -127,7 +127,14 @@ const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanct
 const availability = usePartyAvailability(() => p.accepted.value)
 const scheduleOptions = computed(() =>
   availability.bestPerDay.value
-    .map((s) => ({ date: nextSlotStart(s), detail: t('party.view.freeOf', { free: s.people.length, total: p.accepted.value.length }) }))
+    .map((s) => ({
+      date: nextSlotStart(s),
+      detail: t('party.view.freeOf', {
+        free: s.people.length,
+        total: p.accepted.value.length,
+        duration: formatDuration(s.end - s.start),
+      }),
+    }))
     .sort((a, b) => a.date.getTime() - b.date.getTime()),
 )
 

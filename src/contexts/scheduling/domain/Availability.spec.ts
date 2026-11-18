@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   bestSlots,
+  formatDuration,
   formatRow,
+  formatSlot,
   isFree,
   nextSlotStart,
   routineFit,
@@ -36,6 +38,28 @@ describe('Availability', () => {
       { weekday: QUA, start: h(20), end: h(21), people: [0, 1] },
       { weekday: SAB, start: h(14), end: h(18), people: [0] },
     ])
+  })
+
+  it('acha o horário de todos sem duração mínima, com a duração certa', () => {
+    const a: TimeWindow[] = [{ weekday: QUA, start: h(19), end: h(22) }]
+    const b: TimeWindow[] = [{ weekday: QUA, start: h(20), end: h(20, 30) }]
+    const [slot] = bestSlots([a, b], { minMinutes: 1, minPeople: 2, limit: Infinity })
+    expect(slot).toEqual({ weekday: QUA, start: h(20), end: h(20, 30), people: [0, 1] })
+    expect(formatDuration(slot!.end - slot!.start)).toBe('30 min')
+    expect(formatDuration(h(2))).toBe('2 h')
+    expect(formatDuration(h(1, 30))).toBe('1 h 30 min')
+  })
+
+  it('junta a faixa de todos que atravessa a meia-noite, até de sábado para domingo', () => {
+    const a = rowsToWindows([{ days: [SEX, SAB], start: h(23), end: h(2) }])
+    const b = rowsToWindows([{ days: [SEX, SAB], start: h(22), end: h(1) }])
+    const slots = bestSlots([a, b], { minMinutes: 1, minPeople: 2, limit: Infinity })
+    expect(slots).toEqual([
+      { weekday: SEX, start: h(23), end: h(25), people: [0, 1] },
+      { weekday: SAB, start: h(23), end: h(25), people: [0, 1] },
+    ])
+    expect(formatSlot(slots[0]!)).toContain('23:00')
+    expect(formatSlot(slots[0]!)).toContain('01:00')
   })
 
   it('faixa que passa da meia-noite vira duas janelas e volta para uma linha', () => {
