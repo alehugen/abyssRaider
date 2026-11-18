@@ -3,19 +3,21 @@ import { PhCalendarDots, PhScroll, PhLinkedinLogo, PhSignIn, PhSword, PhUserList
 import UserMenu from '@/contexts/identity/presentation/components/UserMenu.vue'
 import NotificationBell from '@/contexts/notifications/presentation/NotificationBell.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { t } from '@/shared/i18n'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
 import LanguagePicker from '@/shared/presentation/i18n/LanguagePicker.vue'
 import { Button } from '@/shared/presentation/ui/button'
 
 const auth = useAuthStore()
 
+/** `label` é a chave em app.nav.* (traduzida no render). */
 const links = [
-  { to: '/me', label: 'Personagens', icon: PhSword },
-  { to: '/parties', label: 'Parties', icon: PhUsersThree },
-  { to: '/jogadores', label: 'Jogadores', icon: PhUserList },
-  { to: '/agenda', label: 'Agenda', icon: PhCalendarDots },
-  { to: '/patch-notes', label: 'Patch notes', icon: PhScroll },
-]
+  { to: '/me', label: 'characters', icon: PhSword },
+  { to: '/parties', label: 'parties', icon: PhUsersThree },
+  { to: '/jogadores', label: 'players', icon: PhUserList },
+  { to: '/agenda', label: 'schedule', icon: PhCalendarDots },
+  { to: '/patch-notes', label: 'patchNotes', icon: PhScroll },
+] as const
 </script>
 
 <template>
@@ -26,14 +28,14 @@ const links = [
           <img src="/aion2-icon.png" alt="" width="30" height="30" class="size-7.5 rounded-md shadow-sm" />
           <span :class="auth.isAuthenticated && 'hidden sm:inline'">AbyssRaider</span>
         </RouterLink>
-        <nav v-if="auth.isAuthenticated" aria-label="Principal" class="mr-auto ml-1 flex min-w-0 items-center gap-0.5 sm:ml-4 md:gap-1">
+        <nav v-if="auth.isAuthenticated" :aria-label="t('app.nav.main')" class="mr-auto ml-1 flex min-w-0 items-center gap-0.5 sm:ml-4 md:gap-1">
           <RouterLink
             v-for="link in links"
             :key="link.to"
             :to="link.to"
             class="rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none md:py-1.5 [&.router-link-active]:bg-accent [&.router-link-active]:text-foreground"
           >
-            <span class="sr-only md:not-sr-only">{{ link.label }}</span>
+            <span class="sr-only md:not-sr-only">{{ t(`app.nav.${link.label}`) }}</span>
             <component :is="link.icon" class="md:hidden" :size="18" aria-hidden="true" />
           </RouterLink>
         </nav>
@@ -45,7 +47,7 @@ const links = [
           <Button v-else-if="auth.status === 'anonymous'" variant="outline" size="sm" as-child>
             <RouterLink :to="{ name: 'login' }">
               <PhSignIn />
-              <span class="sr-only sm:not-sr-only">Entrar</span>
+              <span class="sr-only sm:not-sr-only">{{ t('app.nav.signIn') }}</span>
             </RouterLink>
           </Button>
         </div>
@@ -58,12 +60,9 @@ const links = [
       <div
         class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-6"
       >
-        <p class="max-w-prose">
-          AbyssRaider é um projeto de fãs, sem vínculo com a NCSOFT. Aion 2, seus ícones, imagens e vídeos são
-          marcas e conteúdos da NCSOFT Corporation.
-        </p>
+        <p class="max-w-prose">{{ t('app.footer.disclaimer') }}</p>
         <p class="flex flex-none items-center gap-1.5">
-          Desenvolvido por
+          {{ t('app.footer.developedBy') }}
           <a
             href="https://www.linkedin.com/in/alehugen/"
             target="_blank"

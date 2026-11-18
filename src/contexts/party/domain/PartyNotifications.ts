@@ -1,3 +1,5 @@
+import { t } from '@/shared/i18n'
+
 /**
  * Avisos da party num canal do Discord, via webhook. Quem envia é o banco
  * (pg_net + pg_cron); aqui só fica a configuração, que só o líder vê.
@@ -14,12 +16,15 @@ export interface PartyNotifications {
   reminderMinutes: ReminderMinutes
 }
 
-export const REMINDER_OPTIONS = [
-  { value: 30, label: '30 minutos antes' },
-  { value: 60, label: '1 hora antes' },
-  { value: 180, label: '3 horas antes' },
-  { value: 1440, label: '1 dia antes' },
-] as const
+/** `label` é getter: texto no idioma da tela, lido na hora de exibir. */
+const reminder = <const V extends number>(value: V) => ({
+  value,
+  get label() {
+    return t(`party.notifications.reminderOptions.${value}`)
+  },
+})
+
+export const REMINDER_OPTIONS = [reminder(30), reminder(60), reminder(180), reminder(1440)] as const
 
 export type ReminderMinutes = (typeof REMINDER_OPTIONS)[number]['value']
 

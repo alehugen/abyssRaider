@@ -1,9 +1,13 @@
+import { t } from '@/shared/i18n'
+
 export type ColorScheme = 'light' | 'dark'
 
 export interface ThemeDefinition {
   id: string
+  /** Nome da facção (igual em todos os idiomas). */
   label: string
-  description: string
+  /** Traduzida a cada leitura (getter), para acompanhar o idioma. */
+  readonly description: string
   scheme: ColorScheme
   /** Cor de amostra exibida no seletor (não depende do tema ativo). */
   swatch: string
@@ -17,21 +21,27 @@ export const THEMES = [
   {
     id: 'elyos',
     label: 'Elyos',
-    description: 'Luz, ouro e céu azul',
+    get description() {
+      return t('app.theme.elyos')
+    },
     scheme: 'light',
     swatch: 'oklch(0.75 0.14 80)',
   },
   {
     id: 'asmodian',
     label: 'Asmodian',
-    description: 'Sombra, violeta e carmesim',
+    get description() {
+      return t('app.theme.asmodian')
+    },
     scheme: 'dark',
     swatch: 'oklch(0.62 0.21 305)',
   },
   {
     id: 'abyss',
     label: 'Abyss',
-    description: 'O vazio entre os mundos',
+    get description() {
+      return t('app.theme.abyss')
+    },
     scheme: 'dark',
     swatch: 'oklch(0.74 0.13 195)',
   },

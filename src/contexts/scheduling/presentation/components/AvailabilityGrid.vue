@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PhCaretDown } from '@phosphor-icons/vue'
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { WEEKDAYS } from '@/contexts/party/domain/RaidRoutine'
+import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
 import {
   DropdownMenu,
@@ -20,6 +20,7 @@ import {
   slotLabel,
   type CellKey,
 } from '../../domain/availabilityGrid'
+import { weekdayLong, weekdayShort } from '../../domain/Availability'
 
 /**
  * Grade semanal (7 dias x 48 meias horas), estilo Teams. Clique e arraste para
@@ -124,23 +125,25 @@ function clear(day: number) {
 const hasDay = (day: number) => slots.some((s) => selected(day, s))
 const WORKDAYS = [1, 2, 3, 4, 5]
 const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
+/** Dias da grade, com os nomes no idioma da tela. */
+const days = computed(() => ALL_DAYS.map((value) => ({ value, short: weekdayShort(value), long: weekdayLong(value) })))
 </script>
 
 <template>
   <div class="overflow-hidden rounded-xl border bg-background/40 select-none">
     <!-- Cabeçalho: dias (menu com copiar/limpar) -->
     <div class="grid grid-cols-[3rem_repeat(7,minmax(0,1fr))] border-b bg-muted/50">
-      <span class="sr-only">Horário</span>
+      <span class="sr-only">{{ t('scheduling.availability.grid.timeHeader') }}</span>
       <span aria-hidden="true" />
-      <DropdownMenu v-for="d in WEEKDAYS" :key="d.value">
+      <DropdownMenu v-for="d in days" :key="d.value">
         <DropdownMenuTrigger
           :class="
             cn(
-              'flex items-center justify-center gap-0.5 border-l py-2 text-xs font-semibold transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none',
+              'flex items-center justify-center gap-0.5 border-l py-2 text-xs font-semibold capitalize transition-colors hover:bg-accent focus-visible:bg-accent focus-visible:outline-none',
               hasDay(d.value) ? 'text-foreground' : 'text-muted-foreground',
             )
           "
-          :aria-label="`${d.long}: copiar ou limpar`"
+          :aria-label="t('scheduling.availability.grid.dayMenu', { day: d.long })"
         >
           {{ d.short }}
           <PhCaretDown :size="10" class="max-sm:hidden" aria-hidden="true" />
@@ -149,14 +152,14 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
           <DropdownMenuLabel class="capitalize">{{ d.long }}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem :disabled="!hasDay(d.value)" @select="copyTo(d.value, WORKDAYS)">
-            Copiar para seg a sex
+            {{ t('scheduling.availability.grid.copyWeekdays') }}
           </DropdownMenuItem>
           <DropdownMenuItem :disabled="!hasDay(d.value)" @select="copyTo(d.value, ALL_DAYS)">
-            Copiar para todos os dias
+            {{ t('scheduling.availability.grid.copyAll') }}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem :disabled="!hasDay(d.value)" class="text-destructive-ink" @select="clear(d.value)">
-            Limpar {{ d.short.toLowerCase() }}
+            {{ t('scheduling.availability.grid.clearDay', { day: d.short }) }}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -169,7 +172,7 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
     >
       <div
         role="grid"
-        aria-label="Disponibilidade na semana, em meias horas"
+        :aria-label="t('scheduling.availability.grid.label')"
         :aria-activedescendant="focusId"
         tabindex="0"
         :class="cn('grid grid-cols-[3rem_repeat(7,minmax(0,1fr))] focus-visible:outline-none', dragging && 'cursor-grabbing')"
@@ -190,7 +193,7 @@ const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6]
             <span v-if="s % 2 === 0" class="absolute -top-1.5 right-1.5">{{ slotLabel(s) }}</span>
           </div>
           <div
-            v-for="d in WEEKDAYS"
+            v-for="d in days"
             :id="`avail-${d.value}-${s}`"
             :key="d.value"
             role="gridcell"

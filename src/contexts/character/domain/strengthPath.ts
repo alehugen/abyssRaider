@@ -1,3 +1,4 @@
+import { t } from '@/shared/i18n'
 import { slotLabel, type CharacterBuild, type Gear, type GearDetail } from './CharacterBuild'
 
 /**
@@ -26,7 +27,31 @@ export interface PathStep {
   score: number
 }
 
-export const IMPACT_LABEL: Record<Impact, string> = { high: 'Impacto alto', medium: 'Impacto médio', low: 'Impacto baixo' }
+/** Rótulo traduzido do impacto ("Impacto alto"); getters leem o idioma atual. */
+export const IMPACT_LABEL: Readonly<Record<Impact, string>> = {
+  get high() {
+    return t('character.impact.high')
+  },
+  get medium() {
+    return t('character.impact.medium')
+  },
+  get low() {
+    return t('character.impact.low')
+  },
+}
+
+/** Versão curta ("alto"), para listas onde o contexto já diz que é impacto. */
+export const IMPACT_SHORT_LABEL: Readonly<Record<Impact, string>> = {
+  get high() {
+    return t('character.impactShort.high')
+  },
+  get medium() {
+    return t('character.impactShort.medium')
+  },
+  get low() {
+    return t('character.impactShort.low')
+  },
+}
 
 /** Peso de cada slot: arma pesa mais que armadura, que pesa mais que acessório. */
 function slotWeight(slotName: string): number {
@@ -78,7 +103,6 @@ function step(s: Omit<PathStep, 'impact'>): PathStep {
 }
 
 const gearRef = (g: Gear) => ({ slotName: g.slotName, name: g.name, grade: g.grade, icon: g.icon })
-const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 /**
  * Passos ordenados do mais para o menos importante. `details` traz o detalhe de
@@ -96,8 +120,8 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
       step({
         id: `missing:${slot}`,
         kind: 'missing',
-        title: `Equipar ${slotLabel(slot).toLowerCase()}`,
-        reason: 'Esse espaço está vazio: qualquer peça já soma atributos.',
+        title: t('character.path.missingTitle', { slot: slotLabel(slot).toLowerCase() }),
+        reason: t('character.path.missingReason'),
         progress: null,
         gear: null,
         score: 60 + 40 * slotWeight(slot),
@@ -122,10 +146,11 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
         step({
           id: `outdated:${slot}`,
           kind: 'outdated',
-          title: `Trocar ${g.name}`,
-          reason: `${slotLabel(slot)} de nível ${level}; ${
-            levels.length === 2 ? 'a outra peça do par é' : 'as outras peças do mesmo tipo são'
-          } nível ${reference}. Encantar esta rende menos que trocar.`,
+          title: t('character.path.outdatedTitle', { name: g.name }),
+          reason: t(
+            levels.length === 2 ? 'character.path.outdatedReasonPair' : 'character.path.outdatedReasonFamily',
+            { slot: slotLabel(slot), level, reference },
+          ),
           progress: { current: level, max: reference },
           gear: gearRef(g),
           score: 40 + 50 * slotWeight(slot) * Math.min(1, (reference - level) / 40),
@@ -147,8 +172,8 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
         step({
           id: `enchant:${g.slotName}`,
           kind: 'enchant',
-          title: `Encantar ${g.name} de +${g.enchantLevel} para +${max}`,
-          reason: `${slotLabel(g.slotName)}: ${plural(missing, 'nível', 'níveis')} até o máximo da peça.`,
+          title: t('character.path.enchantTitle', { name: g.name, from: g.enchantLevel, to: max }),
+          reason: t('character.path.enchantReason', { slot: slotLabel(g.slotName), n: missing }, missing),
           progress: { current: g.enchantLevel, max },
           gear: gearRef(g),
           score: 15 + 60 * w * Math.min(1, missing / 5),
@@ -164,8 +189,8 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
         step({
           id: `exceed:${g.slotName}`,
           kind: 'exceed',
-          title: `Superar ${g.name}: +${max} +${g.exceedLevel} para +${max} +${next}`,
-          reason: `${slotLabel(g.slotName)}: encantamento no máximo; superar vai até +${max} +${maxExceed}.`,
+          title: t('character.path.exceedTitle', { name: g.name, max, from: g.exceedLevel, to: next }),
+          reason: t('character.path.exceedReason', { slot: slotLabel(g.slotName), max, maxExceed }),
           progress: { current: g.exceedLevel, max: maxExceed },
           gear: gearRef(g),
           score: 8 + 30 * w * ((maxExceed - g.exceedLevel) / maxExceed),
@@ -182,8 +207,8 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
         step({
           id: `stones:${g.slotName}`,
           kind: 'stones',
-          title: `Colocar ${plural(empty, 'pedra de mana', 'pedras de mana')} em ${g.name}`,
-          reason: `${slotLabel(g.slotName)} com ${plural(empty, 'encaixe vazio', 'encaixes vazios')} de ${slots}.`,
+          title: t('character.path.stonesTitle', { n: empty, name: g.name }, empty),
+          reason: t('character.path.stonesReason', { slot: slotLabel(g.slotName), n: empty, total: slots }, empty),
           progress: { current: filled, max: slots },
           gear: gearRef(g),
           score: 20 + 40 * w * (empty / slots),
@@ -200,8 +225,8 @@ export function strengthPath(build: CharacterBuild, details: ReadonlyMap<string,
       step({
         id: `daevanion:${b.id}`,
         kind: 'daevanion',
-        title: `Abrir nós do Daevanion de ${b.name}`,
-        reason: `${b.openNodes} de ${b.totalNodes} nós abertos (${closed === 1 ? 'falta' : 'faltam'} ${closed}).`,
+        title: t('character.path.daevanionTitle', { name: b.name }),
+        reason: t('character.path.daevanionReason', { open: b.openNodes, total: b.totalNodes, n: closed }, closed),
         progress: { current: b.openNodes, max: b.totalNodes },
         gear: null,
         score: 10 + 35 * (closed / b.totalNodes),
@@ -217,7 +242,9 @@ function mergeTwins(steps: PathStep[]): PathStep[] {
   const byTitle = new Map<string, PathStep[]>()
   for (const s of steps) byTitle.set(s.title, [...(byTitle.get(s.title) ?? []), s])
   return [...byTitle.values()].map((group) =>
-    group.length === 1 ? group[0]! : { ...group[0]!, title: `${group[0]!.title} (${group.length} peças)` },
+    group.length === 1
+      ? group[0]!
+      : { ...group[0]!, title: t('character.path.twins', { title: group[0]!.title, n: group.length }) },
   )
 }
 

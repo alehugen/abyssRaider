@@ -1,3 +1,4 @@
+import { t } from '@/shared/i18n'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
 import type { MemberStatus, PartySummary } from '../domain/Party'
 
@@ -41,17 +42,17 @@ export function inviteOptions(
 
     if (mine?.status === 'accepted') return option('member')
     if (mine?.status === 'invited') return option('invited')
-    if (summary.acceptedCount >= p.sanctuary.groupSize) return option('blocked', 'Party completa')
+    if (summary.acceptedCount >= p.sanctuary.groupSize) return option('blocked', t('party.invite.blocked.full'))
     if (mine?.status === 'pending') return option('requested')
 
-    if (c.region !== p.region) return option('blocked', 'Outra região')
+    if (c.region !== p.region) return option('blocked', t('party.invite.blocked.otherRegion'))
     if (p.sanctuary.minItemLevel && (c.itemLevel ?? 0) < p.sanctuary.minItemLevel) {
-      return option('blocked', `Item level abaixo de ${p.sanctuary.minItemLevel}`)
+      return option('blocked', t('party.invite.blocked.itemLevel', { min: p.sanctuary.minItemLevel }))
     }
     const otherChar = memberships.some(
       (m) => m.partyId === p.id && m.ownerId === linked.ownerId && m.characterLinkId !== linked.linkId && m.status !== 'declined',
     )
-    if (otherChar) return option('blocked', 'Já tem outro personagem na party')
+    if (otherChar) return option('blocked', t('party.invite.blocked.otherCharacter'))
     return option('can-invite')
   })
 }

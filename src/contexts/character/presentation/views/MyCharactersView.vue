@@ -10,6 +10,8 @@ import {
   PhWarningCircle,
 } from '@phosphor-icons/vue'
 import { onMounted, ref, watch } from 'vue'
+import { t } from '@/shared/i18n'
+import { relativeFormat } from '@/shared/i18n/format'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import InspectCharacter from '../inspect/InspectCharacter.vue'
 import StrengthPathDialog from '../strength/StrengthPathDialog.vue'
@@ -38,21 +40,22 @@ watch(
   },
 )
 
-const relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
 function syncedLabel(date: Date): string {
   const minutes = Math.round((Date.now() - date.getTime()) / 60_000)
-  if (minutes < 1) return 'Atualizado agora'
-  if (minutes < 60) return `Atualizado ${relative.format(-minutes, 'minute')}`
+  if (minutes < 1) return t('character.my.syncedNow')
+  const ago = (value: number, unit: Intl.RelativeTimeFormatUnit) =>
+    t('character.my.syncedAgo', { when: relativeFormat().format(-value, unit) })
+  if (minutes < 60) return ago(minutes, 'minute')
   const hours = Math.round(minutes / 60)
-  if (hours < 24) return `Atualizado ${relative.format(-hours, 'hour')}`
-  return `Atualizado ${relative.format(-Math.round(hours / 24), 'day')}`
+  if (hours < 24) return ago(hours, 'hour')
+  return ago(Math.round(hours / 24), 'day')
 }
 
 async function confirmUnlink(linked: LinkedCharacter) {
   const ok = await confirm({
-    title: `Desvincular ${linked.character.name}?`,
-    description: 'Ele sai das parties e das aplicações em santuários; parties que ele lidera são excluídas. Você pode vincular de novo depois.',
-    confirmText: 'Desvincular',
+    title: t('character.my.unlinkTitle', { name: linked.character.name }),
+    description: t('character.my.unlinkDescription'),
+    confirmText: t('character.my.unlinkConfirm'),
     destructive: true,
   })
   if (ok) void characters.unlink(linked)
@@ -68,9 +71,9 @@ async function confirmUnlink(linked: LinkedCharacter) {
     <section class="space-y-5" aria-labelledby="roster-title">
       <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div>
-          <h1 id="roster-title" class="font-display text-4xl leading-tight font-bold">Meus personagens</h1>
+          <h1 id="roster-title" class="font-display text-4xl leading-tight font-bold">{{ t('character.my.title') }}</h1>
           <p v-if="characters.loaded" class="text-sm text-muted-foreground tabular-nums">
-            {{ characters.items.length }} de {{ MAX_CHARACTERS_PER_ACCOUNT }} vinculados
+            {{ t('character.my.count', { n: characters.items.length, max: MAX_CHARACTERS_PER_ACCOUNT }) }}
           </p>
         </div>
 
@@ -79,14 +82,14 @@ async function confirmUnlink(linked: LinkedCharacter) {
             <Button
               size="icon"
               variant="outline"
-              aria-label="Adicionar personagem"
+              :aria-label="t('character.my.add')"
               :disabled="characters.items.length >= MAX_CHARACTERS_PER_ACCOUNT"
               @click="adding = true"
             >
               <PhUserPlus />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Adicionar personagem</TooltipContent>
+          <TooltipContent>{{ t('character.my.add') }}</TooltipContent>
         </Tooltip>
       </header>
 
@@ -106,8 +109,8 @@ async function confirmUnlink(linked: LinkedCharacter) {
                 size="icon"
                 variant="ghost"
                 class="size-8 text-muted-foreground"
-                :title="`Atualizar dados de ${linked.character.name}`"
-                :aria-label="`Atualizar dados de ${linked.character.name}`"
+                :title="t('character.my.refresh', { name: linked.character.name })"
+                :aria-label="t('character.my.refresh', { name: linked.character.name })"
                 :disabled="characters.isPending(characterKey(linked.character))"
                 @click="characters.refresh(linked)"
               >
@@ -118,8 +121,8 @@ async function confirmUnlink(linked: LinkedCharacter) {
                 size="icon"
                 variant="ghost"
                 class="size-8 text-muted-foreground hover:text-destructive-ink"
-                :title="`Desvincular ${linked.character.name}`"
-                :aria-label="`Desvincular ${linked.character.name}`"
+                :title="t('character.my.unlink', { name: linked.character.name })"
+                :aria-label="t('character.my.unlink', { name: linked.character.name })"
                 :disabled="characters.isPending(linked.linkId)"
                 @click="confirmUnlink(linked)"
               >
@@ -129,18 +132,18 @@ async function confirmUnlink(linked: LinkedCharacter) {
             <template #aside>
               <StrengthPathDialog :character="linked.character">
                 <Button size="sm" variant="outline" class="h-7 px-2.5 text-xs">
-                  <PhTrendUp /> Caminho de Fortalecimento
+                  <PhTrendUp /> {{ t('character.strength.title') }}
                 </Button>
               </StrengthPathDialog>
             </template>
             <template #footer>
               <div class="flex flex-wrap items-center gap-2">
                 <InspectCharacter :character="linked.character">
-                  <Button size="sm" variant="ghost"><PhEye /> Inspecionar</Button>
+                  <Button size="sm" variant="ghost"><PhEye /> {{ t('character.my.inspect') }}</Button>
                 </InspectCharacter>
                 <Button size="sm" variant="ghost" as-child>
                   <RouterLink :to="{ name: 'find-parties', query: { personagem: linked.linkId } }">
-                    <PhMagnifyingGlass /> Buscar parties
+                    <PhMagnifyingGlass /> {{ t('character.my.findParties') }}
                   </RouterLink>
                 </Button>
               </div>
@@ -156,10 +159,8 @@ async function confirmUnlink(linked: LinkedCharacter) {
     <Dialog v-model:open="adding">
       <DialogContent class="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle class="font-display text-2xl">Adicionar personagem</DialogTitle>
-          <DialogDescription>
-            Escolha a região e digite o nome como aparece no jogo. Os dados vêm do site oficial do Aion 2.
-          </DialogDescription>
+          <DialogTitle class="font-display text-2xl">{{ t('character.my.add') }}</DialogTitle>
+          <DialogDescription>{{ t('character.search.hint') }}</DialogDescription>
         </DialogHeader>
         <CharacterSearch embedded />
       </DialogContent>

@@ -2,6 +2,8 @@
 import { PhArrowClockwise, PhPlusSquare, PhTreeStructure, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useSanctuariesStore } from '@/contexts/party/presentation/useSanctuariesStore'
+import { t } from '@/shared/i18n'
+import { numberFormat } from '@/shared/i18n/format'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -16,7 +18,7 @@ import {
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import type { Character } from '../../domain/Character'
 import type { CharacterBuild, GearDetail } from '../../domain/CharacterBuild'
-import { IMPACT_LABEL, sanctuaryGoals, strengthPath, type PathStep, type StepKind } from '../../domain/strengthPath'
+import { IMPACT_LABEL, IMPACT_SHORT_LABEL, sanctuaryGoals, strengthPath, type PathStep, type StepKind } from '../../domain/strengthPath'
 import { gradeClass, loadBuild, loadGear } from '../inspect/buildCache'
 
 /**
@@ -87,21 +89,23 @@ watch(open, (isOpen) => {
 const steps = computed(() => (build.value ? strengthPath(build.value, details.value) : []))
 const firstSteps = computed(() => steps.value.slice(0, 3))
 
-const SECTIONS: Array<{ title: string; kinds: StepKind[] }> = [
-  { title: 'Equipamento', kinds: ['missing', 'outdated', 'enchant'] },
-  { title: 'Pedras de mana', kinds: ['stones'] },
-  { title: 'Superar', kinds: ['exceed'] },
-  { title: 'Daevanion', kinds: ['daevanion'] },
+const SECTIONS: Array<{ id: 'gear' | 'stones' | 'exceed' | 'daevanion'; kinds: StepKind[] }> = [
+  { id: 'gear', kinds: ['missing', 'outdated', 'enchant'] },
+  { id: 'stones', kinds: ['stones'] },
+  { id: 'exceed', kinds: ['exceed'] },
+  { id: 'daevanion', kinds: ['daevanion'] },
 ]
 const sections = computed(() =>
-  SECTIONS.map((s) => ({ ...s, steps: steps.value.slice(3).filter((st) => s.kinds.includes(st.kind)) })).filter(
-    (s) => s.steps.length,
-  ),
+  SECTIONS.map((s) => ({
+    ...s,
+    title: t(`character.strength.sections.${s.id}`),
+    steps: steps.value.slice(3).filter((st) => s.kinds.includes(st.kind)),
+  })).filter((s) => s.steps.length),
 )
 
 const itemLevel = computed(() => build.value?.itemLevel ?? props.character.itemLevel ?? null)
 const goals = computed(() => sanctuaryGoals(itemLevel.value, sanctuaries.sanctuaries))
-const number = new Intl.NumberFormat('pt-BR')
+const number = () => numberFormat()
 
 const IMPACT_BARS: Record<PathStep['impact'], number> = { high: 3, medium: 2, low: 1 }
 const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round((p.current / p.max) * 100))}%`
@@ -117,15 +121,19 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
       :class="cn(`faction-${character.faction}`, 'flex max-h-[min(90dvh,820px)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl')"
     >
       <DialogHeader class="flex-none px-6 pt-6 pb-4 pr-12 text-left">
-        <DialogTitle class="font-display text-3xl leading-none">Caminho de Fortalecimento</DialogTitle>
+        <DialogTitle class="font-display text-3xl leading-none">{{ t('character.strength.title') }}</DialogTitle>
         <DialogDescription class="mt-1">
-          {{ character.name }}: próximos passos para ficar mais forte, com os dados do jogo.
+          {{ t('character.strength.description', { name: character.name }) }}
         </DialogDescription>
       </DialogHeader>
 
       <div v-if="loading" class="space-y-4 border-t px-6 py-5" aria-busy="true">
         <p class="text-sm text-muted-foreground tabular-nums">
-          {{ progress.total ? `Analisando o equipamento: ${progress.done} de ${progress.total} peças…` : 'Buscando o personagem…' }}
+          {{
+            progress.total
+              ? t('character.strength.analyzing', { done: progress.done, total: progress.total })
+              : t('character.strength.fetching')
+          }}
         </p>
         <Skeleton class="h-20 rounded-xl" />
         <div v-for="i in 4" :key="i" class="flex items-center gap-3">
@@ -139,27 +147,28 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
 
       <div v-else-if="error" role="alert" class="space-y-3 border-t px-6 py-5 text-sm">
         <p class="flex items-center gap-2 text-destructive-ink"><PhWarningCircle :size="18" /> {{ error }}</p>
-        <Button size="sm" variant="outline" @click="load"><PhArrowClockwise /> Tentar de novo</Button>
+        <Button size="sm" variant="outline" @click="load"><PhArrowClockwise /> {{ t('common.actions.retry') }}</Button>
       </div>
 
       <p v-else-if="missing" class="border-t px-6 py-5 text-sm text-muted-foreground">
-        O jogo não devolveu os dados deste personagem. Tente atualizar o personagem e abrir de novo.
+        {{ t('character.strength.missing') }}
       </p>
 
       <div v-else-if="build" class="min-h-0 flex-1 space-y-6 overflow-y-auto border-t px-6 py-5">
         <!-- Meta: item level para o próximo santuário -->
-        <section aria-label="Meta de item level" class="rounded-xl bg-muted/60 p-4">
+        <section :aria-label="t('character.strength.goal')" class="rounded-xl bg-muted/60 p-4">
           <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
             <p class="text-sm text-muted-foreground">
-              Item level
-              <b class="ml-1 font-display text-2xl text-foreground tabular-nums">{{ itemLevel != null ? number.format(itemLevel) : '?' }}</b>
+              {{ t('character.card.itemLevel') }}
+              <b class="ml-1 font-display text-2xl text-foreground tabular-nums">{{ itemLevel != null ? number().format(itemLevel) : '?' }}</b>
             </p>
-            <p v-if="goals.next" class="text-sm">
-              Faltam <b class="tabular-nums">{{ number.format(goals.next.missing) }}</b> para {{ goals.next.name }}
-              ({{ number.format(goals.next.minItemLevel) }})
-            </p>
+            <i18n-t v-if="goals.next" keypath="character.strength.missingFor" tag="p" class="text-sm">
+              <template #n><b class="tabular-nums">{{ number().format(goals.next.missing) }}</b></template>
+              <template #name>{{ goals.next.name }}</template>
+              <template #min>{{ number().format(goals.next.minItemLevel) }}</template>
+            </i18n-t>
             <p v-else-if="goals.reached.length" class="text-sm text-success-ink">
-              Já entra em todos os santuários abertos.
+              {{ t('character.strength.allReached') }}
             </p>
           </div>
           <div v-if="goals.next && itemLevel" class="mt-2 h-1.5 overflow-hidden rounded-full bg-background/70">
@@ -168,12 +177,12 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
         </section>
 
         <p v-if="!steps.length" class="text-sm text-success-ink">
-          Nada pendente: equipamento completo, no máximo e com todas as pedras, e Daevanion todo aberto.
+          {{ t('character.strength.nothing') }}
         </p>
 
         <template v-else>
           <section aria-labelledby="first-steps" class="space-y-2">
-            <h3 id="first-steps" class="font-display text-xl font-semibold">Comece por aqui</h3>
+            <h3 id="first-steps" class="font-display text-xl font-semibold">{{ t('character.strength.startHere') }}</h3>
             <ol class="space-y-2">
               <li v-for="(s, i) in firstSteps" :key="s.id" class="flex gap-3 rounded-xl border bg-card/60 p-3">
                 <span class="mt-0.5 grid size-6 flex-none place-items-center rounded-full bg-faction text-xs font-bold text-background">
@@ -215,7 +224,7 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
             </ol>
           </section>
 
-          <section v-for="sec in sections" :key="sec.title" :aria-label="sec.title" class="space-y-1">
+          <section v-for="sec in sections" :key="sec.id" :aria-label="sec.title" class="space-y-1">
             <h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               {{ sec.title }} <span class="tabular-nums">({{ sec.steps.length }})</span>
             </h3>
@@ -239,7 +248,7 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
                 <span
                   :class="cn('flex-none text-xs', s.impact === 'high' ? 'font-semibold text-foreground' : 'text-muted-foreground')"
                 >
-                  {{ IMPACT_LABEL[s.impact].replace('Impacto ', '') }}
+                  {{ IMPACT_SHORT_LABEL[s.impact] }}
                 </span>
               </li>
             </ul>
@@ -247,13 +256,11 @@ const pct = (p: { current: number; max: number }) => `${Math.min(100, Math.round
         </template>
 
         <p v-if="failed" class="text-xs text-warning-ink">
-          {{ failed }} {{ failed === 1 ? 'peça não carregou' : 'peças não carregaram' }}: elas ficaram fora das sugestões de
-          encantar, superar e pedras.
-          <button type="button" class="underline" @click="load">Tentar de novo</button>
+          {{ t('character.strength.failed', { n: failed }, failed) }}
+          <button type="button" class="underline" @click="load">{{ t('common.actions.retry') }}</button>
         </p>
         <p class="text-xs text-muted-foreground">
-          Estimativa do AbyssRaider com os dados do jogo: compara as suas peças entre si e com os limites de cada uma. Ainda
-          não considera custo nem a meta da sua classe.
+          {{ t('character.strength.disclaimer') }}
         </p>
       </div>
     </DialogContent>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { PhArrowClockwise, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
+import { t } from '@/shared/i18n'
+import { numberFormat } from '@/shared/i18n/format'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -77,11 +79,15 @@ const skillGroups = computed(() => (build.value ? groupSkills(build.value.skills
 const baseStats = computed(() => build.value?.stats.filter((s) => s.kind === 'base') ?? [])
 const divineStats = computed(() => build.value?.stats.filter((s) => s.kind === 'divine') ?? [])
 
-const number = new Intl.NumberFormat('pt-BR')
 const summary = computed(() => {
   const c = props.character
   const itemLevel = build.value?.itemLevel ?? c.itemLevel
-  return [c.className, c.serverName, `nível ${c.level}`, itemLevel ? `item level ${number.format(itemLevel)}` : null]
+  return [
+    c.className,
+    c.serverName,
+    t('character.card.levelLower', { n: c.level }),
+    itemLevel ? t('character.card.itemLevelN', { n: numberFormat().format(itemLevel) }) : null,
+  ]
     .filter(Boolean)
     .join(' · ')
 })
@@ -118,7 +124,7 @@ const summary = computed(() => {
       </DialogHeader>
 
       <!-- Skeleton com a mesma estrutura da aba de equipamento. -->
-      <div v-if="loading" class="flex min-h-0 flex-1 flex-col" aria-busy="true" aria-label="Carregando equipamento">
+      <div v-if="loading" class="flex min-h-0 flex-1 flex-col" aria-busy="true" :aria-label="t('character.inspect.loading')">
         <Skeleton class="mx-6 mb-3 h-9 flex-none rounded-lg" />
         <div class="grid min-h-0 flex-1 gap-x-6 overflow-hidden border-t px-6 pt-4 sm:grid-cols-2">
           <div v-for="col in 2" :key="col" :class="cn('space-y-5', col === 2 && 'max-sm:hidden')">
@@ -138,24 +144,24 @@ const summary = computed(() => {
 
       <div v-else-if="error" role="alert" class="space-y-3 px-6 pb-6 text-sm">
         <p class="flex items-center gap-2 text-destructive-ink"><PhWarningCircle :size="18" /> {{ error }}</p>
-        <Button variant="outline" size="sm" @click="load"><PhArrowClockwise /> Tentar de novo</Button>
+        <Button variant="outline" size="sm" @click="load"><PhArrowClockwise /> {{ t('common.actions.retry') }}</Button>
       </div>
 
       <p v-else-if="missing" class="px-6 pb-6 text-sm text-muted-foreground">
-        O jogo não encontrou este personagem. Ele pode ter sido renomeado, transferido ou excluído.
+        {{ t('character.inspect.missing') }}
       </p>
 
       <Tabs v-else-if="build" default-value="gear" class="min-h-0 flex-1 gap-0">
         <TabsList class="mx-6 mb-3 w-auto flex-none">
-          <TabsTrigger value="gear" class="px-1 text-[13px] sm:px-2 sm:text-sm">Equipamento</TabsTrigger>
-          <TabsTrigger value="stats" class="px-1 text-[13px] sm:px-2 sm:text-sm">Atributos</TabsTrigger>
-          <TabsTrigger value="skills" class="px-1 text-[13px] sm:px-2 sm:text-sm">Skills</TabsTrigger>
-          <TabsTrigger value="daevanion" class="px-1 text-[13px] sm:px-2 sm:text-sm">Daevanion</TabsTrigger>
+          <TabsTrigger value="gear" class="px-1 text-[13px] sm:px-2 sm:text-sm">{{ t('character.inspect.tabs.gear') }}</TabsTrigger>
+          <TabsTrigger value="stats" class="px-1 text-[13px] sm:px-2 sm:text-sm">{{ t('character.inspect.tabs.stats') }}</TabsTrigger>
+          <TabsTrigger value="skills" class="px-1 text-[13px] sm:px-2 sm:text-sm">{{ t('character.inspect.tabs.skills') }}</TabsTrigger>
+          <TabsTrigger value="daevanion" class="px-1 text-[13px] sm:px-2 sm:text-sm">{{ t('character.inspect.tabs.daevanion') }}</TabsTrigger>
         </TabsList>
 
         <!-- Equipamento -->
         <TabsContent value="gear" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-5">
-          <p v-if="!build.equipment.length" class="text-sm text-muted-foreground">Nada equipado.</p>
+          <p v-if="!build.equipment.length" class="text-sm text-muted-foreground">{{ t('character.inspect.nothingEquipped') }}</p>
           <div class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
             <div v-for="(column, ci) in gearColumns" :key="ci" class="min-w-0 space-y-5">
               <section v-for="g in column" :key="g.id">
@@ -169,7 +175,7 @@ const summary = computed(() => {
 
               <template v-if="ci === 0">
                 <section v-if="build.wing || build.pet">
-                  <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Asas e pet</h3>
+                  <h3 class="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ t('character.inspect.wingsAndPet') }}</h3>
                   <ul class="space-y-1">
                     <li v-if="build.wing" :class="cn(gradeClass(build.wing.grade), 'flex items-center gap-3 p-1.5')">
                       <img
@@ -179,7 +185,7 @@ const summary = computed(() => {
                         class="size-11 rounded-md border-2 border-(--grade) bg-icon-well object-contain"
                       />
                       <span class="min-w-0">
-                        <span class="block text-xs text-muted-foreground">Asas</span>
+                        <span class="block text-xs text-muted-foreground">{{ t('character.inspect.wings') }}</span>
                         <span class="block truncate text-sm font-medium text-(--grade-ink)">
                           {{ build.wing.name }}<template v-if="build.wing.enchantLevel"> +{{ build.wing.enchantLevel }}</template>
                         </span>
@@ -193,7 +199,7 @@ const summary = computed(() => {
                         class="size-11 rounded-md bg-icon-well object-contain"
                       />
                       <span class="min-w-0">
-                        <span class="block text-xs text-muted-foreground">Pet, nível {{ build.pet.level }}</span>
+                        <span class="block text-xs text-muted-foreground">{{ t('character.inspect.petLevel', { n: build.pet.level }) }}</span>
                         <span class="block truncate text-sm font-medium">{{ build.pet.name }}</span>
                       </span>
                     </li>
@@ -202,13 +208,13 @@ const summary = computed(() => {
               </template>
             </div>
           </div>
-          <p class="text-xs text-muted-foreground">Toque numa peça para ver atributos e pedras de mana.</p>
+          <p class="text-xs text-muted-foreground">{{ t('character.inspect.gearHint') }}</p>
         </TabsContent>
 
         <!-- Atributos -->
         <TabsContent value="stats" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-6">
           <section>
-            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Atributos base</h3>
+            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ t('character.inspect.baseStats') }}</h3>
             <dl class="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <div v-for="s in baseStats" :key="s.type" class="rounded-lg border bg-card/60 p-3">
                 <dt class="text-xs text-muted-foreground">{{ s.name }}</dt>
@@ -219,7 +225,7 @@ const summary = computed(() => {
           </section>
 
           <section v-if="divineStats.length">
-            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Atributos divinos</h3>
+            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ t('character.inspect.divineStats') }}</h3>
             <dl class="grid grid-cols-2 gap-2 sm:grid-cols-3">
               <div v-for="s in divineStats" :key="s.type" class="rounded-lg border bg-card/60 p-3">
                 <dt class="text-xs text-muted-foreground">{{ s.name }}</dt>
@@ -230,16 +236,16 @@ const summary = computed(() => {
           </section>
 
           <section v-if="build.titles.length">
-            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Títulos equipados</h3>
+            <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{{ t('character.inspect.titles') }}</h3>
             <ul class="grid gap-2 sm:grid-cols-3">
               <li
-                v-for="t in build.titles"
-                :key="t.category"
-                :class="cn(gradeClass(t.grade), 'rounded-lg border border-l-4 border-l-(--grade) bg-card/60 p-3')"
+                v-for="title in build.titles"
+                :key="title.category"
+                :class="cn(gradeClass(title.grade), 'rounded-lg border border-l-4 border-l-(--grade) bg-card/60 p-3')"
               >
-                <p class="text-xs text-muted-foreground">{{ titleCategoryLabel(t.category) }}</p>
-                <p class="font-medium text-(--grade-ink)">{{ t.name }}</p>
-                <p v-for="e in t.effects" :key="e" class="text-xs text-muted-foreground">{{ e }}</p>
+                <p class="text-xs text-muted-foreground">{{ titleCategoryLabel(title.category) }}</p>
+                <p class="font-medium text-(--grade-ink)">{{ title.name }}</p>
+                <p v-for="e in title.effects" :key="e" class="text-xs text-muted-foreground">{{ e }}</p>
               </li>
             </ul>
           </section>
@@ -247,7 +253,7 @@ const summary = computed(() => {
 
         <!-- Skills -->
         <TabsContent value="skills" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-5">
-          <p v-if="!skillGroups.length" class="text-sm text-muted-foreground">Nenhuma skill aprendida.</p>
+          <p v-if="!skillGroups.length" class="text-sm text-muted-foreground">{{ t('character.inspect.noSkills') }}</p>
           <section v-for="g in skillGroups" :key="g.category">
             <h3 class="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               {{ SKILL_CATEGORY_LABEL[g.category] }}
@@ -268,7 +274,11 @@ const summary = computed(() => {
                 <span class="min-w-0">
                   <span class="block truncate text-sm font-medium">{{ s.name }}</span>
                   <span class="block text-xs text-muted-foreground">
-                    Nível {{ s.level }}<template v-if="s.equipped && g.category !== 'passive'">, na barra</template>
+                    {{
+                      s.equipped && g.category !== 'passive'
+                        ? t('character.inspect.skillLevelOnBar', { n: s.level })
+                        : t('character.card.levelN', { n: s.level })
+                    }}
                   </span>
                 </span>
               </li>
@@ -278,7 +288,7 @@ const summary = computed(() => {
 
         <!-- Daevanion -->
         <TabsContent value="daevanion" class="scroll-thin min-h-0 overflow-y-auto border-t px-6 pt-4 pb-6 space-y-3">
-          <p v-if="!build.daevanion.length" class="text-sm text-muted-foreground">Nenhum tabuleiro aberto ainda.</p>
+          <p v-if="!build.daevanion.length" class="text-sm text-muted-foreground">{{ t('character.inspect.noBoards') }}</p>
           <ul class="grid gap-2 sm:grid-cols-2">
             <li v-for="b in build.daevanion" :key="b.id" class="flex items-center gap-3 rounded-lg border bg-card/60 p-3">
               <img v-if="b.icon" :src="b.icon" alt="" class="size-10 flex-none" loading="lazy" />
@@ -290,7 +300,7 @@ const summary = computed(() => {
                 <div
                   class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted"
                   role="progressbar"
-                  :aria-label="`${b.name}: ${b.openNodes} de ${b.totalNodes} nós`"
+                  :aria-label="t('character.inspect.nodes', { name: b.name, open: b.openNodes, total: b.totalNodes })"
                   :aria-valuenow="b.openNodes"
                   :aria-valuemax="b.totalNodes"
                 >

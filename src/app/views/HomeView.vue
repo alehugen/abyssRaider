@@ -3,6 +3,7 @@ import { PhMagnifyingGlass, PhSword } from '@phosphor-icons/vue'
 import { onMounted, ref } from 'vue'
 import DiscordLoginButton from '@/contexts/identity/presentation/components/DiscordLoginButton.vue'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
+import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
 
 const auth = useAuthStore()
@@ -43,10 +44,10 @@ onMounted(() => {
     <h1
       class="max-w-3xl font-display text-5xl leading-[1.1] font-bold text-balance text-white drop-shadow-[0_2px_16px_rgb(0_0_0/0.6)] sm:text-6xl"
     >
-      Organize suas raids de Aion 2
+      {{ t('app.home.title') }}
     </h1>
     <p class="mt-5 max-w-xl text-lg text-balance text-white/85 drop-shadow-[0_1px_8px_rgb(0_0_0/0.6)]">
-      Entre com o Discord, vincule seu personagem e encontre uma party para o próximo santuário.
+      {{ t('app.home.subtitle') }}
     </p>
 
     <div class="mt-9 flex flex-wrap justify-center gap-3">
@@ -54,7 +55,7 @@ onMounted(() => {
         <Button size="lg" as-child class="shadow-lg shadow-glow">
           <RouterLink :to="{ name: 'find-parties' }">
             <PhMagnifyingGlass :size="20" />
-            Buscar parties
+            {{ t('app.home.findParties') }}
           </RouterLink>
         </Button>
         <Button
@@ -65,7 +66,7 @@ onMounted(() => {
         >
           <RouterLink to="/me">
             <PhSword :size="20" />
-            Meus personagens
+            {{ t('app.home.myCharacters') }}
           </RouterLink>
         </Button>
       </template>

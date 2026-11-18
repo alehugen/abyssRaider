@@ -1,8 +1,10 @@
-import { APP_TIME_ZONE } from '@/shared/lib/brasilia'
+import { t } from '@/shared/i18n'
+import { dateFormat, relativeFormat } from '@/shared/i18n/format'
+import { APP_TIME_ZONE, tzLabel } from '@/shared/lib/brasilia'
 
 /**
  * Notificação dentro do app. O banco guarda só o tipo e os dados; o texto é
- * montado aqui (horários sempre no horário de Brasília).
+ * montado aqui, no idioma da tela (horários sempre no horário de Brasília).
  */
 export type NotificationKind =
   | 'invite_received'
@@ -43,80 +45,88 @@ export interface NotificationView {
   link: string | null
 }
 
-const when = new Intl.DateTimeFormat('pt-BR', {
-  timeZone: APP_TIME_ZONE,
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  hour: '2-digit',
-  minute: '2-digit',
-})
-
 function raidTime(iso: string | undefined): string {
   if (!iso) return ''
   const d = new Date(iso)
-  return Number.isNaN(d.getTime()) ? '' : when.format(d).replace(' às ', ', às ')
+  if (Number.isNaN(d.getTime())) return ''
+  const opts = { timeZone: APP_TIME_ZONE } as const
+  return t('notifications.raidAt', {
+    date: dateFormat({ ...opts, weekday: 'long', day: 'numeric', month: 'long' }).format(d),
+    time: dateFormat({ ...opts, hour: '2-digit', minute: '2-digit' }).format(d),
+  })
 }
 
+/** Corpo das notificações de raid marcada/lembrete: horário e recado. */
+function raidBody(n: AppNotification): string {
+  const at = raidTime(n.data.starts_at)
+  return [at && t('notifications.kinds.raidBody', { at, tz: tzLabel() }), n.data.note && `“${n.data.note}”`]
+    .filter(Boolean)
+    .join(' ')
+}
+
+/** Texto no idioma da tela (montado na hora de exibir). */
 export function describeNotification(n: AppNotification): NotificationView {
-  const party = n.data.party_name ?? 'a party'
-  const char = n.data.character_name ?? 'Um jogador'
+  const party = n.data.party_name ?? t('notifications.fallback.party')
+  const char = n.data.character_name ?? t('notifications.fallback.player')
+  const yourChar = n.data.character_name ?? t('notifications.fallback.yourCharacter')
   const link = n.partyId ? `/parties/${n.partyId}` : null
+  const k = 'notifications.kinds'
   switch (n.kind) {
-    case 'invite_received':
+    case 'invite_received': {
+      const leader = n.data.leader_name ?? t('notifications.fallback.leader')
       return {
-        title: `Convite para ${party}`,
-        body: `${n.data.leader_name ?? 'O líder'} convidou ${n.data.character_name ?? 'você'}. Aceite ou recuse na página da party.`,
+        title: t(`${k}.inviteReceived.title`, { party }),
+        body: n.data.character_name
+          ? t(`${k}.inviteReceived.body`, { leader, character: n.data.character_name })
+          : t(`${k}.inviteReceived.bodyYou`, { leader }),
         tone: 'invite',
         link,
       }
+    }
     case 'invite_accepted':
-      return { title: `${char} aceitou o convite`, body: `Agora faz parte de ${party}.`, tone: 'success', link }
+      return {
+        title: t(`${k}.inviteAccepted.title`, { character: char }),
+        body: t(`${k}.inviteAccepted.body`, { party }),
+        tone: 'success',
+        link,
+      }
     case 'request_received':
-      return { title: `${char} pediu para entrar`, body: `Em ${party}. Aceite ou recuse na página da party.`, tone: 'invite', link }
+      return {
+        title: t(`${k}.requestReceived.title`, { character: char }),
+        body: t(`${k}.requestReceived.body`, { party }),
+        tone: 'invite',
+        link,
+      }
     case 'request_accepted':
-      return { title: `Você entrou em ${party}`, body: `O líder aceitou ${n.data.character_name ?? 'seu personagem'}.`, tone: 'success', link }
+      return {
+        title: t(`${k}.requestAccepted.title`, { party }),
+        body: t(`${k}.requestAccepted.body`, { character: yourChar }),
+        tone: 'success',
+        link,
+      }
     case 'request_declined':
       return {
-        title: 'Pedido recusado',
-        body: `O líder de ${party} recusou ${n.data.character_name ?? 'seu personagem'}.`,
+        title: t(`${k}.requestDeclined.title`),
+        body: t(`${k}.requestDeclined.body`, { party, character: yourChar }),
         tone: 'warning',
         link,
       }
-    case 'raid_scheduled': {
-      const at = raidTime(n.data.starts_at)
-      return {
-        title: `Raid marcada em ${party}`,
-        body: [at && `${at} (horário de Brasília). Confirme sua presença.`, n.data.note && `“${n.data.note}”`]
-          .filter(Boolean)
-          .join(' '),
-        tone: 'raid',
-        link,
-      }
-    }
-    case 'raid_reminder': {
-      const at = raidTime(n.data.starts_at)
-      return {
-        title: `Lembrete: raid em ${party}`,
-        body: [at && `${at} (horário de Brasília). Confirme sua presença.`, n.data.note && `“${n.data.note}”`]
-          .filter(Boolean)
-          .join(' '),
-        tone: 'raid',
-        link,
-      }
-    }
+    case 'raid_scheduled':
+      return { title: t(`${k}.raidScheduled.title`, { party }), body: raidBody(n), tone: 'raid', link }
+    case 'raid_reminder':
+      return { title: t(`${k}.raidReminder.title`, { party }), body: raidBody(n), tone: 'raid', link }
     case 'party_deleted':
       return {
-        title: `${party} foi excluída`,
-        body: 'O líder encerrou a party. As raids marcadas nela foram canceladas.',
+        title: t(`${k}.partyDeleted.title`, { party }),
+        body: t(`${k}.partyDeleted.body`),
         tone: 'cancel',
         link: null,
       }
     case 'raid_cancelled': {
       const at = raidTime(n.data.starts_at)
       return {
-        title: `Raid cancelada em ${party}`,
-        body: at ? `A raid de ${at} foi cancelada.` : 'Uma raid foi cancelada.',
+        title: t(`${k}.raidCancelled.title`, { party }),
+        body: at ? t(`${k}.raidCancelled.body`, { at }) : t(`${k}.raidCancelled.bodyNoDate`),
         tone: 'cancel',
         link,
       }
@@ -124,12 +134,11 @@ export function describeNotification(n: AppNotification): NotificationView {
   }
 }
 
-const relative = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' })
-
 /** "agora", "há 5 minutos", "há 3 horas", "ontem", "há 4 dias". */
 export function timeAgo(date: Date, now = new Date()): string {
+  const relative = relativeFormat()
   const seconds = Math.round((now.getTime() - date.getTime()) / 1000)
-  if (seconds < 60) return 'agora'
+  if (seconds < 60) return t('notifications.now')
   const minutes = Math.round(seconds / 60)
   if (minutes < 60) return relative.format(-minutes, 'minute')
   const hours = Math.round(minutes / 60)

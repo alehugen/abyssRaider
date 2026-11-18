@@ -2,6 +2,7 @@
 import { PhCheck, PhCircleNotch, PhDiscordLogo, PhPaperPlaneTilt, PhTrash } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
@@ -49,11 +50,12 @@ const reminderValue = computed({
 const urlOk = computed(() => isDiscordWebhook(form.value.webhookUrl))
 const urlTouched = computed(() => form.value.webhookUrl.trim().length > 0)
 
+/** Textos em party.notifications.toggles.<key>.label / .hint (só quem tem dica). */
 const TOGGLES = [
-  { key: 'scheduled', label: 'Raid marcada', hint: 'Menciona os membros da party.' },
-  { key: 'reminder', label: 'Lembrete antes da raid', hint: 'Lista quem vai e menciona quem não respondeu.' },
-  { key: 'cancelled', label: 'Raid cancelada', hint: null },
-  { key: 'requests', label: 'Pedido para entrar', hint: 'Com classe, CP e item level de quem pediu.' },
+  { key: 'scheduled', hint: true },
+  { key: 'reminder', hint: true },
+  { key: 'cancelled', hint: false },
+  { key: 'requests', hint: true },
 ] as const
 
 watch(open, async (isOpen) => {
@@ -96,19 +98,19 @@ function save() {
       await repo.save(props.partyId, form.value, window.location.origin)
       saved.value = true
     },
-    'Salvo. Use "Enviar teste" para conferir o canal.',
+    t('party.notifications.savedNotice'),
   )
 }
 
 function test() {
-  void run('test', () => repo.test(props.partyId), 'Mensagem de teste enviada. Confira o canal no Discord.')
+  void run('test', () => repo.test(props.partyId), t('party.notifications.testNotice'))
 }
 
 async function remove() {
   const ok = await confirm({
-    title: 'Desligar os avisos no Discord?',
-    description: 'O canal para de receber mensagens desta party. Dá para ligar de novo depois.',
-    confirmText: 'Desligar',
+    title: t('party.notifications.offTitle'),
+    description: t('party.notifications.offDescription'),
+    confirmText: t('party.notifications.off'),
     destructive: true,
   })
   if (!ok) return
@@ -119,7 +121,7 @@ async function remove() {
       saved.value = false
       form.value = { webhookUrl: '', ...DEFAULT_NOTIFICATIONS }
     },
-    'Avisos desligados.',
+    t('party.notifications.offNotice'),
   )
 }
 </script>
@@ -133,21 +135,20 @@ async function remove() {
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle class="flex items-center gap-2 font-display text-2xl">
-          <PhDiscordLogo class="text-[#5865F2]" aria-hidden="true" /> Avisos no Discord
+          <PhDiscordLogo class="text-[#5865F2]" aria-hidden="true" /> {{ t('party.notifications.title') }}
         </DialogTitle>
         <DialogDescription>
-          O AbyssRaider posta num canal do seu servidor quando algo acontece na party. Os horários vão no horário de
-          Brasília.
+          {{ t('party.notifications.description') }}
         </DialogDescription>
       </DialogHeader>
 
       <div v-if="loading" class="flex items-center gap-2 text-sm text-muted-foreground">
-        <PhCircleNotch class="animate-spin" /> Carregando…
+        <PhCircleNotch class="animate-spin" /> {{ t('common.actions.loading') }}
       </div>
 
       <form v-else class="space-y-5" @submit.prevent="save">
         <div class="space-y-1.5">
-          <label for="webhook-url" class="text-sm font-medium">URL do webhook do canal</label>
+          <label for="webhook-url" class="text-sm font-medium">{{ t('party.notifications.url') }}</label>
           <Input
             id="webhook-url"
             v-model="form.webhookUrl"
@@ -158,31 +159,31 @@ async function remove() {
             :aria-invalid="urlTouched && !urlOk"
           />
           <p v-if="urlTouched && !urlOk" class="text-[13px] text-warning-ink">
-            Essa não parece uma URL de webhook do Discord.
+            {{ t('party.notifications.urlInvalid') }}
           </p>
           <details class="text-[13px] text-muted-foreground">
-            <summary class="cursor-pointer select-none hover:text-foreground">Como pegar a URL</summary>
+            <summary class="cursor-pointer select-none hover:text-foreground">{{ t('party.notifications.howTo') }}</summary>
             <ol class="mt-1.5 list-decimal space-y-0.5 pl-5">
-              <li>No Discord, abra as configurações do canal (engrenagem ao lado do nome).</li>
-              <li>Integrações, depois Webhooks, depois Novo webhook.</li>
-              <li>Clique em Copiar URL do webhook e cole aqui.</li>
+              <li>{{ t('party.notifications.howToStep1') }}</li>
+              <li>{{ t('party.notifications.howToStep2') }}</li>
+              <li>{{ t('party.notifications.howToStep3') }}</li>
             </ol>
-            <p class="mt-1.5">Só o líder vê essa URL: com ela qualquer um consegue postar no canal.</p>
+            <p class="mt-1.5">{{ t('party.notifications.urlSecret') }}</p>
           </details>
         </div>
 
         <fieldset class="space-y-3">
-          <legend class="mb-1 text-sm font-medium">Avisar quando</legend>
-          <label v-for="t in TOGGLES" :key="t.key" class="flex items-start justify-between gap-4">
+          <legend class="mb-1 text-sm font-medium">{{ t('party.notifications.when') }}</legend>
+          <label v-for="tg in TOGGLES" :key="tg.key" class="flex items-start justify-between gap-4">
             <span>
-              <span class="block text-sm">{{ t.label }}</span>
-              <span v-if="t.hint" class="block text-xs text-muted-foreground">{{ t.hint }}</span>
+              <span class="block text-sm">{{ t(`party.notifications.toggles.${tg.key}.label`) }}</span>
+              <span v-if="tg.hint" class="block text-xs text-muted-foreground">{{ t(`party.notifications.toggles.${tg.key}.hint`) }}</span>
             </span>
-            <Switch v-model="form[t.key]" />
+            <Switch v-model="form[tg.key]" />
           </label>
 
           <div v-if="form.reminder" class="flex items-center justify-between gap-4 pl-0">
-            <span id="reminder-label" class="text-sm text-muted-foreground">Quando lembrar</span>
+            <span id="reminder-label" class="text-sm text-muted-foreground">{{ t('party.notifications.reminderWhen') }}</span>
             <Select v-model="reminderValue">
               <SelectTrigger class="w-44" aria-labelledby="reminder-label">
                 <SelectValue />
@@ -211,17 +212,17 @@ async function remove() {
               :disabled="!!busy"
               @click="remove"
             >
-              <PhTrash /> Desligar
+              <PhTrash /> {{ t('party.notifications.off') }}
             </Button>
             <Button v-if="saved" type="button" variant="outline" :disabled="!!busy" @click="test">
               <PhCircleNotch v-if="busy === 'test'" class="animate-spin" />
               <PhPaperPlaneTilt v-else />
-              Enviar teste
+              {{ t('party.notifications.test') }}
             </Button>
           </div>
           <Button type="submit" :disabled="!urlOk || !!busy || loadFailed">
             <PhCircleNotch v-if="busy === 'save'" class="animate-spin" />
-            Salvar
+            {{ t('common.actions.save') }}
           </Button>
         </DialogFooter>
       </form>

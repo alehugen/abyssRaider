@@ -3,6 +3,7 @@ import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -57,12 +58,12 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
 <template>
   <div class="space-y-8">
     <header class="space-y-2">
-      <h1 class="font-display text-4xl leading-tight font-bold">Agenda</h1>
+      <h1 class="font-display text-4xl leading-tight font-bold">{{ t('scheduling.agenda.title') }}</h1>
       <p class="max-w-prose text-muted-foreground">
-        Próximas raids de todas as suas parties. Horários no {{ tzLabel() }}.
-        <template v-if="pendingAnswers">
-          Faltam <b class="font-semibold text-foreground">{{ pendingAnswers }}</b> confirmações suas.
-        </template>
+        {{ t('scheduling.agenda.intro', { tz: tzLabel() }) }}
+        <i18n-t v-if="pendingAnswers" keypath="scheduling.agenda.pending" tag="span" :plural="pendingAnswers">
+          <template #n><b class="font-semibold text-foreground">{{ pendingAnswers }}</b></template>
+        </i18n-t>
       </p>
     </header>
 
@@ -75,10 +76,10 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
     </div>
 
     <div v-else-if="!entries.length" class="space-y-3 rounded-2xl border border-dashed p-6 text-center">
-      <p class="font-medium">Nenhuma raid marcada nas suas parties.</p>
-      <p class="text-sm text-muted-foreground">Quando um líder agendar, ela aparece aqui para você confirmar presença.</p>
+      <p class="font-medium">{{ t('scheduling.agenda.empty') }}</p>
+      <p class="text-sm text-muted-foreground">{{ t('scheduling.agenda.emptyHint') }}</p>
       <Button variant="outline" as-child>
-        <RouterLink :to="{ name: 'find-parties' }">Buscar parties</RouterLink>
+        <RouterLink :to="{ name: 'find-parties' }">{{ t('scheduling.agenda.findParties') }}</RouterLink>
       </Button>
     </div>
 
@@ -103,7 +104,7 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
           <div class="min-w-0 flex-1">
             <p class="flex flex-wrap items-baseline gap-x-2">
               <span class="font-display text-xl font-semibold tabular-nums">{{ formatTime(entry.event.startsAt) }}</span>
-              <span class="text-xs text-muted-foreground">horário de Brasília</span>
+              <span class="text-xs text-muted-foreground">{{ tzLabel() }}</span>
               <RouterLink
                 :to="{ name: 'party', params: { id: entry.event.partyId } }"
                 class="truncate font-semibold hover:underline"
@@ -112,10 +113,16 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
               </RouterLink>
               <span class="text-sm text-muted-foreground">{{ formatRelative(entry.event.startsAt) }}</span>
             </p>
-            <p class="text-sm text-muted-foreground">
-              {{ entry.sanctuaryName }}, com <span class="text-faction-ink">{{ entry.myCharacterName }}</span>,
-              {{ rsvpCounts(entry.event).going }} confirmados
-            </p>
+            <i18n-t
+              keypath="scheduling.agenda.entryDetail"
+              tag="p"
+              class="text-sm text-muted-foreground"
+              :plural="rsvpCounts(entry.event).going"
+            >
+              <template #sanctuary>{{ entry.sanctuaryName }}</template>
+              <template #character><span class="text-faction-ink">{{ entry.myCharacterName }}</span></template>
+              <template #going>{{ rsvpCounts(entry.event).going }}</template>
+            </i18n-t>
             <p v-if="entry.event.note" class="mt-1 text-sm">{{ entry.event.note }}</p>
           </div>
           <div class="flex w-full flex-col items-end gap-1 sm:w-auto">

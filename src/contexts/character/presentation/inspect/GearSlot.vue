@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PhCircleNotch } from '@phosphor-icons/vue'
 import { ref, shallowRef, watch } from 'vue'
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/presentation/ui/popover'
@@ -67,14 +68,14 @@ watch(open, async (isOpen) => {
             {{ gear.name }} <span v-if="enchantLabel(gear)" class="whitespace-nowrap tabular-nums">{{ enchantLabel(gear) }}</span>
           </p>
           <p v-if="detail" class="text-xs text-muted-foreground">
-            {{ [detail.gradeName, detail.category, detail.level ? `nível ${detail.level}` : null].filter(Boolean).join(' · ') }}
-            <template v-if="detail.maxEnchantLevel"> · encantamento máx. +{{ detail.maxEnchantLevel }}</template>
+            {{ [detail.gradeName, detail.category, detail.level ? t('character.card.levelLower', { n: detail.level }) : null].filter(Boolean).join(' · ') }}
+            <template v-if="detail.maxEnchantLevel"> · {{ t('character.gear.maxEnchant', { n: detail.maxEnchantLevel }) }}</template>
           </p>
         </header>
 
         <p v-if="error" role="alert" class="text-destructive-ink">{{ error }}</p>
         <p v-else-if="!detail" class="flex items-center gap-2 text-muted-foreground">
-          <PhCircleNotch class="animate-spin" /> Carregando detalhes…
+          <PhCircleNotch class="animate-spin" /> {{ t('character.gear.loading') }}
         </p>
 
         <template v-else>
@@ -88,7 +89,7 @@ watch(open, async (isOpen) => {
           </dl>
 
           <section v-if="detail.subStats.length" class="border-t pt-3">
-            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">Atributos adicionais</h4>
+            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">{{ t('character.gear.subStats') }}</h4>
             <dl class="space-y-1">
               <div v-for="s in detail.subStats" :key="s.name" class="flex justify-between gap-3">
                 <dt>{{ s.name }}</dt>
@@ -98,17 +99,17 @@ watch(open, async (isOpen) => {
           </section>
 
           <section v-if="detail.skills.length" class="border-t pt-3">
-            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">Skills do item</h4>
+            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">{{ t('character.gear.skills') }}</h4>
             <ul class="space-y-1">
               <li v-for="k in detail.skills" :key="k.name" class="flex items-center gap-2">
                 <img v-if="k.icon" :src="k.icon" alt="" class="size-6 rounded" loading="lazy" />
-                {{ k.name }} <span class="text-muted-foreground">nv. {{ k.level }}</span>
+                {{ k.name }} <span class="text-muted-foreground">{{ t('character.gear.skillLevel', { n: k.level }) }}</span>
               </li>
             </ul>
           </section>
 
           <section v-if="detail.manastones.length" class="border-t pt-3">
-            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">Pedras de mana</h4>
+            <h4 class="mb-1 text-xs font-semibold text-muted-foreground">{{ t('character.gear.manastones') }}</h4>
             <ul class="space-y-1">
               <li
                 v-for="(m, i) in detail.manastones"

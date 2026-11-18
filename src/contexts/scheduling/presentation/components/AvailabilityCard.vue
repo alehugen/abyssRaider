@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PhClock, PhPencilSimple } from '@phosphor-icons/vue'
+import { t } from '@/shared/i18n'
 import { tzLabel } from '@/shared/lib/brasilia'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -16,19 +17,18 @@ void store.load()
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div class="min-w-0">
         <h2 id="availability-title" class="flex items-center gap-2 font-display text-xl font-semibold">
-          <PhClock class="text-muted-foreground" aria-hidden="true" /> Sua disponibilidade
+          <PhClock class="text-muted-foreground" aria-hidden="true" /> {{ t('scheduling.availability.title') }}
         </h2>
         <div v-if="!store.loaded && store.error" role="alert" class="mt-1 flex flex-wrap items-center gap-2 text-sm text-destructive-ink">
           {{ store.error }}
-          <Button variant="outline" size="sm" class="h-7" @click="store.load()">Tentar de novo</Button>
+          <Button variant="outline" size="sm" class="h-7" @click="store.load()">{{ t('common.actions.retry') }}</Button>
         </div>
         <div v-else-if="!store.loaded" class="mt-2 space-y-1.5" aria-busy="true">
           <Skeleton class="h-4 w-56" />
           <Skeleton class="h-4 w-40" />
         </div>
         <p v-else-if="!store.rows.length" class="mt-1 max-w-prose text-sm text-muted-foreground">
-          Diga quando você pode jogar. Com isso sugerimos o melhor horário para a party e mostramos as parties que
-          batem com a sua agenda.
+          {{ t('scheduling.availability.empty') }}
         </p>
         <ul v-else class="mt-1 space-y-0.5 text-sm">
           <li v-for="(row, i) in store.rows" :key="i" class="first-letter:uppercase">{{ formatRow(row) }}</li>
@@ -37,7 +37,7 @@ void store.load()
       </div>
       <AvailabilityDialog>
         <Button :variant="store.rows.length ? 'ghost' : 'default'" size="sm" :disabled="!store.loaded">
-          <PhPencilSimple /> {{ store.rows.length ? 'Editar' : 'Informar disponibilidade' }}
+          <PhPencilSimple /> {{ store.rows.length ? t('common.actions.edit') : t('scheduling.availability.provide') }}
         </Button>
       </AvailabilityDialog>
     </div>

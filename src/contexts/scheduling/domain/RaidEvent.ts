@@ -1,12 +1,10 @@
+import { t } from '@/shared/i18n'
 import { brasiliaDayKey } from '@/shared/lib/brasilia'
 
 export type RsvpStatus = 'going' | 'maybe' | 'declined'
 
-export const RSVP_LABEL: Record<RsvpStatus, string> = {
-  going: 'Vou',
-  maybe: 'Talvez',
-  declined: 'Não vou',
-}
+/** "Vou", "Talvez", "Não vou" no idioma da tela. */
+export const rsvpLabel = (status: RsvpStatus): string => t(`scheduling.rsvp.${status}`)
 
 export interface Rsvp {
   eventId: string

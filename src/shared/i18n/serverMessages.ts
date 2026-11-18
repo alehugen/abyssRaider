@@ -48,6 +48,11 @@ const ENTRIES: readonly Entry[] = [
   ],
   ['Esta raid já começou.', 'This raid has already started.', 'Esta raid ya empezó.'],
   ['Este jogador já tem um personagem nesta party.', 'This player already has a character in this party.', 'Este jugador ya tiene un personaje en esta party.'],
+  [
+    'Este personagem já está (ou já pediu para entrar) nesta party.',
+    'This character is already in (or already asked to join) this party.',
+    'Este personaje ya está (o ya pidió entrar) en esta party.',
+  ],
   ['Este personagem já está na party.', 'This character is already in the party.', 'Este personaje ya está en la party.'],
   ['Este santuário não está aberto.', "This sanctuary isn't open.", 'Este santuario no está abierto.'],
   ['Faixas demais: no máximo 42 por semana.', 'Too many time ranges: at most 42 per week.', 'Demasiadas franjas: como máximo 42 por semana.'],
@@ -111,6 +116,13 @@ const ENTRIES: readonly Entry[] = [
 
   // ---- front (DomainError) ----
   ['Faça login para gerenciar personagens.', 'Sign in to manage characters.', 'Inicia sesión para gestionar personajes.'],
+  [
+    'Este personagem já está vinculado a outra conta.',
+    'This character is already linked to another account.',
+    'Este personaje ya está vinculado a otra cuenta.',
+  ],
+  ['Personagem não encontrado na API do Aion.', 'Character not found in the Aion API.', 'Personaje no encontrado en la API de Aion.'],
+  ['Erro % ao consultar o Aion', 'Error % querying Aion', 'Error % al consultar Aion'],
   ['Essa não é uma URL de webhook do Discord.', "That isn't a Discord webhook URL.", 'Esa no es una URL de webhook de Discord.'],
   ['Não foi possível cancelar: recarregue a página.', "Couldn't cancel: reload the page.", 'No se pudo cancelar: recarga la página.'],
   [

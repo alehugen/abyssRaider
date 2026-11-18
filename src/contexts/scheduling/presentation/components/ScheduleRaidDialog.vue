@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PhCalendarPlus, PhCheck, PhCircleNotch, PhLightbulb, PhPlus, PhX } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
+import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
 import {
   Dialog,
@@ -53,8 +54,8 @@ const full = computed(() => dates.value.length >= MAX_SCHEDULE_DATES)
 const manual = computed(() => fromBrasiliaInputValue(when.value))
 const manualProblem = computed(() => {
   if (!manual.value) return null
-  if (manual.value.getTime() < Date.now()) return 'Esse horário já passou.'
-  if (hasDate(dates.value, manual.value)) return 'Essa data já está na lista.'
+  if (manual.value.getTime() < Date.now()) return t('scheduling.scheduleDialog.pastTime')
+  if (hasDate(dates.value, manual.value)) return t('scheduling.scheduleDialog.duplicate')
   return null
 })
 
@@ -76,7 +77,7 @@ function remove(date: Date) {
 function submit() {
   if (!dates.value.length) return
   if (dates.value.some((d) => d.getTime() < Date.now())) {
-    error.value = 'Uma das datas já passou. Remova e escolha outra.'
+    error.value = t('scheduling.scheduleDialog.pastDate')
     return
   }
   emit('schedule', [...dates.value], note.value.trim() || null)
@@ -97,22 +98,22 @@ defineExpose({ close })
     <DialogTrigger as-child>
       <Button size="sm">
         <PhCalendarPlus />
-        Agendar raid
+        {{ t('scheduling.scheduleDialog.trigger') }}
       </Button>
     </DialogTrigger>
 
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle class="font-display text-2xl">Agendar raids da semana</DialogTitle>
+        <DialogTitle class="font-display text-2xl">{{ t('scheduling.scheduleDialog.title') }}</DialogTitle>
         <DialogDescription>
-          Escolha um ou mais dias; cada raid tem a sua confirmação de presença. Horários no {{ tzLabel() }}.
+          {{ t('scheduling.scheduleDialog.description', { tz: tzLabel() }) }}
         </DialogDescription>
       </DialogHeader>
 
       <form class="space-y-5" @submit.prevent="submit">
         <fieldset v-if="options?.length" class="space-y-1.5">
           <legend class="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
-            <PhLightbulb class="text-warning-ink" aria-hidden="true" /> Melhores horários do grupo
+            <PhLightbulb class="text-warning-ink" aria-hidden="true" /> {{ t('scheduling.scheduleDialog.bestTimes') }}
           </legend>
           <div class="flex flex-wrap gap-1.5">
             <Button
@@ -149,7 +150,7 @@ defineExpose({ close })
 
         <div class="space-y-1.5">
           <label for="schedule-when" class="text-sm font-medium">
-            {{ options?.length ? 'Outro dia' : 'Data e hora' }}
+            {{ options?.length ? t('scheduling.scheduleDialog.otherDay') : t('scheduling.scheduleDialog.dateTime') }}
             <span class="font-normal text-muted-foreground">({{ tzLabel() }})</span>
           </label>
           <div class="flex gap-2">
@@ -158,11 +159,11 @@ defineExpose({ close })
               type="button"
               variant="outline"
               class="flex-none"
-              aria-label="Adicionar data"
+              :aria-label="t('scheduling.scheduleDialog.addDate')"
               :disabled="!manual || !!manualProblem || full"
               @click="addManual"
             >
-              <PhPlus /> <span class="max-sm:hidden">Adicionar</span>
+              <PhPlus /> <span class="max-sm:hidden">{{ t('scheduling.scheduleDialog.add') }}</span>
             </Button>
           </div>
           <p v-if="manualProblem" class="text-[13px] text-warning-ink">{{ manualProblem }}</p>
@@ -170,10 +171,10 @@ defineExpose({ close })
 
         <section aria-labelledby="schedule-list-title" class="space-y-1.5">
           <h3 id="schedule-list-title" class="text-sm font-medium">
-            Raids a agendar <span class="font-normal text-muted-foreground tabular-nums">({{ dates.length }})</span>
+            {{ t('scheduling.scheduleDialog.toSchedule') }} <span class="font-normal text-muted-foreground tabular-nums">({{ dates.length }})</span>
           </h3>
           <p v-if="!dates.length" class="rounded-lg border border-dashed px-3 py-2.5 text-sm text-muted-foreground">
-            Nenhuma data escolhida. Marque uma sugestão ou adicione um dia.
+            {{ t('scheduling.scheduleDialog.noDates') }}
           </p>
           <ul v-else class="divide-y rounded-lg border">
             <li v-for="d in dates" :key="d.getTime()" class="flex items-center justify-between gap-2 py-1.5 pr-1.5 pl-3 text-sm">
@@ -185,28 +186,28 @@ defineExpose({ close })
                 size="icon"
                 variant="ghost"
                 class="size-8 text-muted-foreground hover:text-destructive-ink"
-                :aria-label="`Tirar ${formatFullDay(d)} às ${formatTime(d)}`"
+                :aria-label="t('scheduling.scheduleDialog.removeDate', { day: formatFullDay(d), time: formatTime(d) })"
                 @click="remove(d)"
               >
                 <PhX />
               </Button>
             </li>
           </ul>
-          <p v-if="full" class="text-[13px] text-muted-foreground">Até {{ MAX_SCHEDULE_DATES }} raids por vez.</p>
+          <p v-if="full" class="text-[13px] text-muted-foreground">{{ t('scheduling.scheduleDialog.max', { n: MAX_SCHEDULE_DATES }) }}</p>
         </section>
 
         <label class="block space-y-1.5">
-          <span class="text-sm font-medium">Recado <span class="font-normal text-muted-foreground">(opcional, vale para todas)</span></span>
-          <Input v-model="note" maxlength="200" placeholder="Ex.: chegar 15 min antes, levar poções" />
+          <span class="text-sm font-medium">{{ t('scheduling.scheduleDialog.note') }} <span class="font-normal text-muted-foreground">{{ t('scheduling.scheduleDialog.noteHint') }}</span></span>
+          <Input v-model="note" maxlength="200" :placeholder="t('scheduling.scheduleDialog.notePlaceholder')" />
         </label>
 
         <p v-if="error" role="alert" class="text-sm text-destructive-ink">{{ error }}</p>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>
+          <Button type="button" variant="ghost" @click="open = false">{{ t('common.actions.cancel') }}</Button>
           <Button type="submit" :disabled="!dates.length || busy">
             <PhCircleNotch v-if="busy" class="animate-spin" />
-            {{ dates.length > 1 ? `Agendar ${dates.length} raids` : 'Agendar' }}
+            {{ t('scheduling.scheduleDialog.submit', dates.length) }}
           </Button>
         </DialogFooter>
       </form>

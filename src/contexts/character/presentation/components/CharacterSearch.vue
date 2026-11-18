@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { PhCheck, PhCircleNotch, PhLink, PhLock, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { t } from '@/shared/i18n'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/presentation/ui/tooltip'
 import { computed, ref } from 'vue'
@@ -38,9 +39,7 @@ const byFaction = computed(() => ({
   elyos: servers.value.filter((s) => s.faction === 'elyos'),
   asmodian: servers.value.filter((s) => s.faction === 'asmodian'),
 }))
-const resultCount = computed(() =>
-  results.value.length === 1 ? '1 personagem encontrado' : `${results.value.length} personagens encontrados`,
-)
+const resultCount = computed(() => t('character.search.found', results.value.length))
 
 /** Erro ao vincular (já vinculado por outro, limite de 12, API fora...), mostrado aqui mesmo. */
 const linkError = ref<string | null>(null)
@@ -48,7 +47,7 @@ const linkError = ref<string | null>(null)
 async function link(c: CharacterSummary) {
   linkError.value = null
   const ok = await characters.link({ region: c.region, serverId: c.serverId, id: c.id })
-  if (!ok) linkError.value = characters.error ?? 'Não foi possível vincular. Tente de novo.'
+  if (!ok) linkError.value = characters.error ?? t('character.search.linkFailed')
 }
 </script>
 
@@ -56,13 +55,11 @@ async function link(c: CharacterSummary) {
   <section
     :class="embedded ? '' : 'rounded-2xl border bg-card/60 p-4 sm:p-6'"
     :aria-labelledby="embedded ? undefined : 'search-title'"
-    :aria-label="embedded ? 'Buscar personagem' : undefined"
+    :aria-label="embedded ? t('character.search.ariaLabel') : undefined"
   >
     <div v-if="!embedded" class="max-w-prose">
-      <h2 id="search-title" class="font-display text-2xl font-semibold">Vincular personagem</h2>
-      <p class="mt-1 text-sm text-muted-foreground">
-        Escolha a região e digite o nome como aparece no jogo. Os dados vêm do site oficial do Aion 2.
-      </p>
+      <h2 id="search-title" class="font-display text-2xl font-semibold">{{ t('character.search.title') }}</h2>
+      <p class="mt-1 text-sm text-muted-foreground">{{ t('character.search.hint') }}</p>
     </div>
 
     <form
@@ -72,7 +69,7 @@ async function link(c: CharacterSummary) {
       @submit.prevent="search"
     >
       <Select v-model="regionValue">
-        <SelectTrigger class="w-full bg-background" aria-label="Região">
+        <SelectTrigger class="w-full bg-background" :aria-label="t('character.search.region')">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -81,11 +78,11 @@ async function link(c: CharacterSummary) {
       </Select>
 
       <Select v-model="serverValue">
-        <SelectTrigger class="w-full bg-background" aria-label="Servidor">
-          <SelectValue placeholder="Todos os servidores" />
+        <SelectTrigger class="w-full bg-background" :aria-label="t('character.search.server')">
+          <SelectValue :placeholder="t('character.search.allServers')" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem :value="ALL">Todos os servidores</SelectItem>
+          <SelectItem :value="ALL">{{ t('character.search.allServers') }}</SelectItem>
           <SelectGroup v-if="byFaction.elyos.length">
             <SelectLabel>Elyos</SelectLabel>
             <SelectItem v-for="s in byFaction.elyos" :key="s.id" :value="String(s.id)">{{ s.name }}</SelectItem>
@@ -100,8 +97,8 @@ async function link(c: CharacterSummary) {
       <Input
         v-model="name"
         class="bg-background"
-        placeholder="Nome do personagem"
-        aria-label="Nome do personagem"
+        :placeholder="t('character.search.namePlaceholder')"
+        :aria-label="t('character.search.namePlaceholder')"
         maxlength="32"
         autocomplete="off"
       />
@@ -109,7 +106,7 @@ async function link(c: CharacterSummary) {
       <Button type="submit" :disabled="searching">
         <PhCircleNotch v-if="searching" class="animate-spin" />
         <PhMagnifyingGlass v-else />
-        Buscar
+        {{ t('character.search.submit') }}
       </Button>
     </form>
 
@@ -132,7 +129,7 @@ async function link(c: CharacterSummary) {
 
     <template v-else-if="searched">
       <p v-if="!results.length" class="mt-4 text-sm text-muted-foreground">
-        Nenhum personagem com esse nome em {{ REGION_LABEL[region] }}. Confira a grafia ou troque a região.
+        {{ t('character.search.noResults', { region: REGION_LABEL[region] }) }}
       </p>
       <template v-else>
         <p class="mt-5 text-xs text-muted-foreground" aria-live="polite">{{ resultCount }}</p>
@@ -144,7 +141,7 @@ async function link(c: CharacterSummary) {
                   v-if="characters.linkedKeys.has(characterKey(c))"
                   class="flex items-center gap-1.5 px-3 text-sm font-medium text-success-ink"
                 >
-                  <PhCheck weight="bold" /> Vinculado
+                  <PhCheck weight="bold" /> {{ t('character.search.linked') }}
                 </span>
                 <Tooltip v-else-if="claimedByOther(c)">
                   <TooltipTrigger as-child>
@@ -152,11 +149,11 @@ async function link(c: CharacterSummary) {
                       tabindex="0"
                       class="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-muted-foreground"
                     >
-                      <PhLock weight="bold" /> Já vinculado
+                      <PhLock weight="bold" /> {{ t('character.search.claimed') }}
                     </span>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-60">
-                    Este personagem já está vinculado a outra conta do AbyssRaider.
+                    {{ t('character.search.claimedHint') }}
                   </TooltipContent>
                 </Tooltip>
                 <Button
@@ -168,7 +165,7 @@ async function link(c: CharacterSummary) {
                 >
                   <PhCircleNotch v-if="characters.isPending(characterKey(c))" class="animate-spin" />
                   <PhLink v-else />
-                  Vincular
+                  {{ t('character.search.link') }}
                 </Button>
               </template>
             </CharacterCard>

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Input } from '@/shared/presentation/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/shared/presentation/ui/toggle-group'
+import { t } from '@/shared/i18n'
 import { tzLabel } from '@/shared/lib/brasilia'
 import { normalizeSlots, WEEKDAYS, type RoutineSlot } from '../../domain/RaidRoutine'
 
@@ -28,7 +29,7 @@ function setTime(day: number, time: string) {
 
 <template>
   <div class="space-y-3">
-    <ToggleGroup v-model="days" type="multiple" variant="outline" class="grid w-full grid-cols-7" aria-label="Dias da semana">
+    <ToggleGroup v-model="days" type="multiple" variant="outline" class="grid w-full grid-cols-7" :aria-label="t('party.routineEditor.days')">
       <ToggleGroupItem
         v-for="d in WEEKDAYS"
         :key="d.value"
@@ -51,7 +52,7 @@ function setTime(day: number, time: string) {
           type="time"
           required
           class="h-8 w-28"
-          :aria-label="`Horário de ${WEEKDAYS[s.day]!.long} (${tzLabel()})`"
+          :aria-label="t('party.routineEditor.timeOf', { day: WEEKDAYS[s.day]!.long, tz: tzLabel() })"
           @update:model-value="setTime(s.day, String($event))"
         />
       </li>

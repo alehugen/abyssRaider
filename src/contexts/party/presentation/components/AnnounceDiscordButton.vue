@@ -2,6 +2,7 @@
 import { PhCircleNotch, PhMegaphone } from '@phosphor-icons/vue'
 import { ref } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
@@ -16,11 +17,9 @@ const message = ref<{ ok: boolean; text: string } | null>(null)
 async function announce() {
   const n = props.invitedCount
   const ok = await confirm({
-    title: 'Avisar no canal do Discord?',
-    description: n
-      ? `A party vai ser postada no canal configurado em "Avisos no Discord", marcando ${n === 1 ? 'o convidado que ainda não respondeu' : `os ${n} convidados que ainda não responderam`}.`
-      : 'A party vai ser postada no canal configurado em "Avisos no Discord". Nenhum convite está pendente, então ninguém será marcado.',
-    confirmText: 'Avisar',
+    title: t('party.announce.confirmTitle'),
+    description: n ? t('party.announce.confirmMentions', n) : t('party.announce.confirmNoMentions'),
+    confirmText: t('party.announce.confirm'),
   })
   if (!ok) return
   busy.value = true
@@ -29,7 +28,7 @@ async function announce() {
     const marked = await repo.announce(props.partyId)
     message.value = {
       ok: true,
-      text: marked ? `Aviso enviado, ${marked} ${marked === 1 ? 'convidado marcado' : 'convidados marcados'}.` : 'Aviso enviado.',
+      text: marked ? t('party.announce.sentMarked', marked) : t('party.announce.sent'),
     }
   } catch (e) {
     message.value = { ok: false, text: errorMessage(e) }
@@ -51,7 +50,7 @@ async function announce() {
     <Button size="sm" variant="outline" :disabled="busy" @click="announce">
       <PhCircleNotch v-if="busy" class="animate-spin" />
       <PhMegaphone v-else />
-      Avisar no Discord
+      {{ t('party.announce.button') }}
     </Button>
   </div>
 </template>

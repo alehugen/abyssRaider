@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { PhDiscordLogo } from '@phosphor-icons/vue'
 import { ref } from 'vue'
+import { t } from '@/shared/i18n'
 import { Button, type ButtonVariants } from '@/shared/presentation/ui/button'
 import { useAuthStore } from '../useAuthStore'
 
+/** `label` padrão: "Entrar com Discord" (traduzido no render). */
 const props = withDefaults(defineProps<{ next?: string; size?: ButtonVariants['size']; label?: string }>(), {
   next: '/',
   size: 'default',
-  label: 'Entrar com Discord',
 })
 
 const auth = useAuthStore()
@@ -29,6 +30,6 @@ async function login() {
     @click="login"
   >
     <PhDiscordLogo weight="fill" :size="size === 'lg' ? 20 : 16" />
-    {{ redirecting ? 'Redirecionando…' : label }}
+    {{ redirecting ? t('identity.login.redirecting') : (label ?? t('identity.login.discord')) }}
   </Button>
 </template>

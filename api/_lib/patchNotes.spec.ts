@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { cleanTitle, discordEmbed, normalizeSummary, parsePatchHtml, type PatchNote } from './patchNotes.js'
+import {
+  boardUrl,
+  cleanTitle,
+  discordEmbed,
+  normalizeSummary,
+  parsePatchHtml,
+  parsePatchLang,
+  viewUrl,
+  type PatchNote,
+} from './patchNotes.js'
 
 const t = (s: string) => `<div data-contents-type="text">${s}</div>`
 
@@ -104,5 +113,37 @@ describe('patch notes (HTML do site oficial)', () => {
       url: 'https://aion2.plaync.com/pt-br/board/update/view?articleId=6af42e16d33ba31396c0925e',
       imageUrl: 'https://cdn/lg/file/AION/download/abc',
     })
+  })
+
+  it('escolhe o quadro e o link do site pelo idioma (padrão: português)', () => {
+    expect(boardUrl()).toBe('https://api-global-community.plaync.com/aion2_global/board/update_pt/article')
+    expect(boardUrl('en')).toContain('/board/update_en/article')
+    expect(boardUrl('es')).toContain('/board/update_es/article')
+    expect(viewUrl('en')).toBe('https://aion2.plaync.com/en-us/board/update/view?articleId=')
+    expect(viewUrl('es')).toBe('https://aion2.plaync.com/es-es/board/update/view?articleId=')
+    expect(parsePatchLang('es')).toBe('es')
+    expect(parsePatchLang('fr')).toBe('pt-BR')
+    expect(parsePatchLang(null)).toBe('pt-BR')
+    expect(normalizeSummary({ id: 'abc', title: '[Notice] Patch Notes | Nov. 11' }, 'en')).toMatchObject({
+      title: 'Patch Notes | Nov. 11',
+      url: 'https://aion2.plaync.com/en-us/board/update/view?articleId=abc',
+    })
+  })
+
+  it('ignora o ruído também em inglês e espanhol', () => {
+    const html = [
+      t('<strong>Hello, this is AION 2.</strong>'),
+      t('<strong>[Promotion]</strong>'),
+      '<ul><li>' + t('(Wings Skin) Cat Wings') + '<ul><li>' + t('Product Content Details') + '</li></ul></li></ul>',
+      '<ul><li>' + t('(Apariencia de alas) Alas de gato') + '<ul><li>' + t('Detalles del contenido del producto') + '</li></ul></li></ul>',
+      t('Thank you and see you in-game!'),
+      t('Gracias.'),
+    ].join('')
+    const [promo] = parsePatchHtml(html)
+    expect(promo!.title).toBe('Promotion')
+    expect(promo!.groups[0]!.items).toEqual([
+      { text: '(Wings Skin) Cat Wings', children: [] },
+      { text: '(Apariencia de alas) Alas de gato', children: [] },
+    ])
   })
 })

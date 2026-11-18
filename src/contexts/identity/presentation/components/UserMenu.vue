@@ -2,6 +2,7 @@
 import { PhCaretDown, PhSignOut, PhSword } from '@phosphor-icons/vue'
 import { useRouter } from 'vue-router'
 import { userInitials } from '@/contexts/identity/domain/User'
+import { t } from '@/shared/i18n'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/presentation/ui/avatar'
 import { Button } from '@/shared/presentation/ui/button'
 import {
@@ -26,7 +27,7 @@ async function signOut() {
 <template>
   <DropdownMenu v-if="auth.user">
     <DropdownMenuTrigger as-child>
-      <Button variant="ghost" class="h-9 gap-2 px-1.5" :aria-label="`Conta de ${auth.user.displayName}`">
+      <Button variant="ghost" class="h-9 gap-2 px-1.5" :aria-label="t('identity.menu.account', { name: auth.user.displayName })">
         <Avatar class="size-7">
           <AvatarImage v-if="auth.user.avatarUrl" :src="auth.user.avatarUrl" :alt="auth.user.displayName" />
           <AvatarFallback class="text-xs font-semibold">{{ userInitials(auth.user) }}</AvatarFallback>
@@ -40,12 +41,12 @@ async function signOut() {
       <DropdownMenuSeparator />
       <DropdownMenuItem @select="router.push('/me')">
         <PhSword />
-        Meus personagens
+        {{ t('identity.menu.myCharacters') }}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" @select="signOut">
         <PhSignOut />
-        Sair
+        {{ t('identity.menu.signOut') }}
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

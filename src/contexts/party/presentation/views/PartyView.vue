@@ -28,6 +28,7 @@ import PartyBestTime from '@/contexts/scheduling/presentation/components/PartyBe
 import { usePartyAvailability } from '@/contexts/scheduling/presentation/usePartyAvailability'
 import { nextSlotStart } from '@/contexts/scheduling/domain/Availability'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
+import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
@@ -113,11 +114,11 @@ const {
 } = useSlotDrag({ total: () => roster.value.length * GROUP_SIZE, onDrop: (a, b) => void moveMember(a, b) })
 
 const dragged = computed(() => (dragFrom.value != null ? (roster.value.flat()[dragFrom.value] ?? null) : null))
-const slotName = (i: number) => `grupo ${Math.floor(i / GROUP_SIZE) + 1}, vaga ${(i % GROUP_SIZE) + 1}`
+const slotName = (i: number) => t('party.view.slotName', { group: Math.floor(i / GROUP_SIZE) + 1, slot: (i % GROUP_SIZE) + 1 })
 /** Anúncio para leitor de tela no modo teclado. */
 const dragStatus = computed(() =>
   dragMode.value === 'keyboard' && dragged.value && dragOver.value != null
-    ? `Movendo ${dragged.value.linked.character.name} para ${slotName(dragOver.value)}. Enter solta, Esc cancela.`
+    ? t('party.view.dragStatus', { name: dragged.value.linked.character.name, slot: slotName(dragOver.value) })
     : '',
 )
 const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
@@ -126,14 +127,14 @@ const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanct
 const availability = usePartyAvailability(() => p.accepted.value)
 const scheduleOptions = computed(() =>
   availability.bestPerDay.value
-    .map((s) => ({ date: nextSlotStart(s), detail: `${s.people.length} de ${p.accepted.value.length} livres` }))
+    .map((s) => ({ date: nextSlotStart(s), detail: t('party.view.freeOf', { free: s.people.length, total: p.accepted.value.length }) }))
     .sort((a, b) => a.date.getTime() - b.date.getTime()),
 )
 
 const full = computed(() => !!party.value && p.accepted.value.length >= party.value.sanctuary.groupSize)
 
 function roleLabel(m: PartyMember): string {
-  if (party.value && m.linked.linkId === party.value.leaderCharacterLinkId) return 'Líder'
+  if (party.value && m.linked.linkId === party.value.leaderCharacterLinkId) return t('party.view.leader')
   const role = assigned.value.get(m.id)
   const label = role ? ROLE_LABEL[role] : ''
   return label.charAt(0).toUpperCase() + label.slice(1)
@@ -166,16 +167,16 @@ async function copyLink() {
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
   } catch {
-    window.prompt('Copie o link da party:', url.toString())
+    window.prompt(t('party.view.copyPrompt'), url.toString())
   }
 }
 
 async function deleteParty() {
   if (!party.value) return
   const ok = await confirm({
-    title: `Excluir ${party.value.name}?`,
-    description: 'Todos os membros saem dela e a agenda de raids é apagada. Não dá para desfazer.',
-    confirmText: 'Excluir party',
+    title: t('party.view.deleteTitle', { name: party.value.name }),
+    description: t('party.view.deleteDescription'),
+    confirmText: t('party.view.deleteConfirm'),
     destructive: true,
   })
   if (!ok) return
@@ -187,10 +188,9 @@ const finishedLabel = computed(() => (party.value?.finishedAt ? formatFullDay(pa
 async function finishParty() {
   if (!party.value) return
   const ok = await confirm({
-    title: `Finalizar ${party.value.name}?`,
-    description:
-      'A party vira histórico: não recebe mais pedidos, convites nem raids, e as raids futuras são canceladas. Para jogar de novo, use "Criar de novo".',
-    confirmText: 'Finalizar party',
+    title: t('party.view.finishTitle', { name: party.value.name }),
+    description: t('party.view.finishDescription'),
+    confirmText: t('party.view.finishConfirm'),
   })
   if (ok) await p.finishParty()
 }
@@ -201,10 +201,10 @@ async function leave() {
   const pending = m.status === 'pending'
   const invited = m.status === 'invited'
   const ok = await confirm({
-    title: invited ? 'Recusar o convite?' : pending ? 'Cancelar seu pedido?' : 'Sair desta party?',
-    description: pending || invited ? undefined : 'Para voltar, você vai precisar pedir vaga de novo.',
-    confirmText: invited ? 'Recusar convite' : pending ? 'Cancelar pedido' : 'Sair',
-    cancelText: 'Voltar',
+    title: invited ? t('party.view.leave.declineTitle') : pending ? t('party.view.leave.cancelTitle') : t('party.view.leave.leaveTitle'),
+    description: pending || invited ? undefined : t('party.view.leave.leaveDescription'),
+    confirmText: invited ? t('party.view.leave.decline') : pending ? t('party.view.leave.cancel') : t('party.view.leave.leave'),
+    cancelText: t('common.actions.back'),
     destructive: !pending,
   })
   if (ok) await p.removeMember(m.id)
@@ -212,9 +212,9 @@ async function leave() {
 
 async function removeMember(m: PartyMember) {
   const ok = await confirm({
-    title: `Remover ${m.linked.character.name}?`,
-    description: `${m.ownerName} sai da party e das confirmações de presença.`,
-    confirmText: 'Remover',
+    title: t('party.view.removeTitle', { name: m.linked.character.name }),
+    description: t('party.view.removeDescription', { owner: m.ownerName }),
+    confirmText: t('party.view.remove'),
     destructive: true,
   })
   if (ok) void p.removeMember(m.id)
@@ -227,7 +227,7 @@ async function removeMember(m: PartyMember) {
       :to="{ name: 'parties' }"
       class="inline-flex items-center gap-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground"
     >
-      <PhArrowLeft /> Parties
+      <PhArrowLeft /> {{ t('party.list.title') }}
     </RouterLink>
 
     <div v-if="p.loading.value" class="space-y-4">
@@ -236,7 +236,7 @@ async function removeMember(m: PartyMember) {
     </div>
 
     <p v-else-if="p.notFound.value" class="text-muted-foreground">
-      Esta party não existe mais. O líder pode ter excluído.
+      {{ t('party.view.notFound') }}
     </p>
 
     <!-- Falhou ao carregar (rede, sessão): antes a tela ficava em branco. -->
@@ -244,7 +244,7 @@ async function removeMember(m: PartyMember) {
       <p class="flex items-center gap-2 text-sm text-destructive-ink">
         <PhWarningCircle :size="18" aria-hidden="true" /> {{ p.error.value }}
       </p>
-      <Button variant="outline" size="sm" @click="p.load()">Tentar de novo</Button>
+      <Button variant="outline" size="sm" @click="p.load()">{{ t('common.actions.retry') }}</Button>
     </div>
 
     <template v-else-if="party">
@@ -266,7 +266,7 @@ async function removeMember(m: PartyMember) {
       <header :class="cn(`faction-${party.faction}`, 'flex flex-wrap items-end justify-between gap-4')">
         <div class="min-w-0">
           <form v-if="editingName" class="flex flex-wrap items-center gap-2" @submit.prevent="saveName">
-            <label for="party-name" class="sr-only">Nome da party</label>
+            <label for="party-name" class="sr-only">{{ t('party.view.nameLabel') }}</label>
             <Input
               id="party-name"
               v-model="draftName"
@@ -277,9 +277,9 @@ async function removeMember(m: PartyMember) {
               @keydown.esc="editingName = false"
             />
             <Button type="submit" size="sm" :disabled="!nameValid || !!p.busy.value">
-              <PhCheck /> Salvar
+              <PhCheck /> {{ t('common.actions.save') }}
             </Button>
-            <Button type="button" size="sm" variant="ghost" @click="editingName = false">Cancelar</Button>
+            <Button type="button" size="sm" variant="ghost" @click="editingName = false">{{ t('common.actions.cancel') }}</Button>
           </form>
           <div v-else class="flex items-center gap-1">
             <h1 class="font-display text-4xl leading-none font-bold break-words">{{ party.name }}</h1>
@@ -288,16 +288,15 @@ async function removeMember(m: PartyMember) {
               size="icon"
               variant="ghost"
               class="size-8 flex-none text-muted-foreground"
-              aria-label="Renomear party"
-              title="Renomear party"
+              :aria-label="t('party.view.rename')"
+              :title="t('party.view.rename')"
               @click="startRename"
             >
               <PhPencilSimple />
             </Button>
           </div>
           <p class="mt-2 text-muted-foreground">
-            {{ party.sanctuary.name }}, Elyos e Asmodian,
-            {{ REGION_LABEL[party.region] }}
+            {{ t('party.view.subtitle', { sanctuary: party.sanctuary.name, region: REGION_LABEL[party.region] }) }}
           </p>
           <p v-if="party.routine" class="mt-1 flex items-center gap-1.5 text-sm">
             <PhCalendarDots class="text-muted-foreground" aria-hidden="true" />
@@ -308,19 +307,19 @@ async function removeMember(m: PartyMember) {
           <Button variant="outline" @click="copyLink">
             <PhCheck v-if="copied" />
             <PhLink v-else />
-            {{ copied ? 'Link copiado' : 'Copiar link da party' }}
+            {{ copied ? t('party.view.linkCopied') : t('party.view.copyLink') }}
           </Button>
           <Button v-if="p.canManage.value" variant="outline" :disabled="!!p.busy.value" @click="finishParty">
-            <PhFlagCheckered /> Finalizar
+            <PhFlagCheckered /> {{ t('party.view.finish') }}
           </Button>
           <CreatePartyDialog
             v-if="p.isLeader.value && p.finished.value"
             :prefill="{ name: party.name, sanctuaryId: party.sanctuary.id, routine: party.routine }"
           >
-            <Button><PhArrowCounterClockwise /> Criar de novo</Button>
+            <Button><PhArrowCounterClockwise /> {{ t('party.list.createAgain') }}</Button>
           </CreatePartyDialog>
           <PartyNotificationsDialog v-if="p.canManage.value" :party-id="party.id">
-            <Button variant="outline"><PhDiscordLogo /> Avisos no Discord</Button>
+            <Button variant="outline"><PhDiscordLogo /> {{ t('party.notifications.title') }}</Button>
           </PartyNotificationsDialog>
           <Button
             v-if="p.isLeader.value"
@@ -329,7 +328,7 @@ async function removeMember(m: PartyMember) {
             :disabled="!!p.busy.value"
             @click="deleteParty"
           >
-            <PhTrash /> Excluir
+            <PhTrash /> {{ t('common.actions.delete') }}
           </Button>
           <Button
             v-else-if="!p.finished.value && p.myMembership.value && p.myMembership.value.status !== 'declined'"
@@ -338,7 +337,13 @@ async function removeMember(m: PartyMember) {
             @click="leave"
           >
             <PhSignOut />
-            {{ { pending: 'Cancelar pedido', invited: 'Recusar convite' }[p.myMembership.value.status as string] ?? 'Sair' }}
+            {{
+              p.myMembership.value.status === 'pending'
+                ? t('party.view.leave.cancel')
+                : p.myMembership.value.status === 'invited'
+                  ? t('party.view.leave.decline')
+                  : t('party.view.leave.leave')
+            }}
           </Button>
         </div>
       </header>
@@ -350,8 +355,12 @@ async function removeMember(m: PartyMember) {
       >
         <PhFlagCheckered :size="18" class="text-muted-foreground" aria-hidden="true" />
         <span class="flex-1">
-          <b class="font-semibold">Party finalizada</b> em {{ finishedLabel }}. Fica aqui como histórico: formação, raids e
-          quem confirmou presença.
+          <i18n-t keypath="party.view.finishedBanner" tag="span">
+            <template #finished>
+              <b class="font-semibold">{{ t('party.view.finishedTag') }}</b>
+            </template>
+            <template #date>{{ finishedLabel }}</template>
+          </i18n-t>
         </span>
       </div>
 
@@ -367,14 +376,20 @@ async function removeMember(m: PartyMember) {
       >
         <PhEnvelopeOpen :size="22" class="flex-none text-faction-ink" aria-hidden="true" />
         <p class="min-w-0 flex-1">
-          <span class="font-semibold">Você foi convidado</span> para esta party com
-          <span class="font-semibold">{{ p.myMembership.value.linked.character.name }}</span>.
+          <i18n-t keypath="party.view.invitedBanner" tag="span">
+            <template #invited>
+              <span class="font-semibold">{{ t('party.view.invitedTag') }}</span>
+            </template>
+            <template #name>
+              <span class="font-semibold">{{ p.myMembership.value.linked.character.name }}</span>
+            </template>
+          </i18n-t>
         </p>
         <div class="flex gap-2">
-          <Button variant="ghost" :disabled="!!p.busy.value" @click="leave">Recusar</Button>
+          <Button variant="ghost" :disabled="!!p.busy.value" @click="leave">{{ t('party.view.declineShort') }}</Button>
           <Button :disabled="!!p.busy.value || full" @click="p.acceptInvite(p.myMembership.value.id)">
             <PhCircleNotch v-if="p.busy.value === p.myMembership.value.id" class="animate-spin" />
-            Aceitar convite
+            {{ t('party.view.acceptInvite') }}
           </Button>
         </div>
       </div>
@@ -383,7 +398,7 @@ async function removeMember(m: PartyMember) {
       <section aria-labelledby="roster-title" class="space-y-4">
         <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
           <h2 id="roster-title" class="font-display text-2xl font-semibold">
-            Formação
+            {{ t('party.view.roster') }}
             <span class="ml-1 text-muted-foreground tabular-nums">{{ p.accepted.value.length }}/{{ party.sanctuary.groupSize }}</span>
           </h2>
           <dl class="flex flex-wrap gap-x-5 gap-y-1 text-sm">
@@ -395,8 +410,9 @@ async function removeMember(m: PartyMember) {
         </div>
 
         <p v-if="p.canManage.value && p.accepted.value.length > 1" class="-mt-2 text-[13px] text-muted-foreground">
-          Arraste um jogador para trocar de lugar ou de grupo. No celular, segure o dedo sobre ele e arraste (ou use a
-          alça <PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" />).
+          <i18n-t keypath="party.view.dragHint" tag="span">
+            <template #handle><PhDotsSixVertical class="inline align-[-2px]" aria-hidden="true" /></template>
+          </i18n-t>
         </p>
         <p class="sr-only" aria-live="assertive">{{ dragStatus }}</p>
 
@@ -406,7 +422,7 @@ async function removeMember(m: PartyMember) {
             :key="gi"
             :class="cn(`faction-${party.faction}`, 'rounded-2xl border bg-card/60 px-4 py-2')"
           >
-            <h3 class="pt-2 pb-1 text-sm font-medium text-muted-foreground">Grupo {{ gi + 1 }}</h3>
+            <h3 class="pt-2 pb-1 text-sm font-medium text-muted-foreground">{{ t('party.view.group', { n: gi + 1 }) }}</h3>
             <ul class="divide-y divide-border/60">
               <li
                 v-for="(member, si) in group"
@@ -433,7 +449,7 @@ async function removeMember(m: PartyMember) {
                       dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si && 'bg-accent text-foreground',
                     )
                   "
-                  :aria-label="`Mover ${member.linked.character.name} (${slotName(gi * GROUP_SIZE + si)})`"
+                  :aria-label="t('party.view.move', { name: member.linked.character.name, slot: slotName(gi * GROUP_SIZE + si) })"
                   :aria-pressed="dragMode === 'keyboard' && dragFrom === gi * GROUP_SIZE + si"
                   data-drag-handle
                   @keydown="onKeyDown($event, gi * GROUP_SIZE + si)"
@@ -451,8 +467,8 @@ async function removeMember(m: PartyMember) {
                           size="icon"
                           variant="ghost"
                           class="size-8 text-muted-foreground"
-                          :aria-label="`Inspecionar ${member.linked.character.name}`"
-                          :title="`Inspecionar ${member.linked.character.name}`"
+                          :aria-label="t('party.players.inspect', { name: member.linked.character.name })"
+                          :title="t('party.players.inspect', { name: member.linked.character.name })"
                         >
                           <PhEye />
                         </Button>
@@ -462,7 +478,7 @@ async function removeMember(m: PartyMember) {
                         size="icon"
                         variant="ghost"
                         class="size-8 text-muted-foreground hover:text-destructive-ink"
-                        :aria-label="`Remover ${member.linked.character.name}`"
+                        :aria-label="t('party.view.removeName', { name: member.linked.character.name })"
                         :disabled="!!p.busy.value"
                         @click="removeMember(member)"
                       >
@@ -472,7 +488,7 @@ async function removeMember(m: PartyMember) {
                   </CharacterCard>
                   <div v-else class="flex items-center gap-3 py-2.5 text-sm text-muted-foreground">
                     <span class="size-11 flex-none rounded-lg border-2 border-dashed" aria-hidden="true" />
-                    Vaga livre
+                    {{ t('party.view.emptySlot') }}
                   </div>
                 </div>
               </li>
@@ -514,17 +530,17 @@ async function removeMember(m: PartyMember) {
 
       <!-- Líder: pedidos -->
       <section v-if="p.canManage.value" aria-labelledby="requests-title" class="space-y-3">
-        <h2 id="requests-title" class="font-display text-2xl font-semibold">Pedidos para entrar</h2>
+        <h2 id="requests-title" class="font-display text-2xl font-semibold">{{ t('party.view.requests') }}</h2>
         <p v-if="!p.pending.value.length" class="text-sm text-muted-foreground">
-          Nenhum pedido no momento. Mande o link da party para o seu grupo.
+          {{ t('party.view.noRequests') }}
         </p>
         <ul v-else class="divide-y divide-border/60 rounded-2xl border bg-card/60 px-4">
           <li v-for="m in p.pending.value" :key="m.id">
             <CharacterCard :character="m.linked.character" size="sm" :role="m.ownerName">
               <template #actions>
                 <InspectCharacter :character="m.linked.character">
-                  <Button size="sm" variant="ghost" :aria-label="`Inspecionar ${m.linked.character.name}`">
-                    <PhEye aria-hidden="true" /><span class="max-sm:hidden">Inspecionar</span>
+                  <Button size="sm" variant="ghost" :aria-label="t('party.players.inspect', { name: m.linked.character.name })">
+                    <PhEye aria-hidden="true" /><span class="max-sm:hidden">{{ t('party.view.inspect') }}</span>
                   </Button>
                 </InspectCharacter>
                 <Button
@@ -533,11 +549,11 @@ async function removeMember(m: PartyMember) {
                   :disabled="!!p.busy.value"
                   @click="p.decline(m.id)"
                 >
-                  Recusar
+                  {{ t('party.view.declineShort') }}
                 </Button>
                 <Button size="sm" :disabled="full || !!p.busy.value" @click="p.accept(m.id)">
                   <PhCircleNotch v-if="p.busy.value === m.id" class="animate-spin" />
-                  Aceitar
+                  {{ t('party.view.accept') }}
                 </Button>
               </template>
             </CharacterCard>
@@ -548,22 +564,22 @@ async function removeMember(m: PartyMember) {
       <!-- Líder: convites enviados -->
       <section v-if="p.canManage.value" aria-labelledby="invites-title" class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 id="invites-title" class="font-display text-2xl font-semibold">Convites enviados</h2>
+          <h2 id="invites-title" class="font-display text-2xl font-semibold">{{ t('party.view.invites') }}</h2>
           <div class="flex flex-wrap gap-2">
             <AnnounceDiscordButton :party-id="party.id" :invited-count="p.invited.value.length" />
             <Button size="sm" variant="outline" as-child>
-              <RouterLink :to="{ name: 'players', query: { party: party.id } }"><PhUserPlus /> Convidar jogadores</RouterLink>
+              <RouterLink :to="{ name: 'players', query: { party: party.id } }"><PhUserPlus /> {{ t('party.view.invitePlayers') }}</RouterLink>
             </Button>
           </div>
         </div>
         <p v-if="!p.invited.value.length" class="text-sm text-muted-foreground">
-          Nenhum convite aguardando resposta. Encontre jogadores pela disponibilidade e convide.
+          {{ t('party.view.noInvites') }}
         </p>
         <ul v-else class="divide-y divide-border/60 rounded-2xl border bg-card/60 px-4">
           <li v-for="m in p.invited.value" :key="m.id">
             <CharacterCard :character="m.linked.character" size="sm" :role="m.ownerName">
               <template #actions>
-                <span class="hidden text-xs text-muted-foreground sm:inline">aguardando</span>
+                <span class="hidden text-xs text-muted-foreground sm:inline">{{ t('party.view.waiting') }}</span>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -571,7 +587,7 @@ async function removeMember(m: PartyMember) {
                   :disabled="!!p.busy.value"
                   @click="p.removeMember(m.id)"
                 >
-                  Cancelar convite
+                  {{ t('party.view.cancelInvite') }}
                 </Button>
               </template>
             </CharacterCard>
@@ -585,15 +601,17 @@ async function removeMember(m: PartyMember) {
         aria-labelledby="join-title"
         class="space-y-3 rounded-2xl border bg-card/60 p-4 sm:p-6"
       >
-        <h2 id="join-title" class="font-display text-2xl font-semibold">Pedir vaga</h2>
+        <h2 id="join-title" class="font-display text-2xl font-semibold">{{ t('party.find.request') }}</h2>
         <p v-if="p.myMembership.value?.status === 'declined'" class="text-sm text-destructive-ink">
-          O líder recusou seu pedido anterior.
+          {{ t('party.view.declinedBefore') }}
         </p>
-        <p v-if="full" class="text-sm text-muted-foreground">A party está completa.</p>
+        <p v-if="full" class="text-sm text-muted-foreground">{{ t('party.view.full') }}</p>
         <p v-else-if="!characters.items.length" class="text-sm text-muted-foreground">
-          Vincule um personagem em
-          <RouterLink to="/me" class="font-medium text-foreground underline">Meus personagens</RouterLink>
-          para pedir vaga.
+          <i18n-t keypath="party.view.needCharacter" tag="span">
+            <template #link>
+              <RouterLink to="/me" class="font-medium text-foreground underline">{{ t('party.create.myCharacters') }}</RouterLink>
+            </template>
+          </i18n-t>
         </p>
         <div v-else-if="joinBlocked && !p.myMembership.value" role="status" class="space-y-3">
           <p class="flex items-start gap-2 text-sm">
@@ -602,7 +620,7 @@ async function removeMember(m: PartyMember) {
           </p>
           <div class="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" as-child>
-              <RouterLink :to="{ name: 'find-parties' }">Buscar parties</RouterLink>
+              <RouterLink :to="{ name: 'find-parties' }">{{ t('party.list.find') }}</RouterLink>
             </Button>
             <CreatePartyDialog />
           </div>
@@ -613,8 +631,8 @@ async function removeMember(m: PartyMember) {
           @submit.prevent="p.requestJoin(joinCharacter)"
         >
           <Select v-model="joinCharacter">
-            <SelectTrigger class="w-full bg-background sm:w-72" aria-label="Personagem">
-              <SelectValue placeholder="Escolha o personagem" />
+            <SelectTrigger class="w-full bg-background sm:w-72" :aria-label="t('party.find.character')">
+              <SelectValue :placeholder="t('party.create.characterPlaceholder')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="o in joinOptions" :key="o.linked.linkId" :value="o.linked.linkId" :disabled="!o.ok">
@@ -625,13 +643,13 @@ async function removeMember(m: PartyMember) {
           </Select>
           <Button type="submit" :disabled="!joinCharacter || !!p.busy.value">
             <PhCircleNotch v-if="p.busy.value === 'join'" class="animate-spin" />
-            Pedir para entrar
+            {{ t('party.view.requestJoin') }}
           </Button>
         </form>
       </section>
 
       <p v-else-if="p.myMembership.value?.status === 'pending'" class="text-muted-foreground">
-        Pedido enviado com {{ p.myMembership.value.linked.character.name }}. Agora é com o líder.
+        {{ t('party.view.pendingNotice', { name: p.myMembership.value.linked.character.name }) }}
       </p>
     </template>
   </div>

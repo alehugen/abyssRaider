@@ -10,6 +10,7 @@ import {
 } from '@phosphor-icons/vue'
 import { computed, onMounted, ref, watch, type Component } from 'vue'
 import { useRouter } from 'vue-router'
+import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/presentation/ui/popover'
@@ -55,7 +56,7 @@ async function select(n: AppNotification, link: string | null) {
         variant="ghost"
         size="icon"
         class="relative size-9"
-        :aria-label="store.unread ? `Notificações, ${store.unread} não lidas` : 'Notificações'"
+        :aria-label="store.unread ? t('notifications.bell.labelUnread', store.unread) : t('notifications.bell.label')"
       >
         <PhBell :size="20" :weight="store.unread ? 'fill' : 'regular'" />
         <span
@@ -70,7 +71,7 @@ async function select(n: AppNotification, link: string | null) {
 
     <PopoverContent align="end" class="w-[min(24rem,calc(100vw-1.5rem))] p-0">
       <header class="flex items-center justify-between gap-2 border-b px-4 py-3">
-        <h2 class="font-display text-lg font-semibold">Notificações</h2>
+        <h2 class="font-display text-lg font-semibold">{{ t('notifications.bell.title') }}</h2>
         <Button
           v-if="store.unread"
           variant="ghost"
@@ -78,7 +79,7 @@ async function select(n: AppNotification, link: string | null) {
           class="h-7 px-2 text-xs text-muted-foreground"
           @click="store.markAllRead()"
         >
-          <PhChecks /> Marcar todas como lidas
+          <PhChecks /> {{ t('notifications.bell.markAllRead') }}
         </Button>
       </header>
 
@@ -87,7 +88,7 @@ async function select(n: AppNotification, link: string | null) {
       </p>
       <div v-else-if="!views.length" class="px-4 py-10 text-center text-sm text-muted-foreground">
         <PhBell :size="28" class="mx-auto mb-2 opacity-50" aria-hidden="true" />
-        Nada por aqui ainda. Convites, pedidos e raids marcadas aparecem aqui.
+        {{ t('notifications.bell.empty') }}
       </div>
       <ul v-else class="scroll-thin max-h-[min(28rem,70dvh)] divide-y overflow-y-auto">
         <li v-for="{ n, v } in views" :key="n.id">
@@ -109,7 +110,7 @@ async function select(n: AppNotification, link: string | null) {
               <span class="mt-0.5 block text-[13px] leading-snug text-muted-foreground">{{ v.body }}</span>
               <span class="mt-1 block text-xs text-muted-foreground">{{ timeAgo(n.createdAt, now) }}</span>
             </span>
-            <span v-if="!n.readAt" class="mt-1.5 size-2 flex-none rounded-full bg-primary"><span class="sr-only">não lida</span></span>
+            <span v-if="!n.readAt" class="mt-1.5 size-2 flex-none rounded-full bg-primary"><span class="sr-only">{{ t('notifications.bell.unread') }}</span></span>
           </button>
         </li>
       </ul>

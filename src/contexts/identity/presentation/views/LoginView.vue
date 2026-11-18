@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/presentation/ui/card'
 import DiscordLoginButton from '../components/DiscordLoginButton.vue'
+import { t } from '@/shared/i18n'
 import { safeNext } from '@/shared/lib/safeNext'
 import { useAuthStore } from '../useAuthStore'
 
@@ -18,10 +19,8 @@ const callbackError = computed(() => (typeof route.query.error === 'string' ? ro
   <div class="mx-auto max-w-sm py-12">
     <Card class="faction-asmodian border-t-4 border-faction">
       <CardHeader class="text-center">
-        <CardTitle class="font-display text-2xl">Entrar no AbyssRaider</CardTitle>
-        <CardDescription>
-          Usamos sua conta do Discord para identificar você nas parties e enviar avisos de raid.
-        </CardDescription>
+        <CardTitle class="font-display text-2xl">{{ t('identity.login.title') }}</CardTitle>
+        <CardDescription>{{ t('identity.login.description') }}</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
         <DiscordLoginButton :next="next" size="lg" class="w-full" />
@@ -34,7 +33,9 @@ const callbackError = computed(() => (typeof route.query.error === 'string' ? ro
           {{ auth.error || callbackError }}
         </p>
         <p class="text-center text-xs text-muted-foreground">
-          Pedimos apenas seu nome e avatar do Discord (escopo <code>identify</code>).
+          <i18n-t keypath="identity.login.scope" scope="global">
+            <template #scope><code>identify</code></template>
+          </i18n-t>
         </p>
       </CardContent>
     </Card>

@@ -1,4 +1,4 @@
-/** Patch note oficial do AION 2 (quadro "Atualizações" do site, em português). */
+/** Patch note oficial do AION 2 (quadro "Atualizações" do site, no idioma da tela). */
 export interface PatchNoteSummary {
   id: string
   title: string

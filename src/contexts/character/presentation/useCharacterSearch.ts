@@ -1,3 +1,4 @@
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
@@ -59,7 +60,7 @@ export function useCharacterSearch() {
   async function search() {
     const term = name.value.trim()
     if (term.length < 2) {
-      error.value = 'Digite ao menos 2 letras.'
+      error.value = t('character.search.minLength')
       return
     }
     const current = ++seq

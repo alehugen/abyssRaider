@@ -3,6 +3,9 @@ import { PhArrowClockwise, PhArrowSquareOut, PhWarningCircle } from '@phosphor-i
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getContainer } from '@/app/container'
+import { currentLocale, t } from '@/shared/i18n'
+import { dateFormat } from '@/shared/i18n/format'
+import { APP_TIME_ZONE } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
@@ -22,8 +25,8 @@ const error = ref<string | null>(null)
 
 const selectedId = computed(() => (route.params.id ? String(route.params.id) : (list.value[0]?.id ?? null)))
 
-const day = new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', timeZone: 'America/Sao_Paulo' })
-const fullDate = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long', timeZone: 'America/Sao_Paulo' })
+const day = (d: Date) => dateFormat({ day: 'numeric', month: 'short', timeZone: APP_TIME_ZONE }).format(d)
+const fullDate = (d: Date) => dateFormat({ dateStyle: 'long', timeZone: APP_TIME_ZONE }).format(d)
 /** "Notas da Atualização | 3 nov (PST) / 4 nov (CET)" -> "3 nov (PST) / 4 nov (CET)" */
 const shortTitle = (title: string) => title.split('|').slice(1).join('|').trim() || title
 
@@ -49,7 +52,7 @@ async function loadNote(id: string | null) {
     const found = await repo.get(id)
     if (mine !== seq) return
     note.value = found
-    if (!found) error.value = 'Esse patch note não existe mais no site oficial.'
+    if (!found) error.value = t('patchnotes.view.gone')
   } catch (e) {
     if (mine === seq) error.value = errorMessage(e)
   } finally {
@@ -59,6 +62,16 @@ async function loadNote(id: string | null) {
 
 onMounted(loadList)
 watch(selectedId, (id) => void loadNote(id), { immediate: true })
+
+// Cada idioma é um quadro diferente no site (ids diferentes): ao trocar, volta para
+// o patch mais recente e recarrega a lista no novo idioma.
+watch(currentLocale, () => {
+  seq++ // descarta um artigo que ainda estava carregando no idioma anterior
+  list.value = []
+  note.value = null
+  if (route.params.id) void router.replace({ name: 'patch-notes' })
+  void loadList()
+})
 
 function retry() {
   if (!list.value.length) void loadList()
@@ -74,15 +87,13 @@ function select(id: string) {
 <template>
   <div class="space-y-8">
     <header class="space-y-2">
-      <h1 class="font-display text-4xl leading-tight font-bold">Patch notes</h1>
-      <p class="max-w-prose text-muted-foreground">
-        O que mudou em cada atualização do AION 2, organizado a partir das notas oficiais da NCSOFT.
-      </p>
+      <h1 class="font-display text-4xl leading-tight font-bold">{{ t('patchnotes.view.title') }}</h1>
+      <p class="max-w-prose text-muted-foreground">{{ t('patchnotes.view.intro') }}</p>
     </header>
 
     <div class="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
       <!-- Atualizações: coluna no desktop, faixa rolável no celular -->
-      <nav aria-label="Atualizações" class="lg:sticky lg:top-20 lg:self-start">
+      <nav :aria-label="t('patchnotes.view.updates')" class="lg:sticky lg:top-20 lg:self-start">
         <div v-if="loadingList" class="flex gap-2 overflow-hidden lg:flex-col">
           <Skeleton v-for="i in 5" :key="i" class="h-14 w-40 flex-none rounded-xl lg:w-full" />
         </div>
@@ -101,9 +112,9 @@ function select(id: string) {
               "
               @click="select(n.id)"
             >
-              <span class="font-display text-lg leading-tight font-semibold">{{ day.format(n.postedAt) }}</span>
+              <span class="font-display text-lg leading-tight font-semibold">{{ day(n.postedAt) }}</span>
               <span class="truncate text-xs text-muted-foreground">
-                {{ i === 0 ? 'Mais recente' : shortTitle(n.title) }}
+                {{ i === 0 ? t('patchnotes.view.latest') : shortTitle(n.title) }}
               </span>
             </button>
           </li>
@@ -113,7 +124,7 @@ function select(id: string) {
       <div class="min-w-0">
         <div v-if="error" role="alert" class="space-y-3 rounded-2xl border border-dashed p-6 text-sm">
           <p class="flex items-center gap-2 text-destructive-ink"><PhWarningCircle :size="18" /> {{ error }}</p>
-          <Button size="sm" variant="outline" @click="retry"><PhArrowClockwise /> Tentar de novo</Button>
+          <Button size="sm" variant="outline" @click="retry"><PhArrowClockwise /> {{ t('common.actions.retry') }}</Button>
         </div>
 
         <div v-else-if="loadingNote || loadingList" class="space-y-4" aria-busy="true">
@@ -134,15 +145,15 @@ function select(id: string) {
             <div class="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 class="font-display text-3xl leading-tight font-bold">{{ note.title }}</h2>
-                <p class="mt-1 text-sm text-muted-foreground">Publicado em {{ fullDate.format(note.postedAt) }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">{{ t('patchnotes.view.postedOn', { date: fullDate(note.postedAt) }) }}</p>
               </div>
               <Button variant="outline" size="sm" as-child>
                 <a :href="note.url" target="_blank" rel="noopener noreferrer">
-                  <PhArrowSquareOut /> Ler no site oficial
+                  <PhArrowSquareOut /> {{ t('patchnotes.view.readOfficial') }}
                 </a>
               </Button>
             </div>
-            <nav v-if="note.sections.length > 1" aria-label="Seções do patch" class="flex flex-wrap gap-2">
+            <nav v-if="note.sections.length > 1" :aria-label="t('patchnotes.view.sections')" class="flex flex-wrap gap-2">
               <a
                 v-for="(s, i) in note.sections"
                 :key="i"
@@ -155,8 +166,10 @@ function select(id: string) {
           </header>
 
           <p v-if="!note.sections.length" class="text-muted-foreground">
-            Não deu para organizar este patch.
-            <a :href="note.url" target="_blank" rel="noopener noreferrer" class="underline">Leia no site oficial</a>.
+            {{ t('patchnotes.view.unparsed') }}
+            <a :href="note.url" target="_blank" rel="noopener noreferrer" class="underline">{{
+              t('patchnotes.view.readOfficialInline')
+            }}</a>.
           </p>
 
           <section

@@ -1,3 +1,5 @@
+import { t } from '@/shared/i18n'
+import { listFormat } from '@/shared/i18n/format'
 import { zonedToInstant } from '@/shared/lib/brasilia'
 
 /**
@@ -19,15 +21,26 @@ export interface RoutineSlot {
   time: string
 }
 
-export const WEEKDAYS = [
-  { value: 0, short: 'Dom', long: 'domingo' },
-  { value: 1, short: 'Seg', long: 'segunda' },
-  { value: 2, short: 'Ter', long: 'terça' },
-  { value: 3, short: 'Qua', long: 'quarta' },
-  { value: 4, short: 'Qui', long: 'quinta' },
-  { value: 5, short: 'Sex', long: 'sexta' },
-  { value: 6, short: 'Sáb', long: 'sábado' },
-] as const
+/** Dia da semana com nomes no idioma da tela (getters: leia no render, não guarde o texto). */
+export interface Weekday {
+  readonly value: number
+  /** "Seg", "Mon" */
+  readonly short: string
+  /** "segunda", "Monday" */
+  readonly long: string
+}
+
+const weekday = (value: number): Weekday => ({
+  value,
+  get short() {
+    return t(`party.weekdays.short.${value}`)
+  },
+  get long() {
+    return t(`party.weekdays.long.${value}`)
+  },
+})
+
+export const WEEKDAYS: readonly Weekday[] = [0, 1, 2, 3, 4, 5, 6].map(weekday)
 
 export function isValidTime(value: string): boolean {
   return /^([01]\d|2[0-3]):[0-5]\d$/.test(value)
@@ -75,21 +88,15 @@ export function nextOccurrences(routine: RaidRoutine, count = 1, from = new Date
   return result
 }
 
-/** "quinta e sábado", "segunda, quarta e sexta", "todos os dias". */
+/** "quinta e sábado", "segunda, quarta e sexta", "todos os dias" (no idioma da tela). */
 export function formatDays(days: readonly number[]): string {
-  if (days.length === 7) return 'todos os dias'
-  const names = normalizeDays(days).map((d) => WEEKDAYS[d]!.long)
-  return joinPt(names)
+  if (days.length === 7) return t('party.routine.everyDay')
+  return listFormat().format(normalizeDays(days).map((d) => WEEKDAYS[d]!.long))
 }
 
 /** "quinta e sábado às 21:00", "quinta às 21:00 e sábado às 15:00". */
 export function formatSlots(slots: readonly RoutineSlot[]): string {
   const groups = new Map<string, number[]>()
   for (const s of normalizeSlots(slots)) groups.set(s.time, [...(groups.get(s.time) ?? []), s.day])
-  return joinPt([...groups].map(([time, days]) => `${formatDays(days)} às ${time}`))
-}
-
-function joinPt(parts: readonly string[]): string {
-  if (parts.length <= 1) return parts.join('')
-  return `${parts.slice(0, -1).join(', ')} e ${parts.at(-1)}`
+  return listFormat().format([...groups].map(([time, days]) => t('party.routine.daysAt', { days: formatDays(days), time })))
 }

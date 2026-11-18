@@ -1,4 +1,5 @@
-import { WEEKDAYS } from '@/contexts/party/domain/RaidRoutine'
+import { t } from '@/shared/i18n'
+import { listFormat } from '@/shared/i18n/format'
 import { toBrasilia, zonedToInstant } from '@/shared/lib/brasilia'
 
 /**
@@ -103,15 +104,25 @@ export function windowsToRows(windows: readonly TimeWindow[]): AvailabilityRow[]
   return [...rows.values()].sort((a, b) => a.days[0]! - b.days[0]! || a.start - b.start)
 }
 
-/** "quarta e quinta, 19:00 às 22:00" */
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const
+
+/** Nome curto do dia (0 = domingo) no idioma da tela: "qua", "Wed", "mié". */
+export const weekdayShort = (weekday: number): string => t(`scheduling.weekdays.short.${DAY_KEYS[weekday]}`)
+/** Nome do dia (0 = domingo) no idioma da tela: "quarta", "Wednesday", "miércoles". */
+export const weekdayLong = (weekday: number): string => t(`scheduling.weekdays.long.${DAY_KEYS[weekday]}`)
+
+const range = (days: string, start: number, end: number) =>
+  t('scheduling.availability.range', { days, from: formatMinutes(start), to: formatMinutes(end) })
+
+/** "qua e qui, 19:00 às 22:00" */
 export function formatRow(row: AvailabilityRow): string {
-  const names = [...row.days].sort((a, b) => a - b).map((d) => WEEKDAYS[d]!.short.toLowerCase())
-  const days = names.length <= 1 ? names.join('') : `${names.slice(0, -1).join(', ')} e ${names.at(-1)}`
-  return `${days}, ${formatMinutes(row.start)} às ${formatMinutes(row.end)}`
+  const names = [...row.days].sort((a, b) => a - b).map(weekdayShort)
+  return range(listFormat().format(names), row.start, row.end)
 }
 
+/** "quarta, 19:00 às 21:00" */
 export function formatSlot(slot: Pick<Slot, 'weekday' | 'start' | 'end'>): string {
-  return `${WEEKDAYS[slot.weekday]!.long}, ${formatMinutes(slot.start)} às ${formatMinutes(slot.end)}`
+  return range(weekdayLong(slot.weekday), slot.start, slot.end)
 }
 
 /**

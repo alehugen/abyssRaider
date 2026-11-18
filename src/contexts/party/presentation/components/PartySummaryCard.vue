@@ -2,6 +2,7 @@
 import { PhCaretRight, PhCrown } from '@phosphor-icons/vue'
 import { REGION_LABEL } from '@/contexts/character/domain/Character'
 import ClassIcon from '@/contexts/character/presentation/components/ClassIcon.vue'
+import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
 import type { PartySummary } from '../../domain/Party'
 import { formatRoutine } from '../routineFormat'
@@ -10,12 +11,12 @@ import SanctuaryArt from './SanctuaryArt.vue'
 /** Card da lista "Minhas parties": arte do santuário ao fundo e o líder em destaque. */
 defineProps<{ item: PartySummary }>()
 
-const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }> = {
-  leader: { label: 'Você lidera', class: 'text-primary-ink' },
-  accepted: { label: 'Membro', class: 'text-success-ink' },
-  pending: { label: 'Pedido enviado', class: 'text-warning-ink' },
-  invited: { label: 'Convite recebido', class: 'text-highlight-ink' },
-  declined: { label: 'Pedido recusado', class: 'text-destructive-ink' },
+const STATUS_CLASS: Record<PartySummary['myStatus'], string> = {
+  leader: 'text-primary-ink',
+  accepted: 'text-success-ink',
+  pending: 'text-warning-ink',
+  invited: 'text-highlight-ink',
+  declined: 'text-destructive-ink',
 }
 </script>
 
@@ -38,7 +39,7 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
       <span class="block truncate font-display text-xl leading-tight font-semibold">{{ item.party.name }}</span>
       <span class="mt-1 flex min-w-0 items-center gap-1.5 text-sm">
         <PhCrown weight="fill" class="flex-none text-primary-ink" aria-hidden="true" />
-        <span class="sr-only">Líder:</span>
+        <span class="sr-only">{{ t('party.summary.leader') }}</span>
         <ClassIcon v-if="item.leaderClassName" :class-name="item.leaderClassName" size="sm" />
         <span class="truncate font-semibold text-faction-ink">{{ item.leaderCharacterName }}</span>
       </span>
@@ -53,8 +54,8 @@ const STATUS: Record<PartySummary['myStatus'], { label: string; class: string }>
       <span class="block font-display text-xl leading-tight font-semibold tabular-nums">
         {{ item.acceptedCount }}/{{ item.party.sanctuary.groupSize }}
       </span>
-      <span v-if="item.party.finishedAt" class="block text-xs font-medium text-muted-foreground">Finalizada</span>
-      <span v-else :class="cn('block text-xs font-medium', STATUS[item.myStatus].class)">{{ STATUS[item.myStatus].label }}</span>
+      <span v-if="item.party.finishedAt" class="block text-xs font-medium text-muted-foreground">{{ t('party.summary.finished') }}</span>
+      <span v-else :class="cn('block text-xs font-medium', STATUS_CLASS[item.myStatus])">{{ t(`party.summary.status.${item.myStatus}`) }}</span>
     </span>
     <PhCaretRight class="flex-none text-muted-foreground transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
   </RouterLink>

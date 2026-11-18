@@ -29,6 +29,8 @@ import InspectCharacter from '@/contexts/character/presentation/inspect/InspectC
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { formatRow, routineFit, windowsToRows, type TimeWindow } from '@/contexts/scheduling/domain/Availability'
+import { t } from '@/shared/i18n'
+import { numberFormat } from '@/shared/i18n/format'
 import { tzLabel } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { cn } from '@/shared/lib/utils'
@@ -77,11 +79,11 @@ watch(
   () => [parties.loaded || !!parties.error, characters.loaded || !!characters.error, target.value?.party.id] as const,
   ([pl, cl]) => {
     if (!pl || !cl) return
-    const t = target.value?.party
+    const tp = target.value?.party
     const mine = characters.items[0]?.character
-    if (t) {
-      filters.region = t.region
-      filters.minItemLevel = t.sanctuary.minItemLevel ? String(t.sanctuary.minItemLevel) : ''
+    if (tp) {
+      filters.region = tp.region
+      filters.minItemLevel = tp.sanctuary.minItemLevel ? String(tp.sanctuary.minItemLevel) : ''
     } else if (!ready.value && mine) {
       filters.region = mine.region
     }
@@ -168,8 +170,8 @@ async function invite(option: InviteOption, r: PlayerListing) {
     parties.invalidate()
     notice.value =
       status === 'accepted'
-        ? `${r.linked.character.name} já tinha pedido vaga: entrou em ${option.summary.party.name}.`
-        : `Convite enviado para ${r.linked.character.name}. Ele aceita pela lista de parties.`
+        ? t('party.players.acceptedNotice', { name: r.linked.character.name, party: option.summary.party.name })
+        : t('party.players.invitedNotice', { name: r.linked.character.name })
   } catch (e) {
     error.value = errorMessage(e)
   } finally {
@@ -177,16 +179,15 @@ async function invite(option: InviteOption, r: PlayerListing) {
   }
 }
 
-const number = new Intl.NumberFormat('pt-BR')
 </script>
 
 <template>
   <div class="space-y-6">
     <header class="space-y-2">
-      <h1 class="font-display text-4xl leading-tight font-bold">Jogadores</h1>
+      <h1 class="font-display text-4xl leading-tight font-bold">{{ t('party.players.title') }}</h1>
       <p class="max-w-prose text-muted-foreground">
-        Personagens vinculados por outros jogadores, com a disponibilidade de cada um ({{ tzLabel() }}).
-        <template v-if="led.length">Convide quem combina com a sua party.</template>
+        {{ t('party.players.intro', { tz: tzLabel() }) }}
+        <template v-if="led.length">{{ t('party.players.introInvite') }}</template>
       </p>
     </header>
 
@@ -196,7 +197,7 @@ const number = new Intl.NumberFormat('pt-BR')
       :class="cn(target && `faction-${target.party.faction}`, 'flex flex-wrap items-center gap-3 rounded-2xl border bg-card/60 p-3 sm:p-4')"
     >
       <PhUsersThree class="flex-none text-faction-ink" :size="20" aria-hidden="true" />
-      <span id="target-label" class="text-sm font-medium">Convidando para</span>
+      <span id="target-label" class="text-sm font-medium">{{ t('party.players.invitingTo') }}</span>
       <Select v-model="partyId">
         <SelectTrigger class="w-full bg-background sm:w-72" aria-labelledby="target-label">
           <SelectValue />
@@ -214,22 +215,25 @@ const number = new Intl.NumberFormat('pt-BR')
       </span>
     </div>
     <p v-else-if="parties.loaded" class="rounded-xl bg-muted/60 p-3 text-sm text-muted-foreground">
-      Para convidar alguém, <RouterLink :to="{ name: 'parties' }" class="font-medium text-foreground underline">crie uma party</RouterLink>
-      primeiro. A busca funciona mesmo assim.
+      <i18n-t keypath="party.players.noParty" tag="span">
+        <template #link>
+          <RouterLink :to="{ name: 'parties' }" class="font-medium text-foreground underline">{{ t('party.players.noPartyLink') }}</RouterLink>
+        </template>
+      </i18n-t>
     </p>
 
     <!-- Filtros -->
     <form class="grid gap-3 rounded-2xl border bg-card/60 p-3 sm:grid-cols-2 sm:p-4 lg:grid-cols-4" role="search" @submit.prevent>
       <label class="space-y-1.5 lg:col-span-2">
-        <span class="text-xs font-medium text-muted-foreground">Nome do personagem</span>
+        <span class="text-xs font-medium text-muted-foreground">{{ t('party.players.filters.name') }}</span>
         <div class="relative">
           <PhMagnifyingGlass class="absolute top-1/2 left-3 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input v-model="filters.name" class="bg-background pl-9" placeholder="Buscar por nome" autocomplete="off" />
+          <Input v-model="filters.name" class="bg-background pl-9" :placeholder="t('party.players.filters.namePlaceholder')" autocomplete="off" />
         </div>
       </label>
 
       <div class="space-y-1.5">
-        <span id="region-label" class="text-xs font-medium text-muted-foreground">Região</span>
+        <span id="region-label" class="text-xs font-medium text-muted-foreground">{{ t('party.players.filters.region') }}</span>
         <Select v-model="filters.region">
           <SelectTrigger class="w-full bg-background" aria-labelledby="region-label"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -239,12 +243,12 @@ const number = new Intl.NumberFormat('pt-BR')
       </div>
 
       <label class="space-y-1.5">
-        <span class="text-xs font-medium text-muted-foreground">Item level mínimo</span>
-        <Input v-model="filters.minItemLevel" type="number" min="0" step="10" class="bg-background" placeholder="Qualquer" />
+        <span class="text-xs font-medium text-muted-foreground">{{ t('party.players.filters.minItemLevel') }}</span>
+        <Input v-model="filters.minItemLevel" type="number" min="0" step="10" class="bg-background" :placeholder="t('party.players.filters.any')" />
       </label>
 
       <fieldset class="space-y-1.5">
-        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">Facção</legend>
+        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('party.players.filters.faction') }}</legend>
         <ToggleGroup
           :model-value="filters.faction || 'all'"
           type="single"
@@ -252,21 +256,21 @@ const number = new Intl.NumberFormat('pt-BR')
           class="w-full"
           @update:model-value="(v) => v && (filters.faction = (v === 'all' ? '' : v) as Faction | '')"
         >
-          <ToggleGroupItem value="all" class="flex-1">Todas</ToggleGroupItem>
+          <ToggleGroupItem value="all" class="flex-1">{{ t('party.players.filters.allFactions') }}</ToggleGroupItem>
           <ToggleGroupItem value="elyos" class="flex-1">Elyos</ToggleGroupItem>
           <ToggleGroupItem value="asmodian" class="flex-1">Asmodian</ToggleGroupItem>
         </ToggleGroup>
       </fieldset>
 
       <fieldset class="space-y-1.5">
-        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">Papel</legend>
+        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('party.players.filters.role') }}</legend>
         <ToggleGroup v-model="filters.roles" type="multiple" variant="outline" class="w-full">
           <ToggleGroupItem v-for="r in ROLE_ORDER" :key="r" :value="r" class="flex-1 capitalize">{{ ROLE_LABEL[r] }}</ToggleGroupItem>
         </ToggleGroup>
       </fieldset>
 
       <fieldset class="space-y-1.5 sm:col-span-2">
-        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">Disponível em</legend>
+        <legend class="mb-1.5 text-xs font-medium text-muted-foreground">{{ t('party.players.filters.days') }}</legend>
         <ToggleGroup v-model="filters.days" type="multiple" variant="outline" class="grid w-full grid-cols-7">
           <ToggleGroupItem v-for="d in WEEKDAYS" :key="d.value" :value="String(d.value)" :aria-label="d.long" class="px-0 text-xs">
             {{ d.short }}
@@ -299,14 +303,13 @@ const number = new Intl.NumberFormat('pt-BR')
 
     <div v-else-if="!rows.length" class="space-y-2 rounded-2xl border border-dashed p-6 text-center">
       <PhMagnifyingGlass :size="28" class="mx-auto text-muted-foreground" />
-      <p class="font-medium">Nenhum jogador com esses filtros.</p>
-      <p class="text-sm text-muted-foreground">Tente tirar o item level, o papel ou os dias.</p>
+      <p class="font-medium">{{ t('party.players.empty') }}</p>
+      <p class="text-sm text-muted-foreground">{{ t('party.players.emptyHint') }}</p>
     </div>
 
     <template v-else>
       <p class="text-[13px] text-muted-foreground">
-        {{ rows.length }} {{ rows.length === 1 ? 'personagem' : 'personagens' }}, maior item level primeiro
-        <template v-if="target?.party.routine">; quem está livre no horário da party aparece antes</template>.
+        {{ target?.party.routine ? t('party.players.countRoutine', rows.length) : t('party.players.count', rows.length) }}
       </p>
       <ul :class="cn('grid gap-3 transition-opacity duration-200 md:grid-cols-2', loading && 'opacity-60')">
         <li
@@ -321,8 +324,8 @@ const number = new Intl.NumberFormat('pt-BR')
                   size="icon"
                   variant="ghost"
                   class="size-8 text-muted-foreground"
-                  :aria-label="`Inspecionar ${r.linked.character.name}`"
-                  :title="`Inspecionar ${r.linked.character.name}`"
+                  :aria-label="t('party.players.inspect', { name: r.linked.character.name })"
+                  :title="t('party.players.inspect', { name: r.linked.character.name })"
                 >
                   <PhEye />
                 </Button>
@@ -334,33 +337,33 @@ const number = new Intl.NumberFormat('pt-BR')
             <img v-if="r.ownerAvatarUrl" :src="r.ownerAvatarUrl" alt="" class="size-5 rounded-full" loading="lazy" />
             <span class="truncate">{{ r.ownerName }}</span>
             <span v-if="r.linked.character.itemLevel" class="ml-auto flex-none tabular-nums">
-              item level <b class="font-semibold text-foreground">{{ number.format(r.linked.character.itemLevel) }}</b>
+              {{ t('party.players.itemLevel') }} <b class="font-semibold text-foreground">{{ numberFormat().format(r.linked.character.itemLevel) }}</b>
             </span>
           </div>
 
           <div class="text-[13px]">
             <p class="mb-0.5 flex items-center gap-1.5 font-medium">
-              <PhClock class="text-muted-foreground" aria-hidden="true" /> Disponibilidade
+              <PhClock class="text-muted-foreground" aria-hidden="true" /> {{ t('party.players.availability') }}
             </p>
             <ul v-if="r.availabilityRows.length" class="space-y-0.5 pl-5">
               <li v-for="(row, i) in r.availabilityRows.slice(0, 3)" :key="i" class="first-letter:uppercase">{{ formatRow(row) }}</li>
               <li v-if="r.availabilityRows.length > 3" class="text-muted-foreground">
-                e mais {{ r.availabilityRows.length - 3 }} {{ r.availabilityRows.length - 3 === 1 ? 'faixa' : 'faixas' }}
+                {{ t('party.players.moreRanges', r.availabilityRows.length - 3) }}
               </li>
             </ul>
-            <p v-else class="pl-5 text-muted-foreground">Não informou.</p>
+            <p v-else class="pl-5 text-muted-foreground">{{ t('party.players.noAvailability') }}</p>
             <p v-if="r.fit?.free.length" class="mt-1 flex items-center gap-1.5 pl-5 font-medium text-success-ink">
-              <PhCheckCircle aria-hidden="true" /> Livre no horário de {{ target?.party.name }}
+              <PhCheckCircle aria-hidden="true" /> {{ t('party.players.freeAt', { party: target?.party.name ?? '' }) }}
             </p>
           </div>
 
           <div v-if="r.option" class="mt-auto flex items-center justify-end gap-2 border-t pt-3">
             <span v-if="r.option.state === 'blocked'" class="mr-auto text-[13px] text-muted-foreground">{{ r.option.reason }}</span>
             <span v-else-if="r.option.state === 'member'" class="flex items-center gap-1.5 text-sm font-medium text-success-ink">
-              <PhCheck /> Na party
+              <PhCheck /> {{ t('party.players.state.member') }}
             </span>
             <span v-else-if="r.option.state === 'invited'" class="flex items-center gap-1.5 text-sm font-medium text-highlight-ink">
-              <PhCheck /> Convidado, aguardando
+              <PhCheck /> {{ t('party.players.state.invited') }}
             </span>
             <Button
               v-else
@@ -373,14 +376,16 @@ const number = new Intl.NumberFormat('pt-BR')
               <PhCircleNotch v-if="inviting === r.linked.linkId" class="animate-spin" />
               <PhUserPlus v-else />
               <span class="truncate">{{
-                r.option.state === 'requested' ? 'Pediu vaga: aceitar' : `Convidar para ${r.option.summary.party.name}`
+                r.option.state === 'requested'
+                  ? t('party.players.acceptRequest')
+                  : t('party.players.inviteTo', { party: r.option.summary.party.name })
               }}</span>
             </Button>
           </div>
         </li>
       </ul>
       <p v-if="results.length >= 60" class="text-center text-[13px] text-muted-foreground">
-        Mostrando os 60 primeiros. Use os filtros para refinar.
+        {{ t('party.players.limit', { n: 60 }) }}
       </p>
     </template>
   </div>

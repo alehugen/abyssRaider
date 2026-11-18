@@ -13,6 +13,8 @@ import {
 import { computed, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
+import { listFormat } from '@/shared/i18n/format'
 import { REGION_LABEL, ROLE_LABEL, rolesLabel } from '@/contexts/character/domain/Character'
 import ClassIcon from '@/contexts/character/presentation/components/ClassIcon.vue'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
@@ -118,14 +120,21 @@ function ranked(matches: readonly PartyMatch[]) {
     .sort((a, b) => Number(!!b.fit?.free.length) - Number(!!a.fit?.free.length) || a.i - b.i)
 }
 
-const roleName = computed(() => (selected.value ? rolesLabel(selected.value.character.className) || 'você' : ''))
+/** Papel(is) do personagem escolhido ("dano/cura"); vazio para classe desconhecida. */
+const roleName = computed(() => (selected.value ? rolesLabel(selected.value.character.className) : ''))
+const noSlotLabel = () => (roleName.value ? t('party.find.noSlotFor', { role: roleName.value }) : t('party.find.noSlotForYou'))
 const sections = computed(() =>
   [
-    { key: 'needYou', title: `Precisam de ${roleName.value}`, hint: null, items: ranked(result.value.needYou) },
+    {
+      key: 'needYou',
+      title: roleName.value ? t('party.find.needRole', { role: roleName.value }) : t('party.find.needYou'),
+      hint: null,
+      items: ranked(result.value.needYou),
+    },
     {
       key: 'noRoleSlot',
-      title: `Sem vaga de ${roleName.value}`,
-      hint: 'A formação já tem esse papel, mas você ainda pode pedir: o líder decide.',
+      title: noSlotLabel(),
+      hint: t('party.find.noRoleSlotHint'),
       items: ranked(result.value.noRoleSlot),
     },
   ].filter((s) => s.items.length),
@@ -133,7 +142,8 @@ const sections = computed(() =>
 const total = computed(() => result.value.needYou.length + result.value.noRoleSlot.length)
 const dayList = (days: readonly number[]) => days.map((d) => WEEKDAYS[d]!.short.toLowerCase()).join(', ')
 
-const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as keyof typeof ROLE_LABEL]).join(' ou ')
+const roleList = (roles: readonly string[]) =>
+  listFormat({ type: 'disjunction' }).format(roles.map((r) => ROLE_LABEL[r as keyof typeof ROLE_LABEL]))
 </script>
 
 <template>
@@ -142,27 +152,28 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       :to="{ name: 'parties' }"
       class="inline-flex items-center gap-1.5 rounded-md text-sm text-muted-foreground hover:text-foreground"
     >
-      <PhArrowLeft /> Parties
+      <PhArrowLeft /> {{ t('party.list.title') }}
     </RouterLink>
 
     <header class="space-y-2">
-      <h1 class="font-display text-4xl leading-tight font-bold">Buscar parties</h1>
+      <h1 class="font-display text-4xl leading-tight font-bold">{{ t('party.list.find') }}</h1>
       <p class="max-w-prose text-muted-foreground">
-        Parties da sua região, Elyos e Asmodian: primeiro as que precisam do papel do seu personagem, depois as que já têm
-        esse papel completo.
+        {{ t('party.find.intro') }}
       </p>
     </header>
 
     <p v-if="characters.loaded && !characters.items.length" class="text-muted-foreground">
-      Vincule um personagem em
-      <RouterLink to="/me" class="font-medium text-foreground underline">Meus personagens</RouterLink>
-      para buscar parties.
+      <i18n-t keypath="party.find.needCharacter" tag="span">
+        <template #link>
+          <RouterLink to="/me" class="font-medium text-foreground underline">{{ t('party.create.myCharacters') }}</RouterLink>
+        </template>
+      </i18n-t>
     </p>
 
     <div v-else class="flex flex-wrap items-center gap-3">
       <Select v-model="selectedId">
-        <SelectTrigger class="w-full bg-background sm:w-80" aria-label="Personagem">
-          <SelectValue placeholder="Escolha o personagem" />
+        <SelectTrigger class="w-full bg-background sm:w-80" :aria-label="t('party.find.character')">
+          <SelectValue :placeholder="t('party.create.characterPlaceholder')" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem v-for="l in characters.items" :key="l.linkId" :value="l.linkId">
@@ -173,8 +184,12 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       </Select>
       <p v-if="selected" class="flex items-center gap-2 text-sm text-muted-foreground">
         <span :class="`faction-${selected.character.faction}`"><ClassIcon :class-name="selected.character.className" /></span>
-        Procurando vaga de {{ rolesLabel(selected.character.className) || 'qualquer papel' }} em
-        {{ REGION_LABEL[selected.character.region] }}
+        {{
+          t('party.find.lookingFor', {
+            role: rolesLabel(selected.character.className) || t('party.find.anyRole'),
+            region: REGION_LABEL[selected.character.region],
+          })
+        }}
       </p>
     </div>
 
@@ -190,10 +205,10 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       <!-- Parties em que a conta já está (não entram nas listas) -->
       <div v-if="result.mine.length" class="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl bg-muted/60 p-3 text-sm">
         <PhUsersThree class="text-muted-foreground" aria-hidden="true" />
-        <span>Você já está {{ result.mine.length === 1 ? 'nesta party' : 'nestas parties' }} da região:</span>
+        <span>{{ t('party.find.alreadyIn', result.mine.length) }}</span>
         <template v-for="(d, i) in result.mine" :key="d.party.id">
           <RouterLink :to="{ name: 'party', params: { id: d.party.id } }" class="font-medium underline">{{ d.party.name }}</RouterLink>
-          <span v-if="d.party.leaderId === selected.ownerId" class="text-muted-foreground">(líder)</span><template
+          <span v-if="d.party.leaderId === selected.ownerId" class="text-muted-foreground">{{ t('party.find.leaderTag') }}</span><template
             v-if="i < result.mine.length - 1"
             >,</template
           >
@@ -203,9 +218,9 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
       <div v-if="!total" class="space-y-2 rounded-2xl border border-dashed p-6 text-center">
         <PhMagnifyingGlass :size="28" class="mx-auto text-muted-foreground" />
         <p class="font-medium">
-          {{ result.mine.length ? 'Nenhuma outra party aberta na sua região agora.' : 'Nenhuma party aberta na sua região agora.' }}
+          {{ result.mine.length ? t('party.find.noneOther') : t('party.find.none') }}
         </p>
-        <p class="text-sm text-muted-foreground">Tente de novo mais tarde ou crie sua própria party.</p>
+        <p class="text-sm text-muted-foreground">{{ t('party.find.noneHint') }}</p>
       </div>
 
       <div
@@ -213,9 +228,9 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
         class="flex flex-wrap items-center gap-3 rounded-xl bg-muted/60 p-3 text-sm"
       >
         <PhClock class="text-muted-foreground" aria-hidden="true" />
-        <span class="flex-1">Informe sua disponibilidade para ver quais parties batem com seus horários.</span>
+        <span class="flex-1">{{ t('party.find.availabilityPrompt') }}</span>
         <AvailabilityDialog>
-          <Button size="sm" variant="outline">Informar disponibilidade</Button>
+          <Button size="sm" variant="outline">{{ t('party.find.availabilityButton') }}</Button>
         </AvailabilityDialog>
       </div>
 
@@ -248,29 +263,34 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
               </RouterLink>
               <p v-if="leaderOf(m.details)" class="mt-1 flex min-w-0 items-center gap-1.5 text-sm">
                 <PhCrown weight="fill" class="flex-none text-primary-ink" aria-hidden="true" />
-                <span class="sr-only">Líder:</span>
+                <span class="sr-only">{{ t('party.summary.leader') }}</span>
                 <ClassIcon :class-name="leaderOf(m.details)!.linked.character.className" size="sm" />
                 <span class="truncate font-semibold text-faction-ink">{{ leaderOf(m.details)!.linked.character.name }}</span>
               </p>
               <p class="text-sm text-muted-foreground">
-                {{ m.details.party.sanctuary.name }}, {{ m.acceptedCount }}/{{ m.details.party.sanctuary.groupSize }}
-                membros
+                {{
+                  t('party.find.members', {
+                    sanctuary: m.details.party.sanctuary.name,
+                    count: m.acceptedCount,
+                    size: m.details.party.sanctuary.groupSize,
+                  })
+                }}
               </p>
               <p v-if="m.details.party.routine" class="text-sm first-letter:uppercase">
                 {{ formatRoutine(m.details.party.routine) }}
               </p>
               <p v-if="fit && fit.free.length" class="mt-1 flex items-center gap-1.5 text-[13px] font-medium text-success-ink">
                 <PhCheckCircle aria-hidden="true" />
-                Bate com sua disponibilidade{{ fit.busy.length ? ` (${dayList(fit.free)})` : '' }}
+                {{ fit.busy.length ? t('party.find.fitsDays', { days: dayList(fit.free) }) : t('party.find.fits') }}
               </p>
               <p v-else-if="fit" class="mt-1 flex items-center gap-1.5 text-[13px] text-muted-foreground">
-                <PhClock aria-hidden="true" /> Fora da sua disponibilidade
+                <PhClock aria-hidden="true" /> {{ t('party.find.notFits') }}
               </p>
               <p class="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
-                <span v-if="m.needed.length" class="font-semibold text-success-ink">Precisa de {{ roleList(m.needed) }}</span>
-                <span v-else class="font-semibold text-muted-foreground">Sem vaga de {{ roleName }}</span>
+                <span v-if="m.needed.length" class="font-semibold text-success-ink">{{ t('party.find.needs', { roles: roleList(m.needed) }) }}</span>
+                <span v-else class="font-semibold text-muted-foreground">{{ noSlotLabel() }}</span>
                 <span class="text-muted-foreground">
-                  Vagas:
+                  {{ t('party.find.openSlots') }}
                   <template v-for="(r, i) in ROLE_ORDER" :key="r">
                     {{ m.open[r] }} {{ ROLE_LABEL[r] }}<template v-if="i < ROLE_ORDER.length - 1">, </template>
                   </template>
@@ -285,9 +305,9 @@ const roleList = (roles: readonly string[]) => roles.map((r) => ROLE_LABEL[r as 
               @click="requestJoin(m)"
             >
               <PhCircleNotch v-if="requesting === m.details.party.id" class="animate-spin" />
-              Pedir vaga
+              {{ t('party.find.request') }}
             </Button>
-            <span v-else class="w-full text-sm font-medium text-success-ink sm:w-auto">Pedido enviado</span>
+            <span v-else class="w-full text-sm font-medium text-success-ink sm:w-auto">{{ t('party.summary.status.pending') }}</span>
           </li>
         </ul>
       </section>

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Character, CharacterSummary } from '@/contexts/character/domain/Character'
+import { t } from '@/shared/i18n'
+import { numberFormat } from '@/shared/i18n/format'
 import { cn } from '@/shared/lib/utils'
 import { vGlare } from '@/shared/presentation/directives/glare'
 import { formatCombatPower, formatCombatPowerFull } from '../formatCombatPower'
@@ -27,34 +29,33 @@ const props = withDefaults(
   { size: 'md', inactive: false },
 )
 
-const number = new Intl.NumberFormat('pt-BR')
 const initials = computed(() => props.character.name.slice(0, 2).toUpperCase())
 const factionLabel = computed(() => (props.character.faction === 'elyos' ? 'Elyos' : 'Asmodian'))
 
 /** "Siel, legião Aurora" */
 const location = computed(() => {
   const c = props.character
-  return c.legionName ? `${c.serverName}, legião ${c.legionName}` : c.serverName
+  return c.legionName ? t('character.card.legion', { server: c.serverName, legion: c.legionName }) : c.serverName
 })
 
 const stats = computed(() => {
   const c = props.character
   return [
     { label: 'CP', value: c.combatPower, primary: true },
-    { label: 'Item level', value: c.itemLevel, primary: false },
-    { label: 'Nível', value: c.level, primary: false },
+    { label: t('character.card.itemLevel'), value: c.itemLevel, primary: false },
+    { label: t('character.card.level'), value: c.level, primary: false },
   ]
     .filter((s): s is { label: string; value: number; primary: boolean } => s.value != null)
     .map((s) => ({
       ...s,
       // CP abreviado como no jogo (184K); o valor exato fica no tooltip.
-      text: s.primary ? formatCombatPower(s.value) : number.format(s.value),
+      text: s.primary ? formatCombatPower(s.value) : numberFormat().format(s.value),
       title: s.primary ? `${formatCombatPowerFull(s.value)} CP` : undefined,
     }))
 })
 
 const ariaLabel = computed(() =>
-  [props.character.name, props.character.className, `nível ${props.character.level}`, props.character.serverName, factionLabel.value]
+  [props.character.name, props.character.className, t('character.card.levelLower', { n: props.character.level }), props.character.serverName, factionLabel.value]
     .filter(Boolean)
     .join(', '),
 )
@@ -174,7 +175,7 @@ const ariaLabel = computed(() =>
       <p class="truncate text-[13px] text-muted-foreground">
         <span v-if="!character.className" class="mr-2 text-faction-ink">{{ factionLabel }}</span>
         <span>{{ character.serverName }}</span>
-        <span class="ml-2">Nível {{ character.level }}</span>
+        <span class="ml-2">{{ t('character.card.levelN', { n: character.level }) }}</span>
         <span
           v-if="character.combatPower"
           class="ml-2 tabular-nums"

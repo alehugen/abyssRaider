@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/presentation/ui/alert-dialog'
+import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
 import { confirmState, settleConfirm } from './useConfirm'
 
@@ -28,7 +29,7 @@ function onOpenChange(open: boolean) {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel @click="settleConfirm(false)">
-          {{ confirmState.cancelText ?? 'Cancelar' }}
+          {{ confirmState.cancelText ?? t('common.actions.cancel') }}
         </AlertDialogCancel>
         <!--
           Não usar AlertDialogAction aqui: ele é um "DialogClose" e fecha o diálogo antes
@@ -36,7 +37,7 @@ function onOpenChange(open: boolean) {
           e o settleConfirm fecha em seguida.
         -->
         <Button :variant="confirmState.destructive ? 'destructive' : 'default'" @click="settleConfirm(true)">
-          {{ confirmState.confirmText ?? 'Confirmar' }}
+          {{ confirmState.confirmText ?? t('common.actions.confirm') }}
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

@@ -2,9 +2,11 @@
 import { PhBellRinging, PhCircleNotch } from '@phosphor-icons/vue'
 import { onBeforeUnmount, ref } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
+import { rsvpLabel } from '../../domain/RaidEvent'
 
 /**
  * Líder: lembrete manual de uma raid. Os membros recebem no sino e, se a party
@@ -27,18 +29,19 @@ onBeforeUnmount(() => clearTimeout(timer))
 
 async function remind() {
   const ok = await confirm({
-    title: props.partyName ? `Lembrar o grupo de ${props.partyName}?` : 'Lembrar o grupo desta raid?',
-    description:
-      'Os membros recebem o lembrete no sino (menos quem respondeu "Não vou"). Se a party tiver o Discord configurado, o canal recebe quem vai e marca quem ainda não respondeu.',
-    confirmText: 'Mandar lembrete',
+    title: props.partyName
+      ? t('scheduling.remind.titleParty', { party: props.partyName })
+      : t('scheduling.remind.title'),
+    description: t('scheduling.remind.description', { declined: rsvpLabel('declined') }),
+    confirmText: t('scheduling.remind.confirm'),
   })
   if (!ok) return
   busy.value = true
   message.value = null
   try {
     const r = await getContainer().raidEventRepository.remind(props.eventId)
-    const people = r.notified === 1 ? '1 membro avisado' : `${r.notified} membros avisados`
-    show(true, r.discord ? `Lembrete enviado: ${people} e o canal do Discord.` : `Lembrete enviado: ${people}.`)
+    const people = t('scheduling.remind.people', r.notified)
+    show(true, t(r.discord ? 'scheduling.remind.sentDiscord' : 'scheduling.remind.sent', { people }))
   } catch (e) {
     show(false, errorMessage(e))
   } finally {
@@ -52,7 +55,7 @@ async function remind() {
     <Button size="sm" variant="ghost" class="text-muted-foreground" :disabled="busy" @click="remind">
       <PhCircleNotch v-if="busy" class="animate-spin" />
       <PhBellRinging v-else />
-      Lembrar
+      {{ t('scheduling.remind.button') }}
     </Button>
     <span
       v-if="message"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { t } from '@/shared/i18n'
 import {
   Dialog,
   DialogContent,
@@ -22,8 +23,8 @@ const open = ref(false)
 
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle class="font-display text-2xl">Sua disponibilidade</DialogTitle>
-        <DialogDescription>Usamos isso para sugerir o melhor horário de raid para a party.</DialogDescription>
+        <DialogTitle class="font-display text-2xl">{{ t('scheduling.availability.title') }}</DialogTitle>
+        <DialogDescription>{{ t('scheduling.availability.dialogDescription') }}</DialogDescription>
       </DialogHeader>
 
       <!-- O conteúdo só existe com o diálogo aberto: o formulário começa sempre do que está salvo. -->

@@ -1,3 +1,5 @@
+import { t } from '@/shared/i18n'
+
 /**
  * Build de um personagem como o jogo mostra: equipamento, atributos, skills,
  * Daevanion e títulos. Somente leitura, vinda da API oficial (nomes em pt-BR).
@@ -68,41 +70,42 @@ export interface GearDetail {
 
 // ---------------------------------------------------------------- slots
 
-const SLOT_LABEL: Record<string, string> = {
-  MainHand: 'Arma principal',
-  SubHand: 'Arma secundária',
-  Helmet: 'Elmo',
-  Shoulder: 'Ombreiras',
-  Torso: 'Peitoral',
-  Pants: 'Calças',
-  Gloves: 'Luvas',
-  Boots: 'Botas',
-  Cape: 'Capa',
-  Belt: 'Cinto',
-  Necklace: 'Colar',
-  Earring: 'Brinco',
-  Ring: 'Anel',
-  Bracelet: 'Bracelete',
-  Amulet: 'Amuleto',
-  Rune: 'Runa',
-  Arcana: 'Arcana',
-}
+const SLOT_KEYS = [
+  'MainHand',
+  'SubHand',
+  'Helmet',
+  'Shoulder',
+  'Torso',
+  'Pants',
+  'Gloves',
+  'Boots',
+  'Cape',
+  'Belt',
+  'Necklace',
+  'Earring',
+  'Ring',
+  'Bracelet',
+  'Amulet',
+  'Rune',
+  'Arcana',
+] as const
+const isSlotKey = (v: string): boolean => (SLOT_KEYS as readonly string[]).includes(v)
 
-/** "Ring2" -> "Anel"; slots novos caem no código da API. */
+/** "Ring2" -> "Anel" (no idioma atual); slots novos caem no código da API. */
 export function slotLabel(slotName: string): string {
-  return SLOT_LABEL[slotName] ?? SLOT_LABEL[slotName.replace(/\d+$/, '')] ?? slotName
+  const key = isSlotKey(slotName) ? slotName : slotName.replace(/\d+$/, '')
+  return isSlotKey(key) ? t(`character.slots.${key}`) : slotName
 }
 
 export const GEAR_GROUPS = [
-  { id: 'weapons', label: 'Armas', slots: ['MainHand', 'SubHand'] },
-  { id: 'armor', label: 'Armadura', slots: ['Helmet', 'Shoulder', 'Torso', 'Pants', 'Gloves', 'Boots', 'Cape', 'Belt'] },
+  { id: 'weapons', slots: ['MainHand', 'SubHand'] },
+  { id: 'armor', slots: ['Helmet', 'Shoulder', 'Torso', 'Pants', 'Gloves', 'Boots', 'Cape', 'Belt'] },
   {
     id: 'accessories',
-    label: 'Acessórios',
     slots: ['Necklace', 'Earring1', 'Earring2', 'Ring1', 'Ring2', 'Bracelet1', 'Bracelet2', 'Amulet'],
   },
-  { id: 'runes', label: 'Runas', slots: ['Rune1', 'Rune2'] },
-  { id: 'arcana', label: 'Arcanas', slots: ['Arcana1', 'Arcana2', 'Arcana3', 'Arcana4', 'Arcana5'] },
+  { id: 'runes', slots: ['Rune1', 'Rune2'] },
+  { id: 'arcana', slots: ['Arcana1', 'Arcana2', 'Arcana3', 'Arcana4', 'Arcana5'] },
 ] as const
 
 /** Agrupa o equipamento na ordem da tela do jogo. Slots desconhecidos vão para "Outros". */
@@ -111,11 +114,11 @@ export function groupGear(equipment: readonly Gear[]): Array<{ id: string; label
   const known = new Set<string>(GEAR_GROUPS.flatMap((g) => g.slots))
   const groups: Array<{ id: string; label: string; items: Gear[] }> = GEAR_GROUPS.map((g) => ({
     id: g.id,
-    label: g.label,
+    label: t(`character.gearGroups.${g.id}`),
     items: g.slots.map((s) => bySlot.get(s)).filter((x): x is Gear => !!x),
   }))
   const others = equipment.filter((g) => !known.has(g.slotName))
-  if (others.length) groups.push({ id: 'others', label: 'Outros', items: others })
+  if (others.length) groups.push({ id: 'others', label: t('character.gearGroups.others'), items: others })
   return groups.filter((g) => g.items.length)
 }
 
@@ -125,16 +128,23 @@ export function enchantLabel(gear: Pick<Gear, 'enchantLevel' | 'exceedLevel'>): 
   return gear.exceedLevel ? `+${gear.enchantLevel} +${gear.exceedLevel}` : `+${gear.enchantLevel}`
 }
 
-export const SKILL_CATEGORY_LABEL: Record<Skill['category'], string> = {
-  active: 'Ativas',
-  passive: 'Passivas',
-  dp: 'Skills de DP',
+/** Rótulo traduzido de cada categoria de skill (getters: leem o idioma atual). */
+export const SKILL_CATEGORY_LABEL: Readonly<Record<Skill['category'], string>> = {
+  get active() {
+    return t('character.skillCategories.active')
+  },
+  get passive() {
+    return t('character.skillCategories.passive')
+  },
+  get dp() {
+    return t('character.skillCategories.dp')
+  },
 }
 
-const TITLE_CATEGORY_LABEL: Record<string, string> = { Attack: 'Ataque', Defense: 'Defesa', Etc: 'Outros' }
+const TITLE_CATEGORIES = ['Attack', 'Defense', 'Etc']
 
 export function titleCategoryLabel(category: string): string {
-  return TITLE_CATEGORY_LABEL[category] ?? category
+  return TITLE_CATEGORIES.includes(category) ? t(`character.titleCategories.${category}`) : category
 }
 
 /** Skills por categoria, equipadas primeiro e depois por nível. */

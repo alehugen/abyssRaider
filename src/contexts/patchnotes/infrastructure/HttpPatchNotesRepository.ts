@@ -1,27 +1,37 @@
 import { HttpError } from '@/contexts/character/infrastructure/HttpCharacterDirectory'
+import { currentLocale, t } from '@/shared/i18n'
 import type { PatchNote, PatchNoteSummary, PatchNotesRepository } from '../domain/PatchNote'
 
 type Fetch = typeof fetch
 type Raw<T> = Omit<T, 'postedAt'> & { postedAt: string }
 
-/** Fala com /api/patch-notes/* (proxy na Vercel para a API da comunidade do AION 2). */
+/**
+ * Fala com /api/patch-notes/* (proxy na Vercel para a API da comunidade do AION 2).
+ * Pede os patch notes no idioma da tela (`lang`): a NCSOFT tem um quadro por idioma.
+ */
 export class HttpPatchNotesRepository implements PatchNotesRepository {
   private readonly baseUrl: string
   private readonly fetchFn: Fetch
+  private readonly locale: () => string
 
-  constructor(baseUrl = '/api/patch-notes', fetchFn: Fetch = (...args) => fetch(...args)) {
+  constructor(
+    baseUrl = '/api/patch-notes',
+    fetchFn: Fetch = (...args) => fetch(...args),
+    locale: () => string = currentLocale,
+  ) {
     this.baseUrl = baseUrl
     this.fetchFn = fetchFn
+    this.locale = locale
   }
 
   async list(limit = 12): Promise<PatchNoteSummary[]> {
-    const { notes } = await this.getJson<{ notes: Raw<PatchNoteSummary>[] }>(`/list?limit=${limit}`)
+    const { notes } = await this.getJson<{ notes: Raw<PatchNoteSummary>[] }>(`/list?limit=${limit}&lang=${this.lang()}`)
     return notes.map((n) => ({ ...n, postedAt: new Date(n.postedAt) }))
   }
 
   async get(id: string): Promise<PatchNote | null> {
     try {
-      const { note } = await this.getJson<{ note: Raw<PatchNote> }>(`/article?id=${encodeURIComponent(id)}`)
+      const { note } = await this.getJson<{ note: Raw<PatchNote> }>(`/article?id=${encodeURIComponent(id)}&lang=${this.lang()}`)
       return { ...note, postedAt: new Date(note.postedAt) }
     } catch (e) {
       if (e instanceof HttpError && e.status === 404) return null
@@ -29,10 +39,14 @@ export class HttpPatchNotesRepository implements PatchNotesRepository {
     }
   }
 
+  private lang(): string {
+    return encodeURIComponent(this.locale())
+  }
+
   private async getJson<T>(path: string): Promise<T> {
     const res = await this.fetchFn(`${this.baseUrl}${path}`, { headers: { accept: 'application/json' } })
     const body = (await res.json().catch(() => null)) as { error?: string } | null
-    if (!res.ok) throw new HttpError(body?.error ?? `Erro ${res.status} ao buscar os patch notes`, res.status)
+    if (!res.ok) throw new HttpError(body?.error ?? t('patchnotes.errors.http', { status: res.status }), res.status)
     return body as T
   }
 }

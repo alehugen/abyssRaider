@@ -1,3 +1,5 @@
+import { t } from '@/shared/i18n'
+
 export type Faction = 'elyos' | 'asmodian'
 
 export const CHARACTER_CLASSES = [
@@ -32,10 +34,17 @@ export const CLASS_ROLES: Record<CharacterClass, readonly CombatRole[]> = {
   Brawler: ['dps'],
 }
 
-export const ROLE_LABEL: Record<CombatRole, string> = {
-  tank: 'tanque',
-  healer: 'cura',
-  dps: 'dano',
+/** Rótulo traduzido de cada papel (getters: leem o idioma atual a cada acesso). */
+export const ROLE_LABEL: Readonly<Record<CombatRole, string>> = {
+  get tank() {
+    return t('character.roles.tank')
+  },
+  get healer() {
+    return t('character.roles.healer')
+  },
+  get dps() {
+    return t('character.roles.dps')
+  },
 }
 
 /** A API às vezes usa o nome interno (Elementalist, Fighter) em vez do exibido. */
@@ -76,7 +85,7 @@ export function classNamesFor(roles: readonly CombatRole[]): string[] {
   return [...names, ...aliases]
 }
 
-/** "dano/cura" para híbridos. */
+/** "dano/cura" para híbridos (no idioma atual). */
 export function rolesLabel(className: string): string {
   return rolesOf(className).map((r) => ROLE_LABEL[r]).join('/')
 }
@@ -84,12 +93,23 @@ export function rolesLabel(className: string): string {
 export const REGIONS = ['nae', 'naw', 'eu', 'la', 'as'] as const
 export type Region = (typeof REGIONS)[number]
 
-export const REGION_LABEL: Record<Region, string> = {
-  nae: 'América do Norte (Leste)',
-  naw: 'América do Norte (Oeste)',
-  eu: 'Europa',
-  la: 'América Latina',
-  as: 'Ásia / Oceania',
+/** Rótulo traduzido de cada região (getters: leem o idioma atual a cada acesso). */
+export const REGION_LABEL: Readonly<Record<Region, string>> = {
+  get nae() {
+    return t('character.regions.nae')
+  },
+  get naw() {
+    return t('character.regions.naw')
+  },
+  get eu() {
+    return t('character.regions.eu')
+  },
+  get la() {
+    return t('character.regions.la')
+  },
+  get as() {
+    return t('character.regions.as')
+  },
 }
 
 /** Resultado da busca: a API não traz classe, CP nem item level aqui. */

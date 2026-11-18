@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { PhCheck, PhQuestion, PhX } from '@phosphor-icons/vue'
 import type { Component } from 'vue'
+import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
-import { RSVP_LABEL, type RsvpStatus } from '../../domain/RaidEvent'
+import { rsvpLabel, type RsvpStatus } from '../../domain/RaidEvent'
 
 defineProps<{ status: RsvpStatus | null; disabled?: boolean }>()
 const emit = defineEmits<{ respond: [status: RsvpStatus] }>()
@@ -15,7 +16,7 @@ const OPTIONS: Array<{ value: RsvpStatus; icon: Component; active: string }> = [
 </script>
 
 <template>
-  <div role="radiogroup" aria-label="Sua presença" class="inline-flex gap-1 rounded-lg bg-muted p-1">
+  <div role="radiogroup" :aria-label="t('scheduling.rsvp.groupLabel')" class="inline-flex gap-1 rounded-lg bg-muted p-1">
     <button
       v-for="o in OPTIONS"
       :key="o.value"
@@ -32,7 +33,7 @@ const OPTIONS: Array<{ value: RsvpStatus; icon: Component; active: string }> = [
       @click="emit('respond', o.value)"
     >
       <component :is="o.icon" :size="14" weight="bold" aria-hidden="true" />
-      {{ RSVP_LABEL[o.value] }}
+      {{ rsvpLabel(o.value) }}
     </button>
   </div>
 </template>

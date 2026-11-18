@@ -1,3 +1,4 @@
+import { t } from '@/shared/i18n'
 import { rolesOf, type CombatRole, type Faction, type Region } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
 import type { RaidRoutine } from './RaidRoutine'
@@ -184,7 +185,7 @@ export function moveInLayout(
 /** Santuário é raid entre facções: só a região (e o item level) importam. */
 export function canJoin(party: Party, linked: LinkedCharacter): Eligibility {
   const c = linked.character
-  if (c.region !== party.region) return { ok: false, reason: 'Região diferente da party.' }
+  if (c.region !== party.region) return { ok: false, reason: t('party.eligibility.otherRegion') }
   return eligibility(c, party.sanctuary)
 }
 
@@ -192,7 +193,7 @@ export function canJoin(party: Party, linked: LinkedCharacter): Eligibility {
 export function joinBlockedMessage(party: Party, characters: readonly LinkedCharacter[]): string | null {
   if (!characters.length || characters.some((l) => canJoin(party, l).ok)) return null
   if (characters.every((l) => l.character.region !== party.region)) {
-    return 'Esta party é de outra região do servidor. Só entram personagens da mesma região.'
+    return t('party.join.blockedRegion')
   }
-  return 'Nenhum dos seus personagens pode entrar nesta party (região ou item level). Veja o motivo de cada um na lista.'
+  return t('party.join.blockedAll')
 }

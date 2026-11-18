@@ -3,6 +3,7 @@ import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhCircleNotch, PhLightbulb, PhPlus } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { useRouter } from 'vue-router'
 import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { Button } from '@/shared/presentation/ui/button'
@@ -51,7 +52,8 @@ const routinePreview = computed(() => {
   if (!hasRoutine.value || !routineValid.value) return null
   const next = formatNextRaid(routine.value)
   const text = formatRoutine(routine.value)
-  return `${text.charAt(0).toUpperCase()}${text.slice(1)}.${next ? ` Próxima: ${next}.` : ''}`
+  const sentence = `${text.charAt(0).toUpperCase()}${text.slice(1)}.`
+  return next ? `${sentence} ${t('party.create.nextRaid', { date: next })}` : sentence
 })
 
 const sanctuary = computed(() => raid.sanctuaries.find((s) => s.id === sanctuaryId.value) ?? null)
@@ -143,35 +145,38 @@ async function submit() {
       <slot>
         <Button>
           <PhPlus />
-          Criar party
+          {{ t('party.create.button') }}
         </Button>
       </slot>
     </DialogTrigger>
 
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle class="font-display text-2xl">Criar party</DialogTitle>
+        <DialogTitle class="font-display text-2xl">{{ t('party.create.title') }}</DialogTitle>
         <DialogDescription>
-          Você vira o líder. Depois é só mandar o link da party para o grupo.
+          {{ t('party.create.description') }}
         </DialogDescription>
       </DialogHeader>
 
       <p v-if="!characters.items.length && characters.loaded" class="text-sm text-muted-foreground">
-        Vincule um personagem em <RouterLink to="/me" class="font-medium text-foreground underline">Meus personagens</RouterLink>
-        antes de criar uma party.
+        <i18n-t keypath="party.create.needCharacter" tag="span">
+          <template #link>
+            <RouterLink to="/me" class="font-medium text-foreground underline">{{ t('party.create.myCharacters') }}</RouterLink>
+          </template>
+        </i18n-t>
       </p>
 
       <form v-else class="space-y-4" @submit.prevent="submit">
         <label class="block space-y-1.5">
-          <span class="text-sm font-medium">Nome</span>
-          <Input v-model="name" maxlength="40" placeholder="Ex.: Ludra de quinta" autocomplete="off" />
+          <span class="text-sm font-medium">{{ t('party.create.name') }}</span>
+          <Input v-model="name" maxlength="40" :placeholder="t('party.create.namePlaceholder')" autocomplete="off" />
         </label>
 
         <div class="space-y-1.5">
-          <span id="sanctuary-label" class="text-sm font-medium">Santuário</span>
+          <span id="sanctuary-label" class="text-sm font-medium">{{ t('party.create.sanctuary') }}</span>
           <Select v-model="sanctuaryId">
             <SelectTrigger class="w-full" aria-labelledby="sanctuary-label">
-              <SelectValue placeholder="Escolha o santuário" />
+              <SelectValue :placeholder="t('party.create.sanctuaryPlaceholder')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="s in raid.sanctuaries" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
@@ -181,14 +186,14 @@ async function submit() {
 
         <fieldset class="space-y-1.5">
           <legend class="text-sm font-medium">
-            Recorrência <span class="font-normal text-muted-foreground">(opcional)</span>
+            {{ t('party.create.routine') }} <span class="font-normal text-muted-foreground">{{ t('party.create.optional') }}</span>
           </legend>
           <RoutineEditor v-model="slots" id-prefix="create-routine" />
           <p class="text-[13px] text-muted-foreground">
             {{
               routinePreview
-                ? `${routinePreview} As raids da semana são criadas sozinhas.`
-                : 'Sem dias marcados, cada raid é marcada na semana pela disponibilidade do grupo.'
+                ? `${routinePreview} ${t('party.create.routineAuto')}`
+                : t('party.create.routineNone')
             }}
           </p>
         </fieldset>
@@ -196,7 +201,7 @@ async function submit() {
         <div v-if="demandSlots.length" class="space-y-1.5 rounded-xl bg-muted/60 p-3">
           <p class="flex items-center gap-1.5 text-[13px] font-medium">
             <PhLightbulb class="text-warning-ink" aria-hidden="true" />
-            Mais jogadores livres ({{ demandScope }})
+            {{ t('party.create.demandTitle', { scope: demandScope }) }}
           </p>
           <div class="flex flex-wrap gap-1.5">
             <Button
@@ -206,23 +211,23 @@ async function submit() {
               size="sm"
               variant="outline"
               class="h-auto flex-col items-start gap-0 bg-background px-2.5 py-1.5 text-left"
-              :title="`Usar ${WEEKDAYS[s.weekday]!.long} às ${formatMinutes(s.start)}`"
+              :title="t('party.create.demandUse', { day: WEEKDAYS[s.weekday]!.long, time: formatMinutes(s.start) })"
               @click="useSlot(s)"
             >
               <span class="text-[13px] font-medium">
                 {{ WEEKDAYS[s.weekday]!.short }} {{ formatMinutes(s.start) }}–{{ formatMinutes(s.end) }}
               </span>
-              <span class="text-xs font-normal text-muted-foreground">{{ s.people.length }} jogadores</span>
+              <span class="text-xs font-normal text-muted-foreground">{{ t('party.create.players', s.people.length) }}</span>
             </Button>
           </div>
-          <p class="text-xs text-muted-foreground">Toque para usar o dia e o horário de início.</p>
+          <p class="text-xs text-muted-foreground">{{ t('party.create.demandHint') }}</p>
         </div>
 
         <div class="space-y-1.5">
-          <span id="leader-label" class="text-sm font-medium">Seu personagem na party</span>
+          <span id="leader-label" class="text-sm font-medium">{{ t('party.create.character') }}</span>
           <Select v-model="characterLinkId">
             <SelectTrigger class="w-full" aria-labelledby="leader-label">
-              <SelectValue placeholder="Escolha o personagem" />
+              <SelectValue :placeholder="t('party.create.characterPlaceholder')" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem
@@ -240,17 +245,17 @@ async function submit() {
             {{ selectedCharacter.reason }}
           </p>
           <p v-else class="text-[13px] text-muted-foreground">
-            A party aceita personagens da mesma região que ele, Elyos ou Asmodian.
+            {{ t('party.create.characterHint') }}
           </p>
         </div>
 
         <p v-if="error || raid.error" role="alert" class="text-sm text-destructive-ink">{{ error ?? raid.error }}</p>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>
+          <Button type="button" variant="ghost" @click="open = false">{{ t('common.actions.cancel') }}</Button>
           <Button type="submit" :disabled="!canSubmit">
             <PhCircleNotch v-if="submitting" class="animate-spin" />
-            Criar party
+            {{ t('party.create.button') }}
           </Button>
         </DialogFooter>
       </form>

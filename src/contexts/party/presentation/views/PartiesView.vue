@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { PhArrowCounterClockwise, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed } from 'vue'
+import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
 import { onMounted } from 'vue'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
@@ -26,14 +27,14 @@ onMounted(() => void parties.load())
   <div class="space-y-6">
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="font-display text-4xl leading-none font-bold">Parties</h1>
+        <h1 class="font-display text-4xl leading-none font-bold">{{ t('party.list.title') }}</h1>
         <p class="mt-2 max-w-prose text-muted-foreground">
-          Monte o grupo para um santuário ou abra o link que o líder mandou para pedir sua vaga.
+          {{ t('party.list.intro') }}
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
         <Button variant="outline" as-child>
-          <RouterLink :to="{ name: 'find-parties' }"><PhMagnifyingGlass /> Buscar parties</RouterLink>
+          <RouterLink :to="{ name: 'find-parties' }"><PhMagnifyingGlass /> {{ t('party.list.find') }}</RouterLink>
         </Button>
         <CreatePartyDialog />
       </div>
@@ -48,12 +49,12 @@ onMounted(() => void parties.load())
     </div>
 
     <p v-else-if="parties.loaded && !parties.items.length" class="text-muted-foreground">
-      Você ainda não está em nenhuma party. Crie uma ou peça o link para o líder do seu grupo.
+      {{ t('party.list.empty') }}
     </p>
 
     <template v-else>
       <p v-if="!active.length" class="text-muted-foreground">
-        Nenhuma party ativa. Crie uma ou peça o link para o líder do seu grupo.
+        {{ t('party.list.noActive') }}
       </p>
       <ul v-else class="space-y-3">
         <li v-for="item in active" :key="item.party.id">
@@ -63,8 +64,8 @@ onMounted(() => void parties.load())
 
       <section v-if="finished.length" aria-labelledby="finished-title" class="space-y-3 pt-4">
         <div>
-          <h2 id="finished-title" class="font-display text-2xl font-semibold">Finalizadas</h2>
-          <p class="text-sm text-muted-foreground">Histórico das raids. Para jogar de novo, crie outra party.</p>
+          <h2 id="finished-title" class="font-display text-2xl font-semibold">{{ t('party.list.finishedTitle') }}</h2>
+          <p class="text-sm text-muted-foreground">{{ t('party.list.finishedHint') }}</p>
         </div>
         <ul class="space-y-3">
           <li v-for="item in finished" :key="item.party.id" class="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -73,7 +74,7 @@ onMounted(() => void parties.load())
               v-if="item.myStatus === 'leader'"
               :prefill="{ name: item.party.name, sanctuaryId: item.party.sanctuary.id, routine: item.party.routine }"
             >
-              <Button variant="outline" class="sm:w-auto"><PhArrowCounterClockwise /> Criar de novo</Button>
+              <Button variant="outline" class="sm:w-auto"><PhArrowCounterClockwise /> {{ t('party.list.createAgain') }}</Button>
             </CreatePartyDialog>
           </li>
         </ul>

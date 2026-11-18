@@ -3,6 +3,7 @@ import { errorMessage } from '@/shared/lib/errorMessage'
 import { PhCheckCircle, PhRepeat, PhTrash, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, ref, shallowRef, watch } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import type { PartyMember } from '@/contexts/party/domain/Party'
 import type { RaidRoutine } from '@/contexts/party/domain/RaidRoutine'
 import RecurrenceDialog from '@/contexts/party/presentation/components/RecurrenceDialog.vue'
@@ -10,8 +11,8 @@ import { formatRoutine } from '@/contexts/party/presentation/routineFormat'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
-import { myRsvp, rsvpCounts, RSVP_LABEL, type RaidEvent, type RsvpStatus } from '../../domain/RaidEvent'
-import { formatRelative, formatTime } from '../format'
+import { myRsvp, rsvpCounts, type RaidEvent, type RsvpStatus } from '../../domain/RaidEvent'
+import { formatRelative, formatTime, tzLabel } from '../format'
 import RaidDateBadge from './RaidDateBadge.vue'
 import RemindButton from './RemindButton.vue'
 import RsvpButtons from './RsvpButtons.vue'
@@ -80,10 +81,10 @@ async function schedule(dates: Date[], note: string | null) {
 
 async function cancel(event: RaidEvent) {
   const ok = await confirm({
-    title: 'Cancelar esta raid?',
-    description: 'As confirmações de presença dessa data serão apagadas.',
-    confirmText: 'Cancelar raid',
-    cancelText: 'Manter',
+    title: t('scheduling.schedule.cancelConfirm.title'),
+    description: t('scheduling.schedule.cancelConfirm.description'),
+    confirmText: t('scheduling.schedule.cancelConfirm.confirm'),
+    cancelText: t('scheduling.schedule.cancelConfirm.keep'),
     destructive: true,
   })
   if (ok) void run(event.id, () => repo.cancel(event.id))
@@ -113,7 +114,7 @@ function pendingCount(event: RaidEvent): number {
 <template>
   <section aria-labelledby="schedule-title" class="space-y-3">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h2 id="schedule-title" class="font-display text-2xl font-semibold">Agenda</h2>
+      <h2 id="schedule-title" class="font-display text-2xl font-semibold">{{ t('scheduling.schedule.title') }}</h2>
       <div v-if="isLeader" class="flex flex-wrap gap-2">
         <RecurrenceDialog :party-id="partyId" :routine="routine" @changed="onRecurrenceChanged" />
         <ScheduleRaidDialog
@@ -142,7 +143,7 @@ function pendingCount(event: RaidEvent): number {
     <Skeleton v-if="loading" class="h-24 rounded-2xl" />
 
     <p v-else-if="!events.length" class="text-sm text-muted-foreground">
-      {{ isLeader ? 'Nenhuma raid marcada. Marque a desta semana para o grupo confirmar presença.' : 'Nenhuma raid marcada ainda.' }}
+      {{ isLeader ? t('scheduling.schedule.emptyLeader') : t('scheduling.schedule.empty') }}
     </p>
 
     <ul v-else class="space-y-3">
@@ -156,23 +157,23 @@ function pendingCount(event: RaidEvent): number {
         <div class="min-w-0 flex-1 space-y-1.5">
           <p class="flex flex-wrap items-baseline gap-x-2">
             <span class="font-display text-xl font-semibold tabular-nums">{{ formatTime(event.startsAt) }}</span>
-            <span class="text-xs text-muted-foreground">horário de Brasília</span>
+            <span class="text-xs text-muted-foreground">{{ tzLabel() }}</span>
             <span class="text-sm text-muted-foreground">{{ formatRelative(event.startsAt) }}</span>
             <span v-if="event.recurring" class="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <PhRepeat aria-hidden="true" /> recorrente
+              <PhRepeat aria-hidden="true" /> {{ t('scheduling.schedule.recurring') }}
             </span>
           </p>
           <p v-if="event.note" class="text-sm">{{ event.note }}</p>
           <p class="flex flex-wrap gap-x-4 gap-y-0.5 text-[13px] text-muted-foreground">
             <span>
-              <b class="font-semibold text-success-ink">{{ rsvpCounts(event).going }}</b> {{ RSVP_LABEL.going.toLowerCase() }}<template
+              <b class="font-semibold text-success-ink">{{ rsvpCounts(event).going }}</b> {{ t('scheduling.schedule.counts.going') }}<template
                 v-if="namesWith(event, 'going')"
                 >: {{ namesWith(event, 'going') }}</template
               >
             </span>
-            <span><b class="font-semibold text-warning-ink">{{ rsvpCounts(event).maybe }}</b> talvez</span>
-            <span><b class="font-semibold text-destructive-ink">{{ rsvpCounts(event).declined }}</b> não vão</span>
-            <span v-if="pendingCount(event)">{{ pendingCount(event) }} sem resposta</span>
+            <span><b class="font-semibold text-warning-ink">{{ rsvpCounts(event).maybe }}</b> {{ t('scheduling.schedule.counts.maybe') }}</span>
+            <span><b class="font-semibold text-destructive-ink">{{ rsvpCounts(event).declined }}</b> {{ t('scheduling.schedule.counts.declined') }}</span>
+            <span v-if="pendingCount(event)">{{ t('scheduling.schedule.counts.pending', { n: pendingCount(event) }) }}</span>
           </p>
         </div>
 
@@ -192,7 +193,7 @@ function pendingCount(event: RaidEvent): number {
               :disabled="busy === event.id"
               @click="cancel(event)"
             >
-              <PhTrash /> Cancelar raid
+              <PhTrash /> {{ t('scheduling.schedule.cancelRaid') }}
             </Button>
           </div>
         </div>

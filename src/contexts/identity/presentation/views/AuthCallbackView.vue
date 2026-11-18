@@ -2,6 +2,7 @@
 import { PhSpinnerGap } from '@phosphor-icons/vue'
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { t } from '@/shared/i18n'
 import { safeNext } from '@/shared/lib/safeNext'
 import { useAuthStore } from '../useAuthStore'
 
@@ -21,7 +22,7 @@ onMounted(async () => {
   if (auth.isAuthenticated) {
     await router.replace(safeNext(route.query.next))
   } else {
-    await router.replace({ name: 'login', query: { error: auth.error ?? 'Não foi possível concluir o login.' } })
+    await router.replace({ name: 'login', query: { error: auth.error ?? t('identity.callback.failed') } })
   }
 })
 </script>
@@ -29,6 +30,6 @@ onMounted(async () => {
 <template>
   <div class="flex flex-col items-center gap-3 py-24 text-muted-foreground">
     <PhSpinnerGap :size="32" class="animate-spin" />
-    <p>Conectando com o Discord…</p>
+    <p>{{ t('identity.callback.connecting') }}</p>
   </div>
 </template>

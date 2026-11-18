@@ -2,6 +2,7 @@
 import { PhCircleNotch, PhRepeat } from '@phosphor-icons/vue'
 import { computed, ref, watch } from 'vue'
 import { getContainer } from '@/app/container'
+import { t } from '@/shared/i18n'
 import { APP_TIME_ZONE, tzLabel } from '@/shared/lib/brasilia'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
@@ -59,38 +60,34 @@ async function run(action: () => Promise<string>) {
   }
 }
 
-function plural(n: number, one: string, many: string) {
-  return `${n} ${n === 1 ? one : many}`
-}
-
 function submit() {
   if (!valid.value || busy.value) return
   if (mode.value === 'weekly') {
     void run(async () => {
       const created = await getContainer().partyRepository.setRecurrence(props.partyId, slots.value)
-      return `Recorrência salva: ${formatRoutine(draft.value)}.${created ? ` ${plural(created, 'raid criada', 'raids criadas')} na agenda.` : ''}`
+      const saved = t('party.recurrence.saved', { routine: formatRoutine(draft.value) })
+      return created ? `${saved} ${t('party.recurrence.created', created)}` : saved
     })
   } else {
     void run(async () => {
       const dates = onceDates.value
       await getContainer().raidEventRepository.schedule(props.partyId, dates, null)
-      return `${plural(dates.length, 'raid marcada', 'raids marcadas')}.`
+      return t('party.recurrence.scheduled', dates.length)
     })
   }
 }
 
 async function turnOff() {
   const ok = await confirm({
-    title: 'Desligar a recorrência?',
-    description:
-      'As raids futuras criadas pela recorrência saem da agenda. Sem recorrência, a party é finalizada 3 horas depois da última raid.',
-    confirmText: 'Desligar',
+    title: t('party.recurrence.offTitle'),
+    description: t('party.recurrence.offDescription'),
+    confirmText: t('party.recurrence.offConfirm'),
     destructive: true,
   })
   if (!ok) return
   void run(async () => {
     await getContainer().partyRepository.setRecurrence(props.partyId, [])
-    return 'Recorrência desligada.'
+    return t('party.recurrence.offDone')
   })
 }
 </script>
@@ -100,49 +97,48 @@ async function turnOff() {
     <DialogTrigger as-child>
       <Button size="sm" variant="outline">
         <PhRepeat />
-        {{ routine ? 'Recorrência' : 'Adicionar recorrência' }}
+        {{ routine ? t('party.recurrence.button') : t('party.recurrence.add') }}
       </Button>
     </DialogTrigger>
 
     <DialogContent class="sm:max-w-lg">
       <DialogHeader>
-        <DialogTitle class="font-display text-2xl">Dias e horários da raid</DialogTitle>
-        <DialogDescription>Escolha os dias e o horário de cada um ({{ tzLabel() }}).</DialogDescription>
+        <DialogTitle class="font-display text-2xl">{{ t('party.recurrence.title') }}</DialogTitle>
+        <DialogDescription>{{ t('party.recurrence.description', { tz: tzLabel() }) }}</DialogDescription>
       </DialogHeader>
 
       <form class="space-y-5" @submit.prevent="submit">
         <RoutineEditor v-model="slots" id-prefix="recurrence" />
 
         <fieldset class="space-y-1.5">
-          <legend class="mb-1.5 text-sm font-medium">Repetir</legend>
+          <legend class="mb-1.5 text-sm font-medium">{{ t('party.recurrence.repeat') }}</legend>
           <ToggleGroup
             :model-value="mode"
             type="single"
             variant="outline"
             class="grid w-full grid-cols-2"
-            aria-label="Repetir"
+            :aria-label="t('party.recurrence.repeat')"
             @update:model-value="(v) => (mode = (v as 'weekly' | 'once') || mode)"
           >
             <ToggleGroupItem
               value="weekly"
               class="data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
             >
-              Toda semana
+              {{ t('party.recurrence.weekly') }}
             </ToggleGroupItem>
             <ToggleGroupItem
               value="once"
               class="data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
             >
-              Só esta semana
+              {{ t('party.recurrence.once') }}
             </ToggleGroupItem>
           </ToggleGroup>
           <p class="text-[13px] text-muted-foreground">
             <template v-if="mode === 'weekly'">
-              As raids dos próximos 7 dias são criadas sozinhas, com confirmação de presença, e a party não é
-              finalizada automaticamente.
+              {{ t('party.recurrence.weeklyHint') }}
             </template>
             <template v-else>
-              Marca uma vez a próxima data de cada dia escolhido{{ routine ? '; a recorrência atual continua' : '' }}.
+              {{ routine ? t('party.recurrence.onceHintKeep') : t('party.recurrence.onceHint') }}
             </template>
           </p>
         </fieldset>
@@ -158,14 +154,14 @@ async function turnOff() {
             :disabled="busy"
             @click="turnOff"
           >
-            Desligar recorrência
+            {{ t('party.recurrence.off') }}
           </Button>
           <span v-else />
           <div class="flex gap-2">
-            <Button type="button" variant="ghost" @click="open = false">Cancelar</Button>
+            <Button type="button" variant="ghost" @click="open = false">{{ t('common.actions.cancel') }}</Button>
             <Button type="submit" :disabled="!valid || busy">
               <PhCircleNotch v-if="busy" class="animate-spin" />
-              {{ mode === 'weekly' ? 'Salvar recorrência' : onceDates.length > 1 ? `Marcar ${onceDates.length} raids` : 'Marcar raid' }}
+              {{ mode === 'weekly' ? t('party.recurrence.save') : t('party.recurrence.schedule', onceDates.length) }}
             </Button>
           </div>
         </DialogFooter>

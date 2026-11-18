@@ -1,7 +1,8 @@
 /**
- * Patch notes do AION 2 (quadro "Atualizações" do site oficial, em português).
+ * Patch notes do AION 2 (quadro "Atualizações" do site oficial).
  *
- * A comunidade da NCSOFT tem uma API pública em JSON (a mesma que o site usa):
+ * A comunidade da NCSOFT tem uma API pública em JSON (a mesma que o site usa), com
+ * um quadro por idioma (update_pt, update_en, update_es):
  *   lista:  .../board/update_pt/article/search/moreArticle?moreSize=10&moreDirection=BEFORE
  *   artigo: .../board/update_pt/article/{id}  (o corpo vem em HTML)
  * Aqui o HTML vira uma árvore simples (seções > grupos > tópicos) para a aba do
@@ -9,8 +10,27 @@
  */
 import { AionApiError } from './aion.js'
 
-const BOARD_URL = 'https://api-global-community.plaync.com/aion2_global/board/update_pt/article'
-const VIEW_URL = 'https://aion2.plaync.com/pt-br/board/update/view?articleId='
+/** Idiomas dos quadros de patch notes (os mesmos do app). O Discord usa sempre pt-BR. */
+export const PATCH_LANGS = ['pt-BR', 'en', 'es'] as const
+export type PatchLang = (typeof PATCH_LANGS)[number]
+
+const BOARDS: Record<PatchLang, { alias: string; site: string }> = {
+  'pt-BR': { alias: 'update_pt', site: 'pt-br' },
+  en: { alias: 'update_en', site: 'en-us' },
+  // O site em espanhol fica em /es-es (es-mx redireciona para a home em inglês).
+  es: { alias: 'update_es', site: 'es-es' },
+}
+
+/** Idioma vindo da query (?lang=); qualquer outro valor cai no português. */
+export function parsePatchLang(value: unknown): PatchLang {
+  return PATCH_LANGS.find((l) => l === value) ?? 'pt-BR'
+}
+
+export const boardUrl = (lang: PatchLang = 'pt-BR') =>
+  `https://api-global-community.plaync.com/aion2_global/board/${BOARDS[lang].alias}/article`
+
+export const viewUrl = (lang: PatchLang = 'pt-BR') =>
+  `https://aion2.plaync.com/${BOARDS[lang].site}/board/update/view?articleId=`
 
 export interface PatchNoteSummary {
   id: string
@@ -69,14 +89,14 @@ type RawArticle = {
   timestamps?: { postedAt?: unknown; createdAt?: unknown }
 }
 
-export function normalizeSummary(raw: RawArticle): PatchNoteSummary | null {
+export function normalizeSummary(raw: RawArticle, lang: PatchLang = 'pt-BR'): PatchNoteSummary | null {
   if (typeof raw?.id !== 'string' || typeof raw.title !== 'string') return null
   const postedAt = raw.timestamps?.postedAt ?? raw.timestamps?.createdAt
   return {
     id: raw.id,
     title: cleanTitle(raw.title),
     postedAt: typeof postedAt === 'string' ? postedAt : new Date(0).toISOString(),
-    url: VIEW_URL + raw.id,
+    url: viewUrl(lang) + raw.id,
     // A miniatura da lista é recortada; a imagem cheia é o mesmo arquivo em /download/.
     imageUrl:
       typeof raw.thumbnailUrl === 'string' && raw.thumbnailUrl
@@ -85,25 +105,25 @@ export function normalizeSummary(raw: RawArticle): PatchNoteSummary | null {
   }
 }
 
-/** "[Aviso] Notas da Atualização | 11 nov" -> "Notas da Atualização | 11 nov" */
+/** "[Aviso] Notas da Atualização | 11 nov" -> "Notas da Atualização | 11 nov" (en: "[Notice]") */
 export function cleanTitle(title: string): string {
-  return decodeEntities(title).replace(/^\s*\[aviso\]\s*/i, '').replace(/\s+/g, ' ').trim()
+  return decodeEntities(title).replace(/^\s*\[(aviso|notice)\]\s*/i, '').replace(/\s+/g, ' ').trim()
 }
 
-export async function listPatchNotes(limit: number): Promise<PatchNoteSummary[]> {
+export async function listPatchNotes(limit: number, lang: PatchLang = 'pt-BR'): Promise<PatchNoteSummary[]> {
   const size = Math.min(Math.max(limit, 1), 20)
-  const raw = (await getJson(`${BOARD_URL}/search/moreArticle?moreSize=${size}&moreDirection=BEFORE`)) as {
+  const raw = (await getJson(`${boardUrl(lang)}/search/moreArticle?moreSize=${size}&moreDirection=BEFORE`)) as {
     contentList?: RawArticle[]
   }
-  return (raw.contentList ?? []).map(normalizeSummary).filter((x): x is PatchNoteSummary => !!x)
+  return (raw.contentList ?? []).map((a) => normalizeSummary(a, lang)).filter((x): x is PatchNoteSummary => !!x)
 }
 
-export async function getPatchNote(id: string): Promise<PatchNote> {
+export async function getPatchNote(id: string, lang: PatchLang = 'pt-BR'): Promise<PatchNote> {
   if (!/^[a-f0-9]{24}$/i.test(id)) throw new AionApiError('Patch note inválido.', 400)
-  const raw = (await getJson(`${BOARD_URL}/${id}`)) as {
+  const raw = (await getJson(`${boardUrl(lang)}/${id}`)) as {
     article?: { contentMeta?: RawArticle; content?: { content?: unknown } }
   }
-  const summary = raw.article?.contentMeta ? normalizeSummary(raw.article.contentMeta) : null
+  const summary = raw.article?.contentMeta ? normalizeSummary(raw.article.contentMeta, lang) : null
   const html = raw.article?.content?.content
   if (!summary || typeof html !== 'string') throw new AionApiError('Patch note não encontrado.', 404)
   return { ...summary, imageUrl: firstImage(html) ?? summary.imageUrl, sections: parsePatchHtml(html) }
@@ -125,8 +145,9 @@ export function decodeEntities(s: string): string {
 
 const clean = (s: string) => s.replace(/[​ ]/g, ' ').replace(/\s+/g, ' ').trim()
 
-/** Texto que não é novidade: notas de rodapé da loja, rótulos de tabela, despedida. */
-const NOISE = /^(\*|※)|^detalhes do (conteúdo do )?produto$|^(agradecemos|obrigad[oa])\b/i
+/** Texto que não é novidade: notas de rodapé da loja, rótulos de tabela, despedida (pt, en, es). */
+const NOISE =
+  /^(\*|※)|^detalhes do (conteúdo do )?produto$|^(agradecemos|obrigad[oa])\b|^product (content )?details$|^thank(s| you)\b|^detalles del (contenido del )?producto$|^gracias\b/i
 
 function firstImage(html: string): string | null {
   const m = /<img[^>]+src="([^"]+)"/i.exec(html)
