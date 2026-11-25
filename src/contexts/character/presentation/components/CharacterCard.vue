@@ -76,7 +76,7 @@ const ariaLabel = computed(() =>
     :aria-label="ariaLabel"
   >
     <!-- Retrato: os retratos oficiais têm fundo preto, então ele "derrete" no card. -->
-    <div class="relative w-28 flex-none sm:w-36" aria-hidden="true">
+    <div class="relative w-24 flex-none sm:w-36" aria-hidden="true">
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_40%_45%,var(--faction-soft),transparent_70%)]" />
       <img
         v-if="character.portraitUrl"
@@ -97,13 +97,14 @@ const ariaLabel = computed(() =>
     </div>
 
     <div class="flex min-w-0 flex-1 flex-col justify-between gap-3 py-4 pr-4 pl-1 sm:pr-5">
-      <div class="min-w-0 pr-20">
+      <!-- Espaço dos botões do canto (só quando há botões): sem isso o nome sobra com ~110px no celular. -->
+      <div :class="['min-w-0', $slots.actions && 'pr-20']">
         <p v-if="role" class="text-xs font-semibold text-faction-ink">{{ role }}</p>
         <div class="flex min-w-0 items-center gap-2">
           <ClassIcon v-if="character.className" :class-name="character.className" />
           <h3
             :class="
-              cn('truncate font-display text-[28px] leading-none font-semibold', inactive && 'text-muted-foreground')
+              cn('truncate font-display text-2xl leading-none font-semibold sm:text-[28px]', inactive && 'text-muted-foreground')
             "
           >
             {{ character.name }}

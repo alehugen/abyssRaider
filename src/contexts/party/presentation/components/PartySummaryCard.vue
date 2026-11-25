@@ -36,14 +36,15 @@ const STATUS_CLASS: Record<PartySummary['myStatus'], string> = {
 
     <span class="h-12 w-0.75 flex-none rounded-full bg-faction" aria-hidden="true" />
     <span class="min-w-0 flex-1">
-      <span class="block truncate font-display text-xl leading-tight font-semibold">{{ item.party.name }}</span>
+      <!-- Celular: até 2 linhas em vez de cortar o nome; a partir de sm cabe numa linha. -->
+      <span class="line-clamp-2 font-display text-xl leading-tight font-semibold break-words sm:block sm:truncate">{{ item.party.name }}</span>
       <span class="mt-1 flex min-w-0 items-center gap-1.5 text-sm">
         <PhCrown weight="fill" class="flex-none text-primary-ink" aria-hidden="true" />
         <span class="sr-only">{{ t('party.summary.leader') }}</span>
         <ClassIcon v-if="item.leaderClassName" :class-name="item.leaderClassName" size="sm" />
         <span class="truncate font-semibold text-faction-ink">{{ item.leaderCharacterName }}</span>
       </span>
-      <span class="mt-0.5 block truncate text-[13px] text-muted-foreground">
+      <span class="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground sm:block sm:truncate">
         {{ item.party.sanctuary.name }} · {{ REGION_LABEL[item.party.region] }}
         <template v-if="item.party.routine">
           · <span class="first-letter:uppercase">{{ formatRoutine(item.party.routine) }}</span>
