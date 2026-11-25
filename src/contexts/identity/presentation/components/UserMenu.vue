@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { PhCaretDown, PhDeviceMobile, PhSignOut, PhSword } from '@phosphor-icons/vue'
+import { PhBellRinging, PhCaretDown, PhDeviceMobile, PhSignOut, PhSword } from '@phosphor-icons/vue'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PushSettingsDialog from '@/contexts/notifications/presentation/push/PushSettingsDialog.vue'
+import { usePushNotifications } from '@/contexts/notifications/presentation/push/usePushNotifications'
 import InstallIosDialog from '@/shared/presentation/pwa/InstallIosDialog.vue'
 import { installAction, usePwaInstall } from '@/shared/presentation/pwa/usePwaInstall'
 import { userInitials } from '@/contexts/identity/domain/User'
@@ -28,7 +30,12 @@ async function installApp() {
   if ((await install.run()) === 'manual') iosHelp.value = true
 }
 
+/** Push neste aparelho (raids e patch notes). */
+const pushSettings = ref(false)
+
 async function signOut() {
+  // Antes de sair (precisa da sessão): o aparelho para de receber as notificações desta conta.
+  await usePushNotifications().forgetDevice()
   await auth.signOut()
   await router.push('/')
 }
@@ -46,12 +53,16 @@ async function signOut() {
         <PhCaretDown class="hidden text-muted-foreground sm:block" aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="w-52">
+    <DropdownMenuContent align="end" class="w-60">
       <DropdownMenuLabel class="truncate">{{ auth.user.displayName }}</DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuItem @select="router.push('/me')">
         <PhSword />
         {{ t('identity.menu.myCharacters') }}
+      </DropdownMenuItem>
+      <DropdownMenuItem @select="pushSettings = true">
+        <PhBellRinging />
+        {{ t('notifications.push.menu') }}
       </DropdownMenuItem>
       <DropdownMenuItem v-if="install.visible.value" @select="installApp">
         <PhDeviceMobile />
@@ -65,4 +76,5 @@ async function signOut() {
     </DropdownMenuContent>
   </DropdownMenu>
   <InstallIosDialog v-model:open="iosHelp" />
+  <PushSettingsDialog v-model:open="pushSettings" />
 </template>

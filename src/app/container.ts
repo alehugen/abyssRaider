@@ -19,6 +19,8 @@ import type { AvailabilityRepository } from '@/contexts/scheduling/domain/Availa
 import type { RaidEventRepository } from '@/contexts/scheduling/domain/RaidEventRepository'
 import type { NotificationRepository } from '@/contexts/notifications/domain/Notification'
 import { SupabaseNotificationRepository } from '@/contexts/notifications/infrastructure/SupabaseNotificationRepository'
+import type { PushDeviceRepository } from '@/contexts/notifications/domain/PushDevice'
+import { SupabasePushDeviceRepository } from '@/contexts/notifications/infrastructure/SupabasePushDeviceRepository'
 import { SupabaseAvailabilityRepository } from '@/contexts/scheduling/infrastructure/SupabaseAvailabilityRepository'
 import { SupabaseRaidEventRepository } from '@/contexts/scheduling/infrastructure/SupabaseRaidEventRepository'
 import type { PatchNotesRepository } from '@/contexts/patchnotes/domain/PatchNote'
@@ -36,6 +38,7 @@ export interface Container {
   availabilityRepository: AvailabilityRepository
   partyNotificationsRepository: PartyNotificationsRepository
   notificationRepository: NotificationRepository
+  pushDeviceRepository: PushDeviceRepository
   patchNotesRepository: PatchNotesRepository
 }
 
@@ -108,6 +111,12 @@ const unconfiguredInbox: NotificationRepository = {
   subscribe: () => () => {},
 }
 
+const unconfiguredPush: PushDeviceRepository = {
+  find: async () => null,
+  save: notConfigured,
+  remove: async () => {},
+}
+
 let container: Container | null = null
 
 export function getContainer(): Container {
@@ -125,6 +134,7 @@ export function getContainer(): Container {
         ? new SupabasePartyNotificationsRepository(supabase)
         : unconfiguredNotifications,
       notificationRepository: supabase ? new SupabaseNotificationRepository(supabase) : unconfiguredInbox,
+      pushDeviceRepository: supabase ? new SupabasePushDeviceRepository(supabase) : unconfiguredPush,
       patchNotesRepository: new HttpPatchNotesRepository(),
     }
   }

@@ -113,8 +113,18 @@ const ENTRIES: readonly Entry[] = [
     'Ya pediste entrar con este personaje. Ahora depende del líder.',
   ],
   ['Você não pode mudar sua participação desse jeito.', "You can't change your participation that way.", 'No puedes cambiar tu participación de esa forma.'],
+  [
+    'Entre na sua conta para ativar as notificações.',
+    'Sign in to turn on notifications.',
+    'Inicia sesión para activar las notificaciones.',
+  ],
 
   // ---- front (DomainError) ----
+  [
+    'O app ainda está carregando. Tente de novo em instantes.',
+    'The app is still loading. Try again in a moment.',
+    'La app aún está cargando. Inténtalo de nuevo en un momento.',
+  ],
   ['Faça login para gerenciar personagens.', 'Sign in to manage characters.', 'Inicia sesión para gestionar personajes.'],
   [
     'Este personagem já está vinculado a outra conta.',

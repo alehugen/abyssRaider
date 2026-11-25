@@ -46,6 +46,27 @@ export default defineMessages(
         bodyNoDate: 'Uma raid foi cancelada.',
       },
     },
+    push: {
+      menu: 'Notificações no aparelho',
+      title: 'Notificações no aparelho',
+      description: 'Receba os avisos no celular ou no computador, mesmo com o app fechado.',
+      what: 'O que receber',
+      raids: { label: 'Raids', hint: 'Raid marcada ou cancelada, lembrete 1 h antes e lembrete do líder.' },
+      patchNotes: { label: 'Patch notes', hint: 'Quando sai patch novo do AION 2.' },
+      enable: 'Ativar neste aparelho',
+      disable: 'Desativar neste aparelho',
+      on: 'Ativadas neste aparelho.',
+      offHint: 'Você recebe raid marcada ou cancelada, lembretes (1 h antes e do líder) e patch notes novos. Depois de ativar, dá para escolher.',
+      perDevice: 'Vale só para este aparelho e esta conta. Ative em cada celular ou computador que quiser.',
+      status: {
+        unsupported: 'Este navegador não recebe notificações push. No celular, use o Chrome (Android) ou instale o app.',
+        needsInstall:
+          'No iPhone e no iPad, as notificações só funcionam com o app instalado: no Safari, Compartilhar > Adicionar à Tela de Início. Depois abra o app pela Tela de Início e ative aqui.',
+        unconfigured: 'As notificações push ainda não foram configuradas neste servidor.',
+        denied:
+          'As notificações estão bloqueadas para este site. Libere nas configurações do navegador (no cadeado ao lado do endereço ou nas configurações do app) e abra esta janela de novo.',
+      },
+    },
     bell: {
       title: 'Notificações',
       label: 'Notificações',
@@ -99,6 +120,27 @@ export default defineMessages(
         bodyNoDate: 'A raid was canceled.',
       },
     },
+    push: {
+      menu: 'Device notifications',
+      title: 'Device notifications',
+      description: 'Get alerts on your phone or computer, even with the app closed.',
+      what: 'What to receive',
+      raids: { label: 'Raids', hint: 'Raid scheduled or canceled, reminder 1 h before and leader reminders.' },
+      patchNotes: { label: 'Patch notes', hint: 'When a new AION 2 patch is out.' },
+      enable: 'Turn on for this device',
+      disable: 'Turn off for this device',
+      on: 'On for this device.',
+      offHint: 'You get raids scheduled or canceled, reminders (1 h before and from the leader) and new patch notes. You can choose after turning them on.',
+      perDevice: 'Applies only to this device and this account. Turn it on in each phone or computer you want.',
+      status: {
+        unsupported: "This browser doesn't support push notifications. On your phone, use Chrome (Android) or install the app.",
+        needsInstall:
+          'On iPhone and iPad, notifications only work with the app installed: in Safari, Share > Add to Home Screen. Then open the app from the Home Screen and turn them on here.',
+        unconfigured: "Push notifications haven't been set up on this server yet.",
+        denied:
+          'Notifications are blocked for this site. Allow them in your browser settings (the lock next to the address, or the app settings) and open this window again.',
+      },
+    },
     bell: {
       title: 'Notifications',
       label: 'Notifications',
@@ -150,6 +192,27 @@ export default defineMessages(
         title: 'Raid cancelada en {party}',
         body: 'La raid del {at} se canceló.',
         bodyNoDate: 'Se canceló una raid.',
+      },
+    },
+    push: {
+      menu: 'Notificaciones en el dispositivo',
+      title: 'Notificaciones en el dispositivo',
+      description: 'Recibe los avisos en el celular o en la computadora, incluso con la app cerrada.',
+      what: 'Qué recibir',
+      raids: { label: 'Raids', hint: 'Raid programada o cancelada, recordatorio 1 h antes y recordatorio del líder.' },
+      patchNotes: { label: 'Notas del parche', hint: 'Cuando sale un parche nuevo de AION 2.' },
+      enable: 'Activar en este dispositivo',
+      disable: 'Desactivar en este dispositivo',
+      on: 'Activadas en este dispositivo.',
+      offHint: 'Recibes raids programadas o canceladas, recordatorios (1 h antes y del líder) y notas del parche nuevas. Después de activarlas, puedes elegir.',
+      perDevice: 'Vale solo para este dispositivo y esta cuenta. Actívalas en cada celular o computadora que quieras.',
+      status: {
+        unsupported: 'Este navegador no recibe notificaciones push. En el celular, usa Chrome (Android) o instala la app.',
+        needsInstall:
+          'En iPhone y iPad, las notificaciones solo funcionan con la app instalada: en Safari, Compartir > Agregar a inicio. Luego abre la app desde la pantalla de inicio y actívalas aquí.',
+        unconfigured: 'Las notificaciones push aún no se configuraron en este servidor.',
+        denied:
+          'Las notificaciones están bloqueadas para este sitio. Permítelas en la configuración del navegador (el candado junto a la dirección o la configuración de la app) y abre esta ventana de nuevo.',
       },
     },
     bell: {
