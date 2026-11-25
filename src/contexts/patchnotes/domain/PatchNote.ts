@@ -8,9 +8,21 @@ export interface PatchNoteSummary {
   imageUrl: string | null
 }
 
+/** Célula de tabela do patch (mudanças de classe, recompensas, preços); o texto pode ter várias linhas. */
+export interface PatchTableCell {
+  text: string
+  header?: boolean
+  rowSpan?: number
+  colSpan?: number
+}
+
 export interface PatchItem {
+  /** Vazio quando o tópico é só uma tabela. */
   text: string
   children: PatchItem[]
+  /** Rótulo ("Período do evento", nome da classe): os filhos são o conteúdo dele. */
+  label?: boolean
+  table?: PatchTableCell[][]
 }
 
 export interface PatchGroup {
