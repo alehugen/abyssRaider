@@ -37,7 +37,31 @@ O app é instalável (PWA), com o celular como prioridade.
 - **Hospedagem:** `index.html`, `sw.js`, `registerSW.js` e `manifest.webmanifest` precisam ir sem cache (`Cache-Control: no-cache`), senão a atualização não chega. Isso está em `vercel.json`.
 - **Ícones:** gerados de `public/pwa-source.png` com `npx pwa-assets-generator` (config em `pwa-assets.config.ts`). Para trocar o ícone, substitua esse arquivo (512×512 ou maior) e rode de novo.
 - **Testar:** `npm run build` e `npm run preview`, depois DevTools > Application > Manifest (sem erros) e Service Workers (marque Offline e recarregue). Em `npm run dev` o service worker fica desligado (`devOptions` em `vite.config.ts`).
+- **Service worker:** é nosso, em `src/sw/sw.ts` (modo `injectManifest`): precache da interface, rotas offline, fontes e push.
 - **Layout:** telas desenhadas a partir de 360px. No celular, a navegação fica na barra inferior; a partir de `md`, no cabeçalho. Use os utilitários de área segura do `main.css` (`pt-safe`, `pb-safe`, `px-safe`, `pb-nav`, `bottom-nav`) em vez de valores soltos, e prefira `dvh` a `vh`. Em tela de toque, botões e itens de menu aceitam toque numa área de pelo menos 44×44px.
+
+## Notificações push
+
+Cada pessoa ativa no menu do usuário, em "Notificações no aparelho", e escolhe o que recebe:
+
+- **Raids:** raid marcada, raid cancelada, lembrete do líder e lembrete automático 1 h antes. O lembrete automático vale para toda party, com ou sem Discord, e também aparece no sino.
+- **Patch notes:** cada patch novo, junto com o post no Discord. Por isso depende de `patch_notes_feed` configurado.
+
+Vale por aparelho e por conta. Ao sair da conta, o aparelho deixa de receber. No Android e no computador funciona pelo navegador; no iPhone e no iPad só com o app instalado na Tela de Início (iOS 16.4+).
+
+**Como funciona:** o banco junta os aparelhos de quem deve ser avisado e, pelo `pg_net`, chama `/api/push/send` com um segredo. A função monta o texto no idioma de cada aparelho e entrega pelo serviço de push do navegador, que é gratuito. Os aparelhos que cancelaram voltam pela `push_forget` e são apagados. Nada usa a `service_role`.
+
+**Configuração (uma vez):**
+
+1. Rode `20261126000000_push.sql` no SQL Editor.
+2. Gere as chaves com `npx web-push generate-vapid-keys`.
+3. Na Vercel, cadastre estas variáveis e faça um novo deploy (a chave pública entra no build):
+   - `VITE_VAPID_PUBLIC_KEY`: a chave pública.
+   - `VAPID_PRIVATE_KEY`: a chave privada.
+   - `PUSH_SECRET`: o resultado de `select secret from public.push_config`.
+4. O endereço do app vem de `patch_notes_feed.app_url`. Para fixar outro, rode `update public.push_config set app_url = 'https://...'`.
+
+**Conferir:** os envios ficam em `net._http_response`. Por exemplo, `select status_code, content from net._http_response order by created desc limit 5` mostra `{"sent":1,...}`.
 
 ## Banco (Supabase)
 
