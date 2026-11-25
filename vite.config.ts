@@ -8,8 +8,12 @@ import { vercelApiDev } from './scripts/vite-vercel-api.ts'
 /**
  * PWA: instalável, com aviso de versão nova a cada build e a interface abrindo offline.
  * Dados (Supabase e /api) nunca passam pelo cache do service worker: sem dado velho nem de outra conta.
+ * O service worker é nosso (src/sw/sw.ts) por causa das notificações push.
  */
 const pwa = VitePWA({
+  strategies: 'injectManifest',
+  srcDir: 'src/sw',
+  filename: 'sw.ts', // sai como /sw.js
   registerType: 'prompt', // nunca recarrega sozinho: o app mostra "Nova versão disponível"
   injectRegister: false, // registrado em src/main.ts (usePwaUpdate)
   manifest: {
@@ -36,21 +40,10 @@ const pwa = VitePWA({
       { src: 'screenshots/wide.jpg', sizes: '1280x720', type: 'image/jpeg', form_factor: 'wide', label: 'AbyssRaider no computador' },
     ],
   },
-  workbox: {
-    cleanupOutdatedCaches: true,
+  // Rotas offline, fontes e push ficam em src/sw/sw.ts.
+  injectManifest: {
     globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,webp,woff2}'],
     globIgnores: ['screenshots/**', 'pwa-source.png'],
-    navigateFallback: 'index.html',
-    // /api (Vercel) é dado: vai sempre à rede.
-    navigateFallbackDenylist: [/^\/api\//],
-    runtimeCaching: [
-      {
-        // Fontes do Google: a interface continua com a tipografia certa sem rede.
-        urlPattern: ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-        handler: 'StaleWhileRevalidate',
-        options: { cacheName: 'google-fonts', expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 } },
-      },
-    ],
   },
   // Para testar o service worker com `npm run dev`, troque para true. O teste final é sempre build + preview.
   devOptions: { enabled: false },

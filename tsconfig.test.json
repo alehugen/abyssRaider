@@ -5,5 +5,5 @@
     "types": ["vite/client", "vite-plugin-pwa/client", "node"]
   },
   "include": ["src/**/*.spec.ts", "src/**/*.ts", "src/**/*.vue"],
-  "exclude": []
+  "exclude": ["src/sw/sw.ts"]
 }
