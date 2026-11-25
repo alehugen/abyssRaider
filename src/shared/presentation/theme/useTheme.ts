@@ -24,6 +24,8 @@ export interface ThemeEnvironment {
   root?: HTMLElement | null
   /** Para sincronizar entre abas (evento `storage`). */
   target?: Pick<Window, 'addEventListener' | 'removeEventListener'> | null
+  /** <meta name="theme-color">: cor da barra do sistema no celular. */
+  themeColorMeta?: HTMLMetaElement | null
 }
 
 export interface ThemeController {
@@ -58,7 +60,7 @@ function writePreference(storage: ThemeStorage | null | undefined, value: ThemeP
 }
 
 export function createThemeController(env: ThemeEnvironment = {}): ThemeController {
-  const { storage, mediaQuery, root, target } = env
+  const { storage, mediaQuery, root, target, themeColorMeta } = env
   const scope = effectScope(true)
 
   const preference = ref<ThemePreference>(readPreference(storage))
@@ -85,6 +87,7 @@ export function createThemeController(env: ThemeEnvironment = {}): ThemeControll
     watch(
       theme,
       (t) => {
+        if (themeColorMeta) themeColorMeta.content = t.themeColor
         if (!root) return
         root.dataset.theme = t.id
         root.classList.toggle('dark', t.scheme === 'dark')
@@ -128,6 +131,7 @@ function browserEnvironment(): ThemeEnvironment {
     mediaQuery: window.matchMedia?.(DARK_QUERY) ?? null,
     root: document.documentElement,
     target: window,
+    themeColorMeta: document.querySelector<HTMLMetaElement>('meta[name="theme-color"]'),
   }
 }
 

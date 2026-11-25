@@ -49,6 +49,16 @@ describe('createThemeController', () => {
     expect(root.classList.contains('dark')).toBe(false)
   })
 
+  it('a cor da barra do sistema (theme-color) acompanha o tema', async () => {
+    const root = document.createElement('html')
+    const meta = document.createElement('meta')
+    const theme = createThemeController({ storage: memoryStorage(), mediaQuery: fakeMediaQuery(false).mq, root, themeColorMeta: meta })
+    expect(meta.content).toBe('#020713')
+    theme.setPreference('elyos')
+    await nextTick()
+    expect(meta.content).toBe('#fcf9f2')
+  })
+
   it('lê e persiste o tema escolhido', async () => {
     const storage = memoryStorage({ [THEME_STORAGE_KEY]: 'abyss' })
     const root = document.createElement('html')

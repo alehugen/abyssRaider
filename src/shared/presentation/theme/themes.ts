@@ -11,6 +11,8 @@ export interface ThemeDefinition {
   scheme: ColorScheme
   /** Cor de amostra exibida no seletor (não depende do tema ativo). */
   swatch: string
+  /** Fundo do tema em hex, para a barra do sistema no celular (meta theme-color). */
+  themeColor: string
 }
 
 /**
@@ -26,6 +28,7 @@ export const THEMES = [
     },
     scheme: 'light',
     swatch: 'oklch(0.75 0.14 80)',
+    themeColor: '#fcf9f2',
   },
   {
     id: 'asmodian',
@@ -35,6 +38,7 @@ export const THEMES = [
     },
     scheme: 'dark',
     swatch: 'oklch(0.62 0.21 305)',
+    themeColor: '#0d0816',
   },
   {
     id: 'abyss',
@@ -44,6 +48,7 @@ export const THEMES = [
     },
     scheme: 'dark',
     swatch: 'oklch(0.74 0.13 195)',
+    themeColor: '#020713',
   },
 ] as const satisfies readonly ThemeDefinition[]
 
