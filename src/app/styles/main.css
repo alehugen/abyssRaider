@@ -14,6 +14,33 @@
   /* Mesmas famílias do site oficial do Aion 2: Noto Sans no texto, Noto Serif nos títulos e nomes. */
   --font-sans: 'Noto Sans', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Noto Serif', ui-serif, Georgia, serif;
+  /* Altura da barra de navegação inferior do celular (sem a área segura). */
+  --spacing-bottom-nav: 4rem;
+}
+
+/*
+ * Áreas seguras do celular (notch, barra de gestos), com viewport-fit=cover no index.html.
+ * `pb-safe`: só a área segura; `pb-nav`: barra inferior + área segura (conteúdo não fica atrás dela);
+ * `bottom-nav`: posição de avisos fixos logo acima da barra inferior.
+ */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility px-safe {
+  padding-left: max(env(safe-area-inset-left), --spacing(4));
+  padding-right: max(env(safe-area-inset-right), --spacing(4));
+}
+@utility pb-nav {
+  padding-bottom: calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom));
+}
+@utility bottom-nav {
+  bottom: calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom) + --spacing(3));
+}
+@utility bottom-safe {
+  bottom: calc(env(safe-area-inset-bottom) + --spacing(4));
 }
 
 /*
@@ -138,8 +165,12 @@
      * ~15px e os fundos fixos (wallpaper, arte da raid) esticam e piscam.
      */
     scrollbar-gutter: stable;
-    /* Foco/âncora não ficam escondidos atrás do cabeçalho fixo (h-14). */
-    scroll-padding-top: 4.5rem;
+    /* Foco/âncora não ficam escondidos atrás do cabeçalho fixo (h-14) nem da barra inferior. */
+    scroll-padding-top: calc(4.5rem + env(safe-area-inset-top));
+    scroll-padding-bottom: calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom));
+    /* Toque sem o atraso/realce cinza do navegador móvel. */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   html.dark {
     color-scheme: dark;
@@ -149,6 +180,30 @@
   }
   * {
     @apply border-border outline-ring/50;
+  }
+
+  /*
+   * Em tela de toque, todo botão e item de menu aceita toque numa área de pelo menos
+   * 44x44px, sem mudar o tamanho visual (a área extra é um ::after invisível).
+   * Fica em @layer base: classes como `absolute` do próprio botão continuam valendo.
+   */
+  @media (pointer: coarse) {
+    [data-slot='button'],
+    [data-slot='toggle-group-item'],
+    [data-slot='switch'] {
+      position: relative;
+    }
+    [data-slot='button']::after,
+    [data-slot='toggle-group-item']::after,
+    [data-slot='switch']::after {
+      content: '';
+      position: absolute;
+      inset: min(0px, calc((100% - 44px) / 2));
+    }
+    [data-slot='dropdown-menu-item'],
+    [data-slot='select-item'] {
+      min-height: 44px;
+    }
   }
 }
 

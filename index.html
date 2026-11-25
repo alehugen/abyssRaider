@@ -2,12 +2,20 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: o layout usa env(safe-area-inset-*) para o notch e a barra de gestos. Zoom liberado. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>AbyssRaider</title>
     <meta name="description" content="Organize raids de Aion 2: vincule seu personagem, monte parties e marque a agenda." />
-    <link rel="icon" href="/favicon.ico" sizes="16x16" />
-    <link rel="icon" type="image/png" href="/aion2-icon.png" sizes="154x154" />
-    <link rel="apple-touch-icon" href="/aion2-icon.png" />
+    <!-- Cor da barra do sistema: o script abaixo e o useTheme trocam conforme o tema. -->
+    <meta name="theme-color" content="#020713" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/png" href="/pwa-64x64.png" sizes="64x64" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+    <!-- iOS: app instalado pela Tela de Início -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="AbyssRaider" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,6 +27,7 @@
       // Manter em sincronia com THEME_STORAGE_KEY / THEMES / SYSTEM_THEME / DEFAULT_PREFERENCE.
       ;(function () {
         var themes = { elyos: 'light', asmodian: 'dark', abyss: 'dark' }
+        var colors = { elyos: '#fcf9f2', asmodian: '#0d0816', abyss: '#020713' } // themeColor em themes.ts
         var id
         try {
           id = localStorage.getItem('abyss-raider:theme')
@@ -30,6 +39,8 @@
         var root = document.documentElement
         root.dataset.theme = id
         root.classList.toggle('dark', themes[id] === 'dark')
+        var meta = document.querySelector('meta[name="theme-color"]')
+        if (meta) meta.setAttribute('content', colors[id])
       })()
     </script>
   </head>

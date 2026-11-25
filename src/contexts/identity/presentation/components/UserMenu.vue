@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { PhCaretDown, PhSignOut, PhSword } from '@phosphor-icons/vue'
+import { PhCaretDown, PhDeviceMobile, PhSignOut, PhSword } from '@phosphor-icons/vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import InstallIosDialog from '@/shared/presentation/pwa/InstallIosDialog.vue'
+import { installAction, usePwaInstall } from '@/shared/presentation/pwa/usePwaInstall'
 import { userInitials } from '@/contexts/identity/domain/User'
 import { t } from '@/shared/i18n'
 import { Avatar, AvatarFallback, AvatarImage } from '@/shared/presentation/ui/avatar'
@@ -17,6 +20,13 @@ import { useAuthStore } from '../useAuthStore'
 
 const auth = useAuthStore()
 const router = useRouter()
+
+/** "Instalar app": convite do navegador ou, no iPhone/iPad, o passo a passo. Some quando já instalado. */
+const install = installAction(usePwaInstall())
+const iosHelp = ref(false)
+async function installApp() {
+  if ((await install.run()) === 'manual') iosHelp.value = true
+}
 
 async function signOut() {
   await auth.signOut()
@@ -43,6 +53,10 @@ async function signOut() {
         <PhSword />
         {{ t('identity.menu.myCharacters') }}
       </DropdownMenuItem>
+      <DropdownMenuItem v-if="install.visible.value" @select="installApp">
+        <PhDeviceMobile />
+        {{ t('app.pwa.install.menu') }}
+      </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuItem variant="destructive" @select="signOut">
         <PhSignOut />
@@ -50,4 +64,5 @@ async function signOut() {
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
+  <InstallIosDialog v-model:open="iosHelp" />
 </template>

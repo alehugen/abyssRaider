@@ -14,6 +14,21 @@ export default defineMessages(
       schedule: 'Agenda',
       patchNotes: 'Patch notes',
       signIn: 'Entrar',
+      /** Barra inferior do celular: nomes curtos para caber em 360px. */
+      short: { characters: 'Chars', patchNotes: 'Patches' },
+    },
+    pwa: {
+      update: { message: 'Nova versão do AbyssRaider disponível.', action: 'Atualizar', later: 'Agora não' },
+      offline: 'Sem conexão. Você pode navegar, mas carregar e salvar dados precisa de internet.',
+      install: {
+        menu: 'Instalar app',
+        title: 'Instalar o AbyssRaider',
+        description: 'No iPhone e no iPad, a instalação é pelo Safari:',
+        step1: 'Toque em Compartilhar (o quadrado com a seta para cima).',
+        step2: 'Escolha "Adicionar à Tela de Início".',
+        step3: 'Toque em "Adicionar". O app abre direto da tela inicial, em tela cheia.',
+        ok: 'Entendi',
+      },
     },
     footer: {
       disclaimer:
@@ -74,6 +89,21 @@ export default defineMessages(
       schedule: 'Schedule',
       patchNotes: 'Patch notes',
       signIn: 'Sign in',
+      /** Barra inferior do celular: nomes curtos para caber em 360px. */
+      short: { characters: 'Chars', patchNotes: 'Patches' },
+    },
+    pwa: {
+      update: { message: 'A new version of AbyssRaider is available.', action: 'Update', later: 'Not now' },
+      offline: "You're offline. You can browse, but loading and saving data needs internet.",
+      install: {
+        menu: 'Install app',
+        title: 'Install AbyssRaider',
+        description: 'On iPhone and iPad, install it from Safari:',
+        step1: 'Tap Share (the square with an arrow pointing up).',
+        step2: 'Choose "Add to Home Screen".',
+        step3: 'Tap "Add". The app opens straight from your home screen, full screen.',
+        ok: 'Got it',
+      },
     },
     footer: {
       disclaimer:
@@ -134,6 +164,21 @@ export default defineMessages(
       schedule: 'Agenda',
       patchNotes: 'Parches',
       signIn: 'Entrar',
+      /** Barra inferior do celular: nomes curtos para caber em 360px. */
+      short: { characters: 'PJs', patchNotes: 'Parches' },
+    },
+    pwa: {
+      update: { message: 'Hay una nueva versión de AbyssRaider disponible.', action: 'Actualizar', later: 'Ahora no' },
+      offline: 'Sin conexión. Puedes navegar, pero cargar y guardar datos necesita internet.',
+      install: {
+        menu: 'Instalar app',
+        title: 'Instalar AbyssRaider',
+        description: 'En iPhone y iPad, se instala desde Safari:',
+        step1: 'Toca Compartir (el cuadrado con una flecha hacia arriba).',
+        step2: 'Elige "Agregar a pantalla de inicio".',
+        step3: 'Toca "Agregar". La app se abre directo desde tu pantalla de inicio, en pantalla completa.',
+        ok: 'Entendido',
+      },
     },
     footer: {
       disclaimer:

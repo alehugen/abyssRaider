@@ -27,6 +27,18 @@ npm run build
 - Extras do projeto: `bg-highlight`, `bg-glow`, `shadow-card`, e as classes de facção `bg-faction-soft`, `text-faction-ink` e `border-faction`. Estas valem dentro de um elemento com `.faction-elyos` ou `.faction-asmodian`.
 - As variantes `dark:`, `elyos:`, `asmodian:` e `abyss:` estão disponíveis.
 
+## Celular e PWA
+
+O app é instalável (PWA), com o celular como prioridade.
+
+- **Instalar:** no menu do usuário, "Instalar app". No Android/Chrome abre o convite do navegador; no iPhone/iPad mostra o passo a passo (Compartilhar > Adicionar à Tela de Início). O item some quando o app já está instalado.
+- **Atualização:** cada build gera um service worker novo. O app procura versão nova ao abrir, ao voltar para a frente e a cada hora, e mostra "Nova versão disponível" com o botão Atualizar. Nunca recarrega sozinho; se a pessoa ignorar, a versão nova entra na próxima abertura.
+- **Offline:** a interface abre e navega sem rede, com um aviso fixo de "Sem conexão". Os dados (Supabase e `/api`) não passam pelo cache do service worker, para nunca mostrar dado velho ou de outra conta.
+- **Hospedagem:** `index.html`, `sw.js`, `registerSW.js` e `manifest.webmanifest` precisam ir sem cache (`Cache-Control: no-cache`), senão a atualização não chega. Isso está em `vercel.json`.
+- **Ícones:** gerados de `public/pwa-source.png` com `npx pwa-assets-generator` (config em `pwa-assets.config.ts`). Para trocar o ícone, substitua esse arquivo (512×512 ou maior) e rode de novo.
+- **Testar:** `npm run build` e `npm run preview`, depois DevTools > Application > Manifest (sem erros) e Service Workers (marque Offline e recarregue). Em `npm run dev` o service worker fica desligado (`devOptions` em `vite.config.ts`).
+- **Layout:** telas desenhadas a partir de 360px. No celular, a navegação fica na barra inferior; a partir de `md`, no cabeçalho. Use os utilitários de área segura do `main.css` (`pt-safe`, `pb-safe`, `px-safe`, `pb-nav`, `bottom-nav`) em vez de valores soltos, e prefira `dvh` a `vh`. Em tela de toque, botões e itens de menu aceitam toque numa área de pelo menos 44×44px.
+
 ## Banco (Supabase)
 
 - As migrations ficam em `supabase/migrations/` e rodam **em ordem de nome** no SQL Editor do Supabase.
