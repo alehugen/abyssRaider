@@ -12,13 +12,15 @@ import {
   PhUserPlus,
   PhEye,
   PhLink,
+  PhShareNetwork,
   PhPencilSimple,
   PhSignOut,
   PhTrash,
   PhWarningCircle,
   PhX,
 } from '@phosphor-icons/vue'
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { browserShareEnv, shareLink } from '@/shared/presentation/shareLink'
 import { useRoute, useRouter } from 'vue-router'
 import { REGION_LABEL, ROLE_LABEL } from '@/contexts/character/domain/Character'
 import CharacterCard from '@/contexts/character/presentation/components/CharacterCard.vue'
@@ -173,15 +175,17 @@ watch(joinOptions, (opts) => {
 
 // --- link de convite
 const copied = ref(false)
+/** Celular: menu de compartilhar do sistema (WhatsApp, Discord...). Computador: copia. */
+const canShare = typeof navigator !== 'undefined' && !!navigator.share && !!window.matchMedia?.('(pointer: coarse)').matches
+let copiedTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => clearTimeout(copiedTimer))
 async function copyLink() {
   const url = new URL(router.resolve({ name: 'party', params: { id: partyId.value } }).href, window.location.origin)
-  try {
-    await navigator.clipboard.writeText(url.toString())
-    copied.value = true
-    setTimeout(() => (copied.value = false), 2000)
-  } catch {
-    window.prompt(t('party.view.copyPrompt'), url.toString())
-  }
+  const result = await shareLink({ url: url.toString(), title: party.value?.name }, browserShareEnv(t('party.view.copyPrompt')))
+  if (result !== 'copied') return
+  copied.value = true
+  clearTimeout(copiedTimer)
+  copiedTimer = setTimeout(() => (copied.value = false), 2000)
 }
 
 async function deleteParty() {
@@ -319,8 +323,9 @@ async function removeMember(m: PartyMember) {
         <div class="flex flex-wrap gap-2">
           <Button variant="outline" @click="copyLink">
             <PhCheck v-if="copied" />
+            <PhShareNetwork v-else-if="canShare" />
             <PhLink v-else />
-            {{ copied ? t('party.view.linkCopied') : t('party.view.copyLink') }}
+            {{ copied ? t('party.view.linkCopied') : canShare ? t('party.view.shareLink') : t('party.view.copyLink') }}
           </Button>
           <Button v-if="p.canManage.value" variant="outline" :disabled="!!p.busy.value" @click="finishParty">
             <PhFlagCheckered /> {{ t('party.view.finish') }}
