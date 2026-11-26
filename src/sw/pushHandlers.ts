@@ -57,11 +57,13 @@ interface ShowEnv {
 
 export async function showPush(env: ShowEnv, data: PushDataLike | null | undefined): Promise<void> {
   const p = parsePushPayload(data)
-  // Sem `badge`: o Android usa o selo como máscara e o ícone colorido virava um quadrado.
   await env.registration.showNotification(p.title, {
     body: p.body,
     ...(p.tag ? { tag: p.tag, renotify: true } : {}),
     icon: '/pwa-192x192.png',
+    // Ícone pequeno da barra do Android: só a forma conta (branco sobre transparente).
+    // Sem ele, o Android mostrava um quadrado.
+    badge: '/notification-badge.png',
     data: { url: p.url },
   })
   await env.setAppBadge?.().catch(() => {})

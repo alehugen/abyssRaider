@@ -40,6 +40,7 @@ describe('showPush', () => {
       tag: 'patch-9',
       renotify: true,
       icon: '/pwa-192x192.png',
+      badge: '/notification-badge.png',
       data: { url: '/patch-notes/9' },
     })
   })
