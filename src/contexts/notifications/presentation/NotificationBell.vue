@@ -86,7 +86,9 @@ async function select(n: AppNotification, link: string | null) {
       <p v-if="!store.loaded && store.error" role="alert" class="px-4 py-6 text-center text-sm text-destructive-ink">
         {{ store.error }}
       </p>
-      <div v-else-if="!views.length" class="px-4 py-10 text-center text-sm text-muted-foreground">
+      <!-- Já carregou antes: a lista fica, com o aviso de que pode estar desatualizada. -->
+      <p v-else-if="store.error" role="alert" class="border-b px-4 py-2 text-xs text-destructive-ink">{{ store.error }}</p>
+      <div v-if="store.loaded && !views.length" class="px-4 py-10 text-center text-sm text-muted-foreground">
         <PhBell :size="28" class="mx-auto mb-2 opacity-50" aria-hidden="true" />
         {{ t('notifications.bell.empty') }}
       </div>

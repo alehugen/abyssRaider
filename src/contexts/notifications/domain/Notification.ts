@@ -163,6 +163,9 @@ export interface NotificationRepository {
   list(userId: string, limit?: number): Promise<AppNotification[]>
   markRead(ids: readonly number[]): Promise<void>
   markAllRead(userId: string): Promise<void>
-  /** Avisa quando chega uma nova (tempo real). Devolve a função para parar. */
-  subscribe(userId: string, onNew: (n: AppNotification) => void): () => void
+  /**
+   * Avisa quando chega uma nova (tempo real). `onReady` roda cada vez que a conexão fica
+   * pronta (inclusive ao reconectar). Devolve a função para parar.
+   */
+  subscribe(userId: string, onNew: (n: AppNotification) => void, onReady?: () => void): () => void
 }

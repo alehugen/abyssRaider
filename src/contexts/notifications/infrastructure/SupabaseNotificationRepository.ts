@@ -57,15 +57,20 @@ export class SupabaseNotificationRepository implements NotificationRepository {
     if (error) throw error
   }
 
-  subscribe(userId: string, onNew: (n: AppNotification) => void): () => void {
+  subscribe(userId: string, onNew: (n: AppNotification) => void, onReady?: () => void): () => void {
+    // Tópico único: o supabase-js reaproveita um canal de mesmo nome que ainda está saindo
+    // (sair e entrar de novo na conta) e aí o .on() falha e o tempo real fica desligado.
     const channel = this.client
-      .channel(`notifications:${userId}`)
+      .channel(`notifications:${userId}:${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
         (payload) => onNew(toNotification(payload.new as Row)),
       )
-      .subscribe()
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') onReady?.()
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[notificações] tempo real:', status, err)
+      })
     return () => void this.client.removeChannel(channel)
   }
 }
