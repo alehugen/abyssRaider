@@ -1,4 +1,4 @@
-import { HttpError } from '@/contexts/character/infrastructure/HttpCharacterDirectory'
+import { HttpError } from '@/shared/infrastructure/http/HttpError'
 import { currentLocale, t } from '@/shared/i18n'
 import type { PatchNote, PatchNoteSummary, PatchNotesRepository } from '../domain/PatchNote'
 

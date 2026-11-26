@@ -34,6 +34,14 @@ export interface PartyMember {
   slot?: number | null
 }
 
+/** Quem já está (ou foi chamado) numa party: base para saber se dá para convidar. */
+export interface Membership {
+  partyId: string
+  characterLinkId: string
+  ownerId: string
+  status: MemberStatus
+}
+
 export interface PartyDetails {
   party: Party
   members: PartyMember[]

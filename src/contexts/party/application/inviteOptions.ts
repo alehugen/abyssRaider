@@ -1,14 +1,8 @@
 import { t } from '@/shared/i18n'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
-import { isFull, type MemberStatus, type PartySummary } from '../domain/Party'
+import { isFull, type Membership, type PartySummary } from '../domain/Party'
 
-/** Quem já está (ou foi chamado) numa party: base para saber se dá para convidar. */
-export interface Membership {
-  partyId: string
-  characterLinkId: string
-  ownerId: string
-  status: MemberStatus
-}
+export type { Membership }
 
 export type InviteState =
   | 'can-invite'

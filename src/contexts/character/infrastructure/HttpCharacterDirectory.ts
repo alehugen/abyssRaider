@@ -1,3 +1,4 @@
+import { HttpError } from '@/shared/infrastructure/http/HttpError'
 import type { Character, CharacterSummary, Region, Server } from '../domain/Character'
 import type { CharacterBuild, Gear, GearDetail } from '../domain/CharacterBuild'
 import type { CharacterDirectory, CharacterRef } from '../domain/CharacterDirectory'
@@ -66,16 +67,6 @@ export class HttpCharacterDirectory implements CharacterDirectory {
     const body = (await res.json().catch(() => null)) as { error?: string } | null
     if (!res.ok) throw new HttpError(body?.error ?? `Erro ${res.status} ao consultar o Aion`, res.status)
     return body as T
-  }
-}
-
-export class HttpError extends Error {
-  readonly status: number
-
-  constructor(message: string, status: number) {
-    super(message)
-    this.name = 'HttpError' // mensagem vem da nossa API, já em português
-    this.status = status
   }
 }
 

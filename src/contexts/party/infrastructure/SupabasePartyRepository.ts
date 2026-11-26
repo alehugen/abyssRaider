@@ -6,7 +6,7 @@ import {
   type CharacterRow,
 } from '@/contexts/character/infrastructure/SupabaseCharacterRepository'
 import { DomainError } from '@/shared/domain/DomainError'
-import type { Membership } from '../application/inviteOptions'
+import type { Membership } from '../domain/Party'
 import type { MemberStatus, Party, PartyDetails, PartyMember, PartySummary } from '../domain/Party'
 import type { CreatePartyInput, PartyRepository } from '../domain/PartyRepository'
 import { normalizeSlots, type RoutineSlot } from '../domain/RaidRoutine'
