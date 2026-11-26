@@ -29,19 +29,15 @@ import PartySchedule from '@/contexts/scheduling/presentation/components/PartySc
 import PartyBestTime from '@/contexts/scheduling/presentation/components/PartyBestTime.vue'
 import { usePartyAvailability } from '@/contexts/scheduling/presentation/usePartyAvailability'
 import { formatDuration, nextSlotStart } from '@/contexts/scheduling/domain/Availability'
-import { useCharactersStore } from '@/contexts/character/presentation/useCharactersStore'
 import { t } from '@/shared/i18n'
 import { cn } from '@/shared/lib/utils'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Input } from '@/shared/presentation/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/presentation/ui/select'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
 import {
   assignRoles,
-  canJoin,
   composition,
-  joinBlockedMessage,
   canRequestJoin,
   isFull,
   GROUP_SIZE,
@@ -54,6 +50,7 @@ import { useSlotDrag } from '../useSlotDrag'
 import { usePartyDetail } from '../usePartyDetail'
 import PartyNotificationsDialog from '../components/PartyNotificationsDialog.vue'
 import CreatePartyDialog from '../components/CreatePartyDialog.vue'
+import PartyJoinSection from '../components/PartyJoinSection.vue'
 import AnnounceDiscordButton from '../components/AnnounceDiscordButton.vue'
 import { formatFullDay } from '@/contexts/scheduling/presentation/format'
 import { nextOccurrences } from '../../domain/RaidRoutine'
@@ -64,10 +61,8 @@ const router = useRouter()
 const partyId = computed(() => String(route.params.id))
 
 const p = usePartyDetail(partyId)
-const characters = useCharactersStore()
 
 watch(partyId, () => void p.load(), { immediate: true })
-if (!characters.loaded) void characters.load()
 
 const party = computed(() => p.details.value?.party ?? null)
 // --- renomear (líder): o título vira um campo de texto.
@@ -155,24 +150,8 @@ function roleLabel(m: PartyMember): string {
 }
 
 // --- entrar na party
-const joinOptions = computed(() =>
-  party.value
-    ? characters.items.map((linked) => {
-        const check = canJoin(party.value!, linked)
-        return { linked, ok: check.ok, reason: check.ok ? null : check.reason }
-      })
-    : [],
-)
-/** Nenhum personagem pode entrar: explica (antes só ficava tudo desativado). */
-const joinBlocked = computed(() => (party.value ? joinBlockedMessage(party.value, characters.items) : null))
 /** Quem foi recusado pode pedir de novo (antes só via 'Encontrar parties'). */
 const canRequest = computed(() => canRequestJoin(p.myMembership.value?.status))
-const joinCharacter = ref('')
-watch(joinOptions, (opts) => {
-  if (!opts.some((o) => o.linked.linkId === joinCharacter.value && o.ok)) {
-    joinCharacter.value = opts.find((o) => o.ok)?.linked.linkId ?? ''
-  }
-})
 
 // --- link de convite
 const copied = ref(false)
@@ -616,58 +595,16 @@ async function removeMember(m: PartyMember) {
         </ul>
       </section>
 
-      <!-- Visitante: pedir vaga -->
-      <section
+      <!-- Visitante (ou recusado): pedir vaga -->
+      <PartyJoinSection
         v-if="!p.finished.value && !p.isLeader.value && canRequest"
-        aria-labelledby="join-title"
-        class="space-y-3 rounded-2xl border bg-card/60 p-4 sm:p-6"
-      >
-        <h2 id="join-title" class="font-display text-2xl font-semibold">{{ t('party.find.request') }}</h2>
-        <p v-if="p.myMembership.value?.status === 'declined'" class="text-sm text-destructive-ink">
-          {{ t('party.view.declinedBefore') }}
-        </p>
-        <p v-if="full" class="text-sm text-muted-foreground">{{ t('party.view.full') }}</p>
-        <p v-else-if="!characters.items.length" class="text-sm text-muted-foreground">
-          <i18n-t keypath="party.view.needCharacter" tag="span">
-            <template #link>
-              <RouterLink to="/me" class="font-medium text-foreground underline">{{ t('party.create.myCharacters') }}</RouterLink>
-            </template>
-          </i18n-t>
-        </p>
-        <div v-else-if="joinBlocked" role="status" class="space-y-3">
-          <p class="flex items-start gap-2 text-sm">
-            <PhWarningCircle :size="18" class="mt-0.5 flex-none text-warning-ink" aria-hidden="true" />
-            {{ joinBlocked }}
-          </p>
-          <div class="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" as-child>
-              <RouterLink :to="{ name: 'find-parties' }">{{ t('party.list.find') }}</RouterLink>
-            </Button>
-            <CreatePartyDialog />
-          </div>
-        </div>
-        <form
-          v-else
-          class="flex flex-col gap-2 sm:flex-row"
-          @submit.prevent="p.requestJoin(joinCharacter)"
-        >
-          <Select v-model="joinCharacter">
-            <SelectTrigger class="w-full bg-background sm:w-72" :aria-label="t('party.find.character')">
-              <SelectValue :placeholder="t('party.create.characterPlaceholder')" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem v-for="o in joinOptions" :key="o.linked.linkId" :value="o.linked.linkId" :disabled="!o.ok">
-                {{ o.linked.character.name }}
-                <span class="text-muted-foreground">{{ o.reason ?? o.linked.character.serverName }}</span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button type="submit" :disabled="!joinCharacter || !!p.busy.value">
-            <PhCircleNotch v-if="p.busy.value === 'join'" class="animate-spin" />
-            {{ t('party.view.requestJoin') }}
-          </Button>
-        </form>
-      </section>
+        :party="party"
+        :declined="p.myMembership.value?.status === 'declined'"
+        :full="full"
+        :busy="!!p.busy.value"
+        :joining="p.busy.value === 'join'"
+        @request="p.requestJoin"
+      />
 
       <p v-else-if="p.myMembership.value?.status === 'pending'" class="text-muted-foreground">
         {{ t('party.view.pendingNotice', { name: p.myMembership.value.linked.character.name }) }}
