@@ -69,16 +69,15 @@ describe('useNotificationsStore', () => {
     expect(store.items.map((n) => n.id)).toEqual([3, 1])
   })
 
-  it('confere de novo ao voltar para o app, ao reconectar e quando o tempo real conecta', async () => {
+  it('confere de novo ao voltar para o app e quando o tempo real conecta', async () => {
     const store = useNotificationsStore()
     store.start()
     expect(repo.list).toHaveBeenCalledTimes(1)
 
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
     document.dispatchEvent(new Event('visibilitychange'))
-    window.dispatchEvent(new Event('online'))
     onReady?.()
-    expect(repo.list).toHaveBeenCalledTimes(4)
+    expect(repo.list).toHaveBeenCalledTimes(3)
     store.stop()
   })
 

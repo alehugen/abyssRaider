@@ -4,6 +4,7 @@ import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { usePartiesStore } from '@/contexts/party/presentation/usePartiesStore'
 import { errorMessage } from '@/shared/lib/errorMessage'
+import { onAppResume } from '@/shared/presentation/useRefreshOnResume'
 import type { AppNotification } from '../domain/Notification'
 
 /** Rede de segurança caso o tempo real caia: confere a cada minuto (só com o app na tela). */
@@ -80,11 +81,6 @@ export const useNotificationsStore = defineStore('notifications', () => {
   function start() {
     if (stop) return
     let unsubscribe: (() => void) | null = null
-    const visible = () => typeof document === 'undefined' || document.visibilityState !== 'hidden'
-    // No celular (app instalado) o "focus" muitas vezes não dispara ao voltar; visibilitychange sim.
-    const onResume = () => {
-      if (visible()) void refresh()
-    }
 
     const stopWatch = watch(
       () => useAuthStore().user?.id,
@@ -105,18 +101,15 @@ export const useNotificationsStore = defineStore('notifications', () => {
       },
       { immediate: true },
     )
-    const timer = setInterval(onResume, POLL_MS)
-    document.addEventListener('visibilitychange', onResume)
-    window.addEventListener('focus', onResume)
-    window.addEventListener('online', onResume)
+    // Polling só com o app na tela; ao voltar (ou reconectar) confere na hora.
+    const timer = setInterval(() => document.visibilityState !== 'hidden' && void refresh(), POLL_MS)
+    const stopResume = onAppResume(() => void refresh())
 
     stop = () => {
       stopWatch()
       unsubscribe?.()
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', onResume)
-      window.removeEventListener('focus', onResume)
-      window.removeEventListener('online', onResume)
+      stopResume()
       stop = null
     }
   }
