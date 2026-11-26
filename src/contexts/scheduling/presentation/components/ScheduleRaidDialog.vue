@@ -42,8 +42,14 @@ function tomorrowAt21(): string {
 }
 
 watch(open, (isOpen) => {
-  if (!isOpen) return
   error.value = null
+  if (!isOpen) {
+    // Fechou (agendou ou cancelou): a próxima vez começa limpa, sem datas e recado de antes.
+    note.value = ''
+    when.value = ''
+    dates.value = []
+    return
+  }
   // Sugestão é só sugestão: nada vem marcado. Sem sugestões, o campo já traz um ponto de partida.
   if (props.options?.length) return
   const routine = props.suggested && props.suggested.getTime() > Date.now() ? props.suggested : null
@@ -94,9 +100,6 @@ function submit() {
 /** O pai fecha o diálogo quando o agendamento der certo. */
 function close() {
   open.value = false
-  note.value = ''
-  when.value = ''
-  dates.value = []
 }
 /** O pai mostra aqui o erro do agendamento: na página ele ficaria atrás do diálogo aberto. */
 function fail(message: string) {

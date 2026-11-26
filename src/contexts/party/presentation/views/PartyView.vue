@@ -347,6 +347,7 @@ async function removeMember(m: PartyMember) {
             v-else-if="!p.finished.value && p.myMembership.value && p.myMembership.value.status !== 'declined'"
             variant="ghost"
             class="text-muted-foreground"
+            :disabled="!!p.busy.value"
             @click="leave"
           >
             <PhSignOut />
