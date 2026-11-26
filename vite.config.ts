@@ -25,10 +25,17 @@ const pwa = VitePWA({
     start_url: '/',
     scope: '/',
     display: 'standalone',
-    orientation: 'portrait',
     theme_color: '#020713',
     background_color: '#020713',
     categories: ['games', 'social'],
+    // Abrir pelo ícone ou por um link com o app aberto reaproveita a janela (Chrome/Edge).
+    launch_handler: { client_mode: ['navigate-existing', 'auto'] },
+    // Toque longo no ícone (Android, computador).
+    shortcuts: [
+      { name: 'Agenda', url: '/agenda', icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }] },
+      { name: 'Parties', url: '/parties', icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }] },
+      { name: 'Patch notes', url: '/patch-notes', icons: [{ src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' }] },
+    ],
     icons: [
       { src: 'pwa-64x64.png', sizes: '64x64', type: 'image/png' },
       { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },

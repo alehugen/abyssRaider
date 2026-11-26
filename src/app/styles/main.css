@@ -205,6 +205,27 @@
       min-height: 44px;
     }
   }
+
+  /*
+   * App instalado (tela cheia): comporta-se como app, não como página.
+   * - sem o "elástico" e o puxar-para-recarregar (o app atualiza sozinho ao voltar);
+   * - toque longo em botões e navegação não seleciona texto nem abre a prévia de link do iOS.
+   * O conteúdo continua selecionável e o zoom continua liberado.
+   */
+  @media (display-mode: standalone) {
+    html,
+    body {
+      overscroll-behavior-y: none;
+    }
+    header,
+    nav,
+    button,
+    [role='tab'],
+    [data-slot='button'] {
+      -webkit-touch-callout: none;
+      user-select: none;
+    }
+  }
 }
 
 /*
