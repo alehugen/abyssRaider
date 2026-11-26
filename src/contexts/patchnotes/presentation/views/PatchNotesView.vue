@@ -67,6 +67,7 @@ watch(selectedId, (id) => void loadNote(id), { immediate: true })
 // o patch mais recente e recarrega a lista no novo idioma.
 watch(currentLocale, () => {
   seq++ // descarta um artigo que ainda estava carregando no idioma anterior
+  loadingNote.value = false // o finally dele não roda mais (seq mudou)
   list.value = []
   note.value = null
   if (route.params.id) void router.replace({ name: 'patch-notes' })
