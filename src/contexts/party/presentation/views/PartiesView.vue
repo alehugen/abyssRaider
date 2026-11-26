@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { PhArrowCounterClockwise, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
-import { computed } from 'vue'
+import { PhArrowClockwise, PhArrowCounterClockwise, PhMagnifyingGlass, PhWarningCircle } from '@phosphor-icons/vue'
+import { computed, onMounted } from 'vue'
 import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
-import { onMounted } from 'vue'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
+import { useRefreshOnResume } from '@/shared/presentation/useRefreshOnResume'
 import CreatePartyDialog from '../components/CreatePartyDialog.vue'
 import PartySummaryCard from '../components/PartySummaryCard.vue'
 import { usePartiesStore } from '../usePartiesStore'
@@ -20,7 +20,7 @@ const finished = computed(() =>
 
 // Mostra o que já tem e atualiza em segundo plano (o líder pode ter aceitado/recusado algo).
 onMounted(() => void parties.load())
-
+useRefreshOnResume(() => void parties.load())
 </script>
 
 <template>
@@ -40,15 +40,21 @@ onMounted(() => void parties.load())
       </div>
     </header>
 
-    <p v-if="parties.error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
-      <PhWarningCircle :size="18" /> {{ parties.error }}
-    </p>
-
-    <div v-if="parties.loading && !parties.loaded" class="space-y-3">
-      <Skeleton v-for="i in 3" :key="i" class="h-24 rounded-2xl" />
+    <div v-if="parties.error" role="alert" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-destructive-ink">
+      <span class="flex items-center gap-2"><PhWarningCircle :size="18" /> {{ parties.error }}</span>
+      <Button size="sm" variant="outline" data-action="retry" :disabled="parties.loading" @click="parties.load()">
+        <PhArrowClockwise /> {{ t('common.actions.retry') }}
+      </Button>
     </div>
 
-    <p v-else-if="parties.loaded && !parties.items.length" class="text-muted-foreground">
+    <!-- Sem nada carregado ainda: esqueleto (ou só o erro acima, sem dizer que a lista está vazia). -->
+    <div v-if="!parties.hasData" class="space-y-3">
+      <template v-if="parties.loading || !parties.error">
+        <Skeleton v-for="i in 3" :key="i" class="h-24 rounded-2xl" />
+      </template>
+    </div>
+
+    <p v-else-if="!parties.items.length" class="text-muted-foreground">
       {{ t('party.list.empty') }}
     </p>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { errorMessage } from '@/shared/lib/errorMessage'
-import { PhWarningCircle } from '@phosphor-icons/vue'
+import { PhArrowClockwise, PhWarningCircle } from '@phosphor-icons/vue'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { getContainer } from '@/app/container'
 import { t } from '@/shared/i18n'
@@ -8,6 +8,7 @@ import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { cn } from '@/shared/lib/utils'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
+import { useRefreshOnResume } from '@/shared/presentation/useRefreshOnResume'
 import { groupByDay, myRsvp, rsvpCounts, type AgendaEntry, type RsvpStatus } from '../../domain/RaidEvent'
 import SanctuaryArt from '@/contexts/party/presentation/components/SanctuaryArt.vue'
 import RaidDateBadge from '../components/RaidDateBadge.vue'
@@ -23,32 +24,51 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 const busy = ref<string | null>(null)
 
+/** Carregou ao menos uma vez: sem isso, uma falha mostrava "nenhuma raid". */
+const loaded = ref(false)
+/** Só a consulta mais recente vale (voltar para o app + resposta ao mesmo tempo). */
+let seq = 0
+
 async function load() {
-  if (!auth.user) {
+  const userId = auth.user?.id
+  if (!userId) {
     loading.value = false
     return
   }
+  const mine = ++seq
+  error.value = null
   try {
-    entries.value = await repo.listAgenda(auth.user.id)
+    const list = await repo.listAgenda(userId)
+    if (mine !== seq || auth.user?.id !== userId) return
+    entries.value = list
+    loaded.value = true
   } catch (e) {
-    error.value = errorMessage(e)
+    if (mine === seq) error.value = errorMessage(e)
   } finally {
-    loading.value = false
+    if (mine === seq) loading.value = false
   }
 }
 onMounted(load)
+// Voltou para o app: raids marcadas ou canceladas enquanto estava fora aparecem.
+useRefreshOnResume(() => {
+  if (!busy.value) void load()
+})
 
 const days = computed(() => groupByDay(entries.value, (e) => e.event.startsAt))
 const pendingAnswers = computed(() => entries.value.filter((e) => !myRsvp(e.event, e.myMemberId)).length)
 
 async function respond(entry: AgendaEntry, status: RsvpStatus) {
+  if (busy.value) return
   busy.value = entry.event.id
   error.value = null
   try {
     await repo.respond(entry.event.id, entry.myMemberId, status)
     await load()
   } catch (e) {
-    error.value = errorMessage(e)
+    // Falhou: a raid pode ter sido cancelada ou você saiu da party. Mostra o estado real.
+    const message = errorMessage(e)
+    await load()
+    error.value = message
   } finally {
     busy.value = null
   }
@@ -67,13 +87,18 @@ async function respond(entry: AgendaEntry, status: RsvpStatus) {
       </p>
     </header>
 
-    <p v-if="error" role="alert" class="flex items-center gap-2 text-sm text-destructive-ink">
-      <PhWarningCircle :size="18" /> {{ error }}
-    </p>
+    <div v-if="error" role="alert" class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-destructive-ink">
+      <span class="flex items-center gap-2"><PhWarningCircle :size="18" /> {{ error }}</span>
+      <Button size="sm" variant="outline" data-action="retry" @click="load()">
+        <PhArrowClockwise /> {{ t('common.actions.retry') }}
+      </Button>
+    </div>
 
     <div v-if="loading" class="space-y-3">
       <Skeleton v-for="i in 3" :key="i" class="h-24 rounded-2xl" />
     </div>
+
+    <template v-else-if="!loaded" />
 
     <div v-else-if="!entries.length" class="space-y-3 rounded-2xl border border-dashed p-6 text-center">
       <p class="font-medium">{{ t('scheduling.agenda.empty') }}</p>

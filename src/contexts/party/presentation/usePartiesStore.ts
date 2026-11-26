@@ -10,7 +10,10 @@ import type { CreatePartyInput } from '../domain/PartyRepository'
 export const usePartiesStore = defineStore('parties', () => {
   const items = ref<PartySummary[]>([])
   const loading = ref(false)
+  /** Lista em dia (false = recarregar na próxima visita). */
   const loaded = ref(false)
+  /** Já carregou alguma vez nesta conta: dá para mostrar a lista enquanto atualiza. */
+  const hasData = ref(false)
   const error = ref<string | null>(null)
 
   /** Só a resposta mais recente vale (recarregas em sequência não se atropelam). */
@@ -27,6 +30,7 @@ export const usePartiesStore = defineStore('parties', () => {
       if (mine !== seq || useAuthStore().user?.id !== userId) return
       items.value = list
       loaded.value = true
+      hasData.value = true
     } catch (e) {
       if (mine === seq) error.value = errorMessage(e)
     } finally {
@@ -51,8 +55,9 @@ export const usePartiesStore = defineStore('parties', () => {
       if (id === previous) return
       items.value = []
       loaded.value = false
+      hasData.value = false
     },
   )
 
-  return { items, loading, loaded, error, load, create, invalidate }
+  return { items, loading, loaded, hasData, error, load, create, invalidate }
 })
