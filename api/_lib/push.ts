@@ -2,6 +2,9 @@
  * Web Push: o banco (pg_net) manda para /api/push/send os aparelhos de quem deve
  * ser avisado e o evento; aqui o texto é montado no idioma de cada aparelho e
  * enviado. Horários sempre no horário de Brasília, como no app.
+ *
+ * Tudo que entra no sino vira push (os mesmos textos de src/contexts/notifications),
+ * mais os patch notes.
  */
 
 export type PushLocale = 'pt-BR' | 'en' | 'es'
@@ -13,8 +16,26 @@ export interface PushTarget {
   locale: PushLocale
 }
 
-export interface RaidPushData {
+/** Tipos do sino (public.notifications.kind). */
+export const BELL_KINDS = [
+  'invite_received',
+  'invite_accepted',
+  'request_received',
+  'request_accepted',
+  'request_declined',
+  'member_removed',
+  'party_deleted',
+  'raid_scheduled',
+  'raid_cancelled',
+  'raid_reminder',
+] as const
+export type BellKind = (typeof BELL_KINDS)[number]
+
+/** Os dados da notificação do sino (public.notifications.data). */
+export interface BellData {
   party_name?: string
+  character_name?: string
+  leader_name?: string
   /** ISO */
   starts_at?: string
   note?: string
@@ -24,10 +45,10 @@ export interface RaidPushData {
 }
 
 export type PushEvent =
-  | { kind: 'raid_scheduled' | 'raid_cancelled' | 'raid_reminder'; partyId: string | null; data: RaidPushData }
+  | { kind: BellKind; partyId: string | null; data: BellData }
   | { kind: 'patch_notes'; data: { id: string; title: string } }
 
-/** O que o service worker mostra (ver src/pwa/pushHandlers.ts). */
+/** O que o service worker mostra (ver src/sw/pushHandlers.ts). */
 export interface PushMessage {
   title: string
   body: string
@@ -40,24 +61,43 @@ export interface PushMessage {
 const TIME_ZONE = 'America/Sao_Paulo'
 const INTL: Record<PushLocale, string> = { 'pt-BR': 'pt-BR', en: 'en-US', es: 'es-419' }
 
-const TEXT: Record<
-  PushLocale,
-  {
-    party: string
-    at: (date: string, time: string) => string
-    tz: string
-    scheduled: (party: string) => string
-    reminderAuto: (party: string) => string
-    reminderLeader: (party: string) => string
-    raidBody: (at: string) => string
-    cancelled: (party: string) => string
-    cancelledBody: (at: string) => string
-    cancelledNoDate: string
-    patchNotes: string
-  }
-> = {
+interface Texts {
+  party: string
+  leader: string
+  player: string
+  yourCharacter: string
+  at: (date: string, time: string) => string
+  tz: string
+  scheduled: (party: string) => string
+  reminderAuto: (party: string) => string
+  reminderLeader: (party: string) => string
+  raidBody: (at: string) => string
+  cancelled: (party: string) => string
+  cancelledBody: (at: string) => string
+  cancelledNoDate: string
+  invite: (party: string) => string
+  inviteBody: (leader: string, character?: string) => string
+  inviteAccepted: (character: string) => string
+  inviteAcceptedBody: (party: string) => string
+  requestReceived: (character: string) => string
+  requestReceivedBody: (party: string) => string
+  requestAccepted: (party: string) => string
+  requestAcceptedBody: (character: string) => string
+  requestDeclined: string
+  requestDeclinedBody: (party: string, character: string) => string
+  removed: (party: string) => string
+  removedBody: (character?: string) => string
+  deleted: (party: string) => string
+  deletedBody: string
+  patchNotes: string
+}
+
+const TEXT: Record<PushLocale, Texts> = {
   'pt-BR': {
     party: 'sua party',
+    leader: 'O líder',
+    player: 'Um jogador',
+    yourCharacter: 'seu personagem',
     at: (d, t) => `${d}, às ${t}`,
     tz: 'horário de Brasília',
     scheduled: (p) => `Raid marcada em ${p}`,
@@ -67,10 +107,27 @@ const TEXT: Record<
     cancelled: (p) => `Raid cancelada em ${p}`,
     cancelledBody: (at) => `A raid de ${at} foi cancelada.`,
     cancelledNoDate: 'Uma raid foi cancelada.',
+    invite: (p) => `Convite para ${p}`,
+    inviteBody: (l, ch) => `${l} convidou ${ch ?? 'você'}. Toque para aceitar ou recusar.`,
+    inviteAccepted: (ch) => `${ch} aceitou o convite`,
+    inviteAcceptedBody: (p) => `Agora faz parte de ${p}.`,
+    requestReceived: (ch) => `${ch} pediu para entrar`,
+    requestReceivedBody: (p) => `Em ${p}. Toque para aceitar ou recusar.`,
+    requestAccepted: (p) => `Você entrou em ${p}`,
+    requestAcceptedBody: (ch) => `O líder aceitou ${ch}.`,
+    requestDeclined: 'Pedido recusado',
+    requestDeclinedBody: (p, ch) => `O líder de ${p} recusou ${ch}.`,
+    removed: (p) => `Você foi removido de ${p}`,
+    removedBody: (ch) => (ch ? `O líder removeu ${ch} da party.` : 'O líder removeu você da party.'),
+    deleted: (p) => `${p} foi excluída`,
+    deletedBody: 'O líder encerrou a party. As raids marcadas nela foram canceladas.',
     patchNotes: 'Patch notes novos',
   },
   en: {
     party: 'your party',
+    leader: 'The leader',
+    player: 'A player',
+    yourCharacter: 'your character',
     at: (d, t) => `${d} at ${t}`,
     tz: 'Brasília time',
     scheduled: (p) => `Raid scheduled in ${p}`,
@@ -80,10 +137,27 @@ const TEXT: Record<
     cancelled: (p) => `Raid canceled in ${p}`,
     cancelledBody: (at) => `The raid on ${at} was canceled.`,
     cancelledNoDate: 'A raid was canceled.',
+    invite: (p) => `Invite to ${p}`,
+    inviteBody: (l, ch) => `${l} invited ${ch ?? 'you'}. Tap to accept or decline.`,
+    inviteAccepted: (ch) => `${ch} accepted the invite`,
+    inviteAcceptedBody: (p) => `Now part of ${p}.`,
+    requestReceived: (ch) => `${ch} asked to join`,
+    requestReceivedBody: (p) => `In ${p}. Tap to accept or decline.`,
+    requestAccepted: (p) => `You joined ${p}`,
+    requestAcceptedBody: (ch) => `The leader accepted ${ch}.`,
+    requestDeclined: 'Request declined',
+    requestDeclinedBody: (p, ch) => `The leader of ${p} declined ${ch}.`,
+    removed: (p) => `You were removed from ${p}`,
+    removedBody: (ch) => (ch ? `The leader removed ${ch} from the party.` : 'The leader removed you from the party.'),
+    deleted: (p) => `${p} was deleted`,
+    deletedBody: 'The leader closed the party. Its scheduled raids were canceled.',
     patchNotes: 'New patch notes',
   },
   es: {
     party: 'tu party',
+    leader: 'El líder',
+    player: 'Un jugador',
+    yourCharacter: 'tu personaje',
     at: (d, t) => `${d}, a las ${t}`,
     tz: 'hora de Brasilia',
     scheduled: (p) => `Raid programada en ${p}`,
@@ -93,6 +167,21 @@ const TEXT: Record<
     cancelled: (p) => `Raid cancelada en ${p}`,
     cancelledBody: (at) => `La raid del ${at} se canceló.`,
     cancelledNoDate: 'Se canceló una raid.',
+    invite: (p) => `Invitación a ${p}`,
+    inviteBody: (l, ch) =>
+      ch ? `${l} invitó a ${ch}. Toca para aceptar o rechazar.` : `${l} te invitó. Toca para aceptar o rechazar.`,
+    inviteAccepted: (ch) => `${ch} aceptó la invitación`,
+    inviteAcceptedBody: (p) => `Ahora forma parte de ${p}.`,
+    requestReceived: (ch) => `${ch} pidió unirse`,
+    requestReceivedBody: (p) => `En ${p}. Toca para aceptar o rechazar.`,
+    requestAccepted: (p) => `Entraste en ${p}`,
+    requestAcceptedBody: (ch) => `El líder aceptó a ${ch}.`,
+    requestDeclined: 'Solicitud rechazada',
+    requestDeclinedBody: (p, ch) => `El líder de ${p} rechazó a ${ch}.`,
+    removed: (p) => `Te sacaron de ${p}`,
+    removedBody: (ch) => (ch ? `El líder sacó a ${ch} de la party.` : 'El líder te sacó de la party.'),
+    deleted: (p) => `${p} fue eliminada`,
+    deletedBody: 'El líder cerró la party. Las raids programadas en ella se cancelaron.',
     patchNotes: 'Nuevas notas del parche',
   },
 }
@@ -116,25 +205,49 @@ export function pushMessage(event: PushEvent, locale: PushLocale): PushMessage {
   if (event.kind === 'patch_notes') {
     return { title: tx.patchNotes, body: event.data.title, url: `/patch-notes/${event.data.id}`, tag: `patch-${event.data.id}` }
   }
-  const { data } = event
+  const { data, partyId } = event
   const party = data.party_name || tx.party
+  const char = data.character_name || tx.player
+  const yourChar = data.character_name || tx.yourCharacter
+  const partyUrl = partyId ? `/parties/${partyId}` : '/parties'
+  const partyTag = `party-${partyId ?? 'x'}`
   const at = raidAt(data.starts_at, locale)
-  const url = event.partyId ? `/parties/${event.partyId}` : '/agenda'
-  const tag = `raid-${data.event_id ?? event.partyId ?? 'agenda'}`
+  const raidUrl = partyId ? `/parties/${partyId}` : '/agenda'
+  const raidTag = `raid-${data.event_id ?? partyId ?? 'agenda'}`
   const withNote = (body: string) => [body, data.note && `“${data.note}”`].filter(Boolean).join(' ')
 
   switch (event.kind) {
     case 'raid_scheduled':
-      return { title: tx.scheduled(party), body: withNote(at ? tx.raidBody(at) : ''), url, tag }
+      return { title: tx.scheduled(party), body: withNote(at ? tx.raidBody(at) : ''), url: raidUrl, tag: raidTag }
     case 'raid_reminder':
       return {
         title: data.auto ? tx.reminderAuto(party) : tx.reminderLeader(party),
         body: withNote(at ? tx.raidBody(at) : ''),
-        url,
-        tag,
+        url: raidUrl,
+        tag: raidTag,
       }
     case 'raid_cancelled':
-      return { title: tx.cancelled(party), body: at ? tx.cancelledBody(at) : tx.cancelledNoDate, url, tag }
+      return { title: tx.cancelled(party), body: at ? tx.cancelledBody(at) : tx.cancelledNoDate, url: raidUrl, tag: raidTag }
+    case 'invite_received':
+      return {
+        title: tx.invite(party),
+        body: tx.inviteBody(data.leader_name || tx.leader, data.character_name),
+        url: partyUrl,
+        tag: partyTag,
+      }
+    case 'invite_accepted':
+      return { title: tx.inviteAccepted(char), body: tx.inviteAcceptedBody(party), url: partyUrl, tag: `${partyTag}-${char}` }
+    case 'request_received':
+      return { title: tx.requestReceived(char), body: tx.requestReceivedBody(party), url: partyUrl, tag: `${partyTag}-${char}` }
+    case 'request_accepted':
+      return { title: tx.requestAccepted(party), body: tx.requestAcceptedBody(yourChar), url: partyUrl, tag: partyTag }
+    case 'request_declined':
+      // Não é membro: a página da party não serve, vai para a lista.
+      return { title: tx.requestDeclined, body: tx.requestDeclinedBody(party, yourChar), url: '/parties', tag: partyTag }
+    case 'member_removed':
+      return { title: tx.removed(party), body: tx.removedBody(data.character_name), url: '/parties', tag: partyTag }
+    case 'party_deleted':
+      return { title: tx.deleted(party), body: tx.deletedBody, url: '/parties', tag: partyTag }
   }
 }
 
@@ -151,7 +264,7 @@ export function pushTtl(event: PushEvent, now = Date.now()): number {
 
 const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null
 const isText = (v: unknown, max = 2048): v is string => typeof v === 'string' && v.length > 0 && v.length <= max
-const RAID_KINDS = ['raid_scheduled', 'raid_cancelled', 'raid_reminder'] as const
+const isBellKind = (v: unknown): v is BellKind => BELL_KINDS.includes(v as BellKind)
 const toLocale = (v: unknown): PushLocale => (v === 'en' || v === 'es' ? v : 'pt-BR')
 
 /** Valida o corpo que o banco manda: { subscriptions: [...], event: {...} }. */
@@ -173,15 +286,17 @@ export function parseSendRequest(body: unknown): { targets: PushTarget[]; event:
     if (!isText(data.id, 200) || !isText(data.title, 500)) return null
     return { targets, event: { kind: 'patch_notes', data: { id: data.id, title: data.title } } }
   }
-  if (!RAID_KINDS.includes(e.kind as (typeof RAID_KINDS)[number])) return null
+  if (!isBellKind(e.kind)) return null
   const str = (v: unknown) => (typeof v === 'string' ? v : undefined)
   return {
     targets,
     event: {
-      kind: e.kind as (typeof RAID_KINDS)[number],
+      kind: e.kind,
       partyId: str(e.partyId) ?? null,
       data: {
         party_name: str(data.party_name),
+        character_name: str(data.character_name),
+        leader_name: str(data.leader_name),
         starts_at: str(data.starts_at),
         note: str(data.note),
         event_id: str(data.event_id),
@@ -232,7 +347,7 @@ export async function sendAll(
   now = Date.now(),
 ): Promise<{ sent: number; failed: number; gone: string[] }> {
   const TTL = pushTtl(event, now)
-  const urgency = event.kind === 'raid_reminder' ? 'high' : 'normal'
+  const urgency = event.kind === 'raid_reminder' || event.kind === 'invite_received' ? 'high' : 'normal'
   const results = await Promise.allSettled(
     targets.map((t) => send(t, JSON.stringify(pushMessage(event, t.locale)), { TTL, urgency })),
   )

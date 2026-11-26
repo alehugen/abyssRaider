@@ -53,6 +53,49 @@ describe('pushMessage', () => {
     expect(m).toEqual({ title: 'Patch notes novos', body: 'Atualização de 26/11', url: '/patch-notes/6b06', tag: 'patch-6b06' })
   })
 
+  it('convite para party: quem convidou e qual personagem, link da party para aceitar', () => {
+    const m = pushMessage(
+      { kind: 'invite_received', partyId: 'p1', data: { party_name: 'Os Daevas', leader_name: 'Lyra', character_name: 'Kael' } },
+      'pt-BR',
+    )
+    expect(m).toEqual({
+      title: 'Convite para Os Daevas',
+      body: 'Lyra convidou Kael. Toque para aceitar ou recusar.',
+      url: '/parties/p1',
+      tag: 'party-p1',
+    })
+    const en = pushMessage({ kind: 'invite_received', partyId: 'p1', data: { party_name: 'Os Daevas' } }, 'en')
+    expect(en.body).toBe('The leader invited you. Tap to accept or decline.')
+  })
+
+  it('removido da party: não aponta para a party (não é mais membro)', () => {
+    const m = pushMessage(
+      { kind: 'member_removed', partyId: 'p1', data: { party_name: 'Os Daevas', character_name: 'Kael' } },
+      'pt-BR',
+    )
+    expect(m).toEqual({
+      title: 'Você foi removido de Os Daevas',
+      body: 'O líder removeu Kael da party.',
+      url: '/parties',
+      tag: 'party-p1',
+    })
+  })
+
+  it('todos os tipos do sino viram push (pedidos e convite aceito)', () => {
+    const ev = (kind: Parameters<typeof pushMessage>[0]['kind']) =>
+      pushMessage({ kind, partyId: 'p1', data: { party_name: 'Os Daevas', character_name: 'Kael' } } as PushEvent, 'pt-BR')
+    expect(ev('request_received')).toMatchObject({ title: 'Kael pediu para entrar', url: '/parties/p1' })
+    expect(ev('request_accepted')).toMatchObject({ title: 'Você entrou em Os Daevas', body: 'O líder aceitou Kael.' })
+    expect(ev('request_declined')).toMatchObject({ title: 'Pedido recusado', url: '/parties' })
+    expect(ev('invite_accepted')).toMatchObject({ title: 'Kael aceitou o convite', body: 'Agora faz parte de Os Daevas.' })
+  })
+
+  it('party excluída', () => {
+    const m = pushMessage({ kind: 'party_deleted', partyId: null, data: { party_name: 'Os Daevas' } }, 'es')
+    expect(m.title).toBe('Os Daevas fue eliminada')
+    expect(m.url).toBe('/parties')
+  })
+
   it('sem nome da party ou data, ainda monta um texto', () => {
     const m = pushMessage({ kind: 'raid_cancelled', partyId: null, data: {} }, 'pt-BR')
     expect(m.title).toBe('Raid cancelada em sua party')
@@ -78,6 +121,11 @@ describe('parseSendRequest', () => {
     expect(parseSendRequest({ subscriptions: [target('http://inseguro')], event: raid('raid_scheduled') })).toBeNull()
     expect(parseSendRequest({ subscriptions: [target('https://push/1')], event: { kind: 'outro', data: {} } })).toBeNull()
     expect(parseSendRequest(null)).toBeNull()
+    const invite = parseSendRequest({
+      subscriptions: [target('https://push/1')],
+      event: { kind: 'invite_received', partyId: 'p1', data: { party_name: 'X', leader_name: 'Lyra', character_name: 'Kael' } },
+    })
+    expect(invite?.event).toMatchObject({ kind: 'invite_received', data: { leader_name: 'Lyra', character_name: 'Kael' } })
   })
 
   it('idioma desconhecido vira português', () => {
