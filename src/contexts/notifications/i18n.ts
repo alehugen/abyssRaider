@@ -36,6 +36,11 @@ export default defineMessages(
       raidScheduled: { title: 'Raid marcada em {party}' },
       raidReminder: { title: 'Lembrete: raid em {party}' },
       raidBody: '{at} ({tz}). Confirme sua presença.',
+      memberRemoved: {
+        title: 'Você foi removido de {party}',
+        body: 'O líder removeu {character} da party.',
+        bodyYou: 'O líder removeu você da party.',
+      },
       partyDeleted: {
         title: '{party} foi excluída',
         body: 'O líder encerrou a party. As raids marcadas nela foram canceladas.',
@@ -51,7 +56,7 @@ export default defineMessages(
       title: 'Notificações no aparelho',
       description: 'Receba os avisos no celular ou no computador, mesmo com o app fechado.',
       what: 'O que receber',
-      raids: { label: 'Raids', hint: 'Raid marcada ou cancelada, lembrete 1 h antes e lembrete do líder.' },
+      raids: { label: 'Party e raids', hint: 'Tudo que aparece no sino: convites, pedidos, remoção da party, raid marcada ou cancelada e lembretes.' },
       patchNotes: { label: 'Patch notes', hint: 'Quando sai patch novo do AION 2.' },
       enable: 'Ativar neste aparelho',
       disable: 'Desativar neste aparelho',
@@ -112,6 +117,11 @@ export default defineMessages(
       raidScheduled: { title: 'Raid scheduled in {party}' },
       raidReminder: { title: 'Reminder: raid in {party}' },
       raidBody: '{at} ({tz}). Confirm your attendance.',
+      memberRemoved: {
+        title: 'You were removed from {party}',
+        body: 'The leader removed {character} from the party.',
+        bodyYou: 'The leader removed you from the party.',
+      },
       partyDeleted: {
         title: '{party} was deleted',
         body: 'The leader closed the party. Its scheduled raids were canceled.',
@@ -127,7 +137,7 @@ export default defineMessages(
       title: 'Device notifications',
       description: 'Get alerts on your phone or computer, even with the app closed.',
       what: 'What to receive',
-      raids: { label: 'Raids', hint: 'Raid scheduled or canceled, reminder 1 h before and leader reminders.' },
+      raids: { label: 'Party and raids', hint: 'Everything in the bell: invites, requests, removal from a party, raids scheduled or canceled and reminders.' },
       patchNotes: { label: 'Patch notes', hint: 'When a new AION 2 patch is out.' },
       enable: 'Turn on for this device',
       disable: 'Turn off for this device',
@@ -188,6 +198,11 @@ export default defineMessages(
       raidScheduled: { title: 'Raid programada en {party}' },
       raidReminder: { title: 'Recordatorio: raid en {party}' },
       raidBody: '{at} ({tz}). Confirma tu asistencia.',
+      memberRemoved: {
+        title: 'Te sacaron de {party}',
+        body: 'El líder sacó a {character} de la party.',
+        bodyYou: 'El líder te sacó de la party.',
+      },
       partyDeleted: {
         title: '{party} fue eliminada',
         body: 'El líder cerró la party. Las raids programadas en ella se cancelaron.',
@@ -203,7 +218,7 @@ export default defineMessages(
       title: 'Notificaciones en el dispositivo',
       description: 'Recibe los avisos en el celular o en la computadora, incluso con la app cerrada.',
       what: 'Qué recibir',
-      raids: { label: 'Raids', hint: 'Raid programada o cancelada, recordatorio 1 h antes y recordatorio del líder.' },
+      raids: { label: 'Party y raids', hint: 'Todo lo que aparece en la campana: invitaciones, solicitudes, salida de la party, raids programadas o canceladas y recordatorios.' },
       patchNotes: { label: 'Notas del parche', hint: 'Cuando sale un parche nuevo de AION 2.' },
       enable: 'Activar en este dispositivo',
       disable: 'Desactivar en este dispositivo',

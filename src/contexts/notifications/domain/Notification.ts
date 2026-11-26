@@ -16,6 +16,7 @@ export type NotificationKind =
   | 'raid_cancelled'
   | 'party_deleted'
   | 'raid_reminder'
+  | 'member_removed'
 
 export interface NotificationData {
   party_name?: string
@@ -115,6 +116,15 @@ export function describeNotification(n: AppNotification): NotificationView {
       return { title: t(`${k}.raidScheduled.title`, { party }), body: raidBody(n), tone: 'raid', link }
     case 'raid_reminder':
       return { title: t(`${k}.raidReminder.title`, { party }), body: raidBody(n), tone: 'raid', link }
+    case 'member_removed':
+      return {
+        title: t(`${k}.memberRemoved.title`, { party }),
+        body: n.data.character_name
+          ? t(`${k}.memberRemoved.body`, { character: n.data.character_name })
+          : t(`${k}.memberRemoved.bodyYou`),
+        tone: 'cancel',
+        link: null,
+      }
     case 'party_deleted':
       return {
         title: t(`${k}.partyDeleted.title`, { party }),

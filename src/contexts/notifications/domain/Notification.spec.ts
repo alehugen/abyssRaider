@@ -52,3 +52,17 @@ describe('party excluída', () => {
     expect(v).toMatchObject({ title: 'Ludra foi excluída', link: null })
   })
 })
+
+describe('removido da party', () => {
+  it('diz qual personagem saiu e não aponta para a party (não é mais membro)', () => {
+    const v = describeNotification({
+      id: 3,
+      kind: 'member_removed',
+      partyId: 'p1',
+      data: { party_name: 'Ludra', character_name: 'Kael' },
+      createdAt: new Date(),
+      readAt: null,
+    })
+    expect(v).toMatchObject({ title: 'Você foi removido de Ludra', body: 'O líder removeu Kael da party.', link: null, tone: 'cancel' })
+  })
+})

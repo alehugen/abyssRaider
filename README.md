@@ -44,7 +44,9 @@ O app é instalável (PWA), com o celular como prioridade.
 
 Cada pessoa ativa no menu do usuário, em "Notificações no aparelho", e escolhe o que recebe:
 
-- **Raids:** raid marcada, raid cancelada, lembrete do líder e lembrete automático 1 h antes. O lembrete automático vale para toda party, com ou sem Discord, e também aparece no sino.
+- **Party e raids:** tudo que aparece no sino.
+  - Party: convite, convite aceito, pedido para entrar (recebido, aceito, recusado), removido da party pelo líder e party excluída.
+  - Raids: raid marcada, raid cancelada, lembrete do líder e lembrete automático 1 h antes. O lembrete automático vale para toda party, com ou sem Discord.
 - **Patch notes:** cada patch novo, junto com o post no Discord. Por isso depende de `patch_notes_feed` configurado.
 
 Vale por aparelho e por conta. Ao sair da conta, o aparelho deixa de receber. No Android e no computador funciona pelo navegador; no iPhone e no iPad só com o app instalado na Tela de Início (iOS 16.4+).
@@ -53,7 +55,7 @@ Vale por aparelho e por conta. Ao sair da conta, o aparelho deixa de receber. No
 
 **Configuração (uma vez):**
 
-1. Rode `20261126000000_push.sql` no SQL Editor.
+1. Rode `20261126000000_push.sql` e depois `20261126010000_push_bell.sql` no SQL Editor.
 2. Gere as chaves com `npx web-push generate-vapid-keys`.
 3. Na Vercel, cadastre estas variáveis e faça um novo deploy (a chave pública entra no build):
    - `VITE_VAPID_PUBLIC_KEY`: a chave pública.
