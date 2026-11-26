@@ -13,6 +13,8 @@
     "ui:add": "node scripts/ui-add.mjs"
   },
   "dependencies": {
+    "@fontsource/noto-sans": "^5.3.0",
+    "@fontsource/noto-serif": "^5.3.0",
     "@phosphor-icons/vue": "^2.2.1",
     "@supabase/supabase-js": "^2.119.0",
     "@vueuse/core": "^15.0.0",
@@ -43,9 +45,7 @@
     "vitest": "^5.1.0",
     "vue-tsc": "^3.3.14",
     "workbox-core": "^7.4.1",
-    "workbox-expiration": "^7.4.1",
     "workbox-precaching": "^7.4.1",
-    "workbox-routing": "^7.4.1",
-    "workbox-strategies": "^7.4.1"
+    "workbox-routing": "^7.4.1"
   }
 }

@@ -2,13 +2,11 @@
 /**
  * Service worker do app (vite-plugin-pwa, modo injectManifest).
  *  - precache da interface (abre offline) e aviso de versão nova (SKIP_WAITING só quando a pessoa pede);
- *  - dados (Supabase e /api) nunca passam pelo cache;
+ *  - dados (Supabase e /api) nunca passam pelo cache; as fontes vêm no precache (@fontsource);
  *  - push: mostra a notificação e abre a página certa ao tocar.
  */
-import { ExpirationPlugin } from 'workbox-expiration'
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
-import { StaleWhileRevalidate } from 'workbox-strategies'
 import { openFromNotification, showPush } from './pushHandlers'
 
 declare let self: ServiceWorkerGlobalScope
@@ -23,15 +21,6 @@ cleanupOutdatedCaches()
 
 // Rotas do app abrem o index.html do cache; /api é dado e vai sempre à rede.
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/api\//] }))
-
-// Fontes do Google: a interface continua com a tipografia certa sem rede.
-registerRoute(
-  ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-  new StaleWhileRevalidate({
-    cacheName: 'google-fonts',
-    plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 })],
-  }),
-)
 
 self.addEventListener('push', (event) => {
   const nav = self.navigator as WorkerNavigator & { setAppBadge?: () => Promise<void> }

@@ -16,12 +16,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="AbyssRaider" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Serif:wght@600;700&display=swap"
-    />
+    <!-- Fontes vêm do próprio app (@fontsource, em src/main.ts): abrem offline e sem outro site. -->
+    <style>
+      /* Tela de abertura (some quando o Vue monta): logo no fundo do tema, sem quadro branco. */
+      .boot { position: fixed; inset: 0; display: grid; place-items: center; }
+      .boot img { width: 72px; height: 72px; border-radius: 18px; animation: boot 1.2s ease-in-out infinite alternate; }
+      @keyframes boot { from { opacity: 0.55; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+      @media (prefers-reduced-motion: reduce) { .boot img { animation: none; } }
+    </style>
     <script>
       // Aplica o tema antes da renderização para evitar "flash".
       // Manter em sincronia com THEME_STORAGE_KEY / THEMES / SYSTEM_THEME / DEFAULT_PREFERENCE.
@@ -41,11 +43,14 @@
         root.classList.toggle('dark', themes[id] === 'dark')
         var meta = document.querySelector('meta[name="theme-color"]')
         if (meta) meta.setAttribute('content', colors[id])
+        root.style.backgroundColor = colors[id] // fundo certo antes do CSS do app carregar
       })()
     </script>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="boot" aria-hidden="true"><img src="/pwa-192x192.png" alt="" /></div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
