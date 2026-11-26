@@ -34,7 +34,13 @@ registerRoute(
 )
 
 self.addEventListener('push', (event) => {
-  event.waitUntil(showPush(self.registration, event.data))
+  const nav = self.navigator as WorkerNavigator & { setAppBadge?: () => Promise<void> }
+  event.waitUntil(
+    showPush(
+      { registration: self.registration, clients: self.clients, setAppBadge: nav.setAppBadge?.bind(nav) },
+      event.data,
+    ),
+  )
 })
 
 self.addEventListener('notificationclick', (event) => {
