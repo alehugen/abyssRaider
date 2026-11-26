@@ -66,3 +66,11 @@ describe('removido da party', () => {
     expect(v).toMatchObject({ title: 'Você foi removido de Ludra', body: 'O líder removeu Kael da party.', link: null, tone: 'cancel' })
   })
 })
+
+describe('tipo desconhecido (banco mais novo que o app)', () => {
+  it('não quebra o sino: mostra um aviso genérico com link para a party', () => {
+    const v = describeNotification(n('algo_novo' as AppNotification['kind']))
+    expect(v).toMatchObject({ title: 'Nova notificação', tone: 'invite', link: '/parties/p1' })
+    expect(v.body).toContain('Ludra')
+  })
+})

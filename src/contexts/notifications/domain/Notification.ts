@@ -141,6 +141,9 @@ export function describeNotification(n: AppNotification): NotificationView {
         link,
       }
     }
+    default:
+      // Tipo criado no banco depois desta versão do app: um aviso genérico em vez de quebrar o sino.
+      return { title: t(`${k}.unknown.title`), body: t(`${k}.unknown.body`, { party }), tone: 'invite', link }
   }
 }
 

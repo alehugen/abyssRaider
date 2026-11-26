@@ -36,6 +36,7 @@ export default defineMessages(
       raidScheduled: { title: 'Raid marcada em {party}' },
       raidReminder: { title: 'Lembrete: raid em {party}' },
       raidBody: '{at} ({tz}). Confirme sua presença.',
+      unknown: { title: 'Nova notificação', body: 'Novidade em {party}. Atualize o app para ver os detalhes.' },
       memberRemoved: {
         title: 'Você foi removido de {party}',
         body: 'O líder removeu {character} da party.',
@@ -117,6 +118,7 @@ export default defineMessages(
       raidScheduled: { title: 'Raid scheduled in {party}' },
       raidReminder: { title: 'Reminder: raid in {party}' },
       raidBody: '{at} ({tz}). Confirm your attendance.',
+      unknown: { title: 'New notification', body: 'Something new in {party}. Update the app to see the details.' },
       memberRemoved: {
         title: 'You were removed from {party}',
         body: 'The leader removed {character} from the party.',
@@ -198,6 +200,7 @@ export default defineMessages(
       raidScheduled: { title: 'Raid programada en {party}' },
       raidReminder: { title: 'Recordatorio: raid en {party}' },
       raidBody: '{at} ({tz}). Confirma tu asistencia.',
+      unknown: { title: 'Nueva notificación', body: 'Novedades en {party}. Actualiza la app para ver los detalles.' },
       memberRemoved: {
         title: 'Te sacaron de {party}',
         body: 'El líder sacó a {character} de la party.',
