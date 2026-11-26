@@ -1,6 +1,6 @@
 import { getContainer } from '@/app/container'
 import { DomainError } from '@/shared/domain/DomainError'
-import { currentLocale } from '@/shared/i18n'
+import { currentLocale, t } from '@/shared/i18n'
 import { usePwaInstall } from '@/shared/presentation/pwa/usePwaInstall'
 import { createPushController, type BrowserPushSubscription, type PushBrowser, type PushController } from './pushController'
 
@@ -44,26 +44,27 @@ export function createBrowserPush(win: Window & typeof globalThis = window): Pus
 /** O que o aparelho informa, para diagnosticar quando o pedido de permissão não aparece. */
 export async function pushDiagnostics(win: Window & typeof globalThis = window): Promise<Array<[string, string]>> {
   const nav = win.navigator
-  const yes = (v: boolean) => (v ? 'sim' : 'não')
+  const d = (key: string) => t(`notifications.push.diag.${key}`)
+  const yes = (v: boolean) => d(v ? 'yes' : 'no')
   const rows: Array<[string, string]> = [
-    ['Instalado (tela cheia)', yes(!!win.matchMedia?.('(display-mode: standalone)').matches || (nav as { standalone?: boolean }).standalone === true)],
+    [d('installed'), yes(!!win.matchMedia?.('(display-mode: standalone)').matches || (nav as { standalone?: boolean }).standalone === true)],
     ['Service worker', yes('serviceWorker' in nav)],
     ['PushManager', yes('PushManager' in win)],
     ['Notification', yes('Notification' in win)],
-    ['Permissão', 'Notification' in win ? win.Notification.permission : '-'],
-    ['Chave VAPID no build', yes(!!import.meta.env.VITE_VAPID_PUBLIC_KEY)],
+    [d('permission'), 'Notification' in win ? win.Notification.permission : '-'],
+    [d('vapid'), yes(!!import.meta.env.VITE_VAPID_PUBLIC_KEY)],
   ]
   if ('serviceWorker' in nav) {
     try {
       const r = await nav.serviceWorker.getRegistration()
-      rows.push(['Service worker registrado', r ? (r.active ? 'ativo' : 'instalando') : 'não'])
+      rows.push([d('registered'), r ? d(r.active ? 'active' : 'installing') : d('no')])
       const s = r && 'pushManager' in r ? await r.pushManager.getSubscription() : null
-      rows.push(['Inscrição no navegador', yes(!!s)])
+      rows.push([d('subscription'), yes(!!s)])
     } catch (e) {
-      rows.push(['Service worker registrado', `erro: ${String(e)}`])
+      rows.push([d('registered'), `${d('error')}: ${String(e)}`])
     }
   }
-  rows.push(['Navegador', nav.userAgent])
+  rows.push([d('browser'), nav.userAgent])
   return rows
 }
 

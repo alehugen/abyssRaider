@@ -18,7 +18,7 @@ const busy = push.busy
 /** "Detalhes técnicos": o que o aparelho informa (para quando não funciona). */
 const diagnostics = ref<Array<[string, string]>>([])
 async function loadDiagnostics() {
-  diagnostics.value = await pushDiagnostics().catch((e) => [['erro', String(e)]] as Array<[string, string]>)
+  diagnostics.value = await pushDiagnostics().catch((e) => [[t('notifications.push.diag.error'), String(e)]] as Array<[string, string]>)
 }
 
 watch(
