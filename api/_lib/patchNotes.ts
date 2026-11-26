@@ -199,8 +199,6 @@ function finishTable(rows: CellDraft[][]): PatchTableCell[][] | null {
     .filter((row) => row.some((c) => c.text))
   if (!table.length) return null
 
-  // Primeira linha é cabeçalho quando está toda em negrito, ou quando são rótulos curtos
-  // de uma linha só ("Categoria | Recompensa | Quantidade").
   // Cabeçalho: uma linha de título ocupando a largura toda ("(15 dias)") e/ou a linha
   // de rótulos, toda em negrito ou só com rótulos curtos ("Categoria | Recompensa | Quantidade").
   const isCaption = (row: (typeof table)[number]) => row.length === 1 && row[0]!.colSpan > 1
@@ -346,7 +344,6 @@ export function parsePatchHtml(html: string): PatchSection[] {
       return
     }
 
-    /** Linhas depois da primeira (quebras `<br>`) viram subtópicos do item. */
     /**
      * Linhas depois da primeira (quebras `<br>`): dentro do item quando ele termina
      * em ":" ("Período de venda:"), senão ao lado dele (duas datas, PST e CET).

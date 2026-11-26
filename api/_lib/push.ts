@@ -309,7 +309,7 @@ export function parseSendRequest(body: unknown): { targets: PushTarget[]; event:
 export type SendFn = (
   target: PushTarget,
   payload: string,
-  options: { TTL: number; urgency: 'normal' | 'high'; topic?: string },
+  options: { TTL: number; urgency: 'normal' | 'high' },
 ) => Promise<unknown>
 
 export interface SendHandlerDeps {
