@@ -40,6 +40,7 @@ import {
   canJoin,
   composition,
   joinBlockedMessage,
+  canRequestJoin,
   GROUP_SIZE,
   groups,
   moveInLayout,
@@ -158,6 +159,8 @@ const joinOptions = computed(() =>
 )
 /** Nenhum personagem pode entrar: explica (antes só ficava tudo desativado). */
 const joinBlocked = computed(() => (party.value ? joinBlockedMessage(party.value, characters.items) : null))
+/** Quem foi recusado pode pedir de novo (antes só via 'Encontrar parties'). */
+const canRequest = computed(() => canRequestJoin(p.myMembership.value?.status))
 const joinCharacter = ref('')
 watch(joinOptions, (opts) => {
   if (!opts.some((o) => o.linked.linkId === joinCharacter.value && o.ok)) {
@@ -604,7 +607,7 @@ async function removeMember(m: PartyMember) {
 
       <!-- Visitante: pedir vaga -->
       <section
-        v-if="!p.finished.value && !p.isLeader.value && (!p.myMembership.value || p.myMembership.value.status === 'declined')"
+        v-if="!p.finished.value && !p.isLeader.value && canRequest"
         aria-labelledby="join-title"
         class="space-y-3 rounded-2xl border bg-card/60 p-4 sm:p-6"
       >
@@ -620,7 +623,7 @@ async function removeMember(m: PartyMember) {
             </template>
           </i18n-t>
         </p>
-        <div v-else-if="joinBlocked && !p.myMembership.value" role="status" class="space-y-3">
+        <div v-else-if="joinBlocked" role="status" class="space-y-3">
           <p class="flex items-start gap-2 text-sm">
             <PhWarningCircle :size="18" class="mt-0.5 flex-none text-warning-ink" aria-hidden="true" />
             {{ joinBlocked }}
@@ -633,7 +636,7 @@ async function removeMember(m: PartyMember) {
           </div>
         </div>
         <form
-          v-else-if="!p.myMembership.value"
+          v-else
           class="flex flex-col gap-2 sm:flex-row"
           @submit.prevent="p.requestJoin(joinCharacter)"
         >

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Character } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
 import {
+  canRequestJoin,
   canJoin,
   joinBlockedMessage,
   composition,
@@ -155,5 +156,15 @@ describe('Party', () => {
     expect(joinBlockedMessage(party, [linked('i', { itemLevel: 2500 }), linked('r', { region: 'eu' })])).toContain(
       'Veja o motivo',
     )
+  })
+})
+
+describe('canRequestJoin', () => {
+  it('pode pedir vaga quem ainda não está na party ou teve o pedido recusado', () => {
+    expect(canRequestJoin(null)).toBe(true)
+    expect(canRequestJoin('declined')).toBe(true)
+    expect(canRequestJoin('pending')).toBe(false)
+    expect(canRequestJoin('invited')).toBe(false)
+    expect(canRequestJoin('accepted')).toBe(false)
   })
 })

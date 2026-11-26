@@ -67,6 +67,11 @@ export function invitedMembers(members: readonly PartyMember[]): PartyMember[] {
   return members.filter((m) => m.status === 'invited')
 }
 
+/** Pode pedir vaga: ainda não está na party ou o pedido anterior foi recusado (o banco reabre como pendente). */
+export function canRequestJoin(myStatus: MemberStatus | null | undefined): boolean {
+  return !myStatus || myStatus === 'declined'
+}
+
 export function isFull(party: Party, members: readonly PartyMember[]): boolean {
   return acceptedMembers(members).length >= party.sanctuary.groupSize
 }
