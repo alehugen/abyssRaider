@@ -22,6 +22,12 @@ export default defineMessages(
       offline: 'Sem conexão. Você pode navegar, mas carregar e salvar dados precisa de internet.',
       install: {
         menu: 'Instalar app',
+        banner: {
+          title: 'Vai usar no celular? Instale o app antes de entrar',
+          body: 'Abre em tela cheia, recebe notificações de raid e você faz login uma vez só, já no app.',
+          action: 'Instalar',
+          dismiss: 'Agora não',
+        },
         title: 'Instalar o AbyssRaider',
         description: 'No iPhone e no iPad, a instalação é pelo Safari:',
         step1: 'Toque em Compartilhar (o quadrado com a seta para cima).',
@@ -97,6 +103,12 @@ export default defineMessages(
       offline: "You're offline. You can browse, but loading and saving data needs internet.",
       install: {
         menu: 'Install app',
+        banner: {
+          title: 'Using your phone? Install the app before signing in',
+          body: 'It opens full screen, gets raid notifications and you sign in only once, right in the app.',
+          action: 'Install',
+          dismiss: 'Not now',
+        },
         title: 'Install AbyssRaider',
         description: 'On iPhone and iPad, install it from Safari:',
         step1: 'Tap Share (the square with an arrow pointing up).',
@@ -172,6 +184,12 @@ export default defineMessages(
       offline: 'Sin conexión. Puedes navegar, pero cargar y guardar datos necesita internet.',
       install: {
         menu: 'Instalar app',
+        banner: {
+          title: '¿Lo usarás en el celular? Instala la app antes de entrar',
+          body: 'Se abre en pantalla completa, recibe notificaciones de raid e inicias sesión una sola vez, ya en la app.',
+          action: 'Instalar',
+          dismiss: 'Ahora no',
+        },
         title: 'Instalar AbyssRaider',
         description: 'En iPhone y iPad, se instala desde Safari:',
         step1: 'Toca Compartir (el cuadrado con una flecha hacia arriba).',

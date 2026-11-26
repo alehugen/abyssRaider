@@ -8,6 +8,7 @@ import { t } from '@/shared/i18n'
 import ThemePicker from '@/shared/presentation/theme/ThemePicker.vue'
 import LanguagePicker from '@/shared/presentation/i18n/LanguagePicker.vue'
 import BottomNav from '@/shared/presentation/navigation/BottomNav.vue'
+import InstallBanner from '@/shared/presentation/pwa/InstallBanner.vue'
 import OfflineBanner from '@/shared/presentation/pwa/OfflineBanner.vue'
 import PwaUpdateToast from '@/shared/presentation/pwa/PwaUpdateToast.vue'
 import { Button } from '@/shared/presentation/ui/button'
@@ -70,6 +71,8 @@ const bottomItems = computed(() =>
       <OfflineBanner />
     </header>
     <main class="mx-auto w-full max-w-6xl flex-1 px-safe py-6 sm:py-8">
+      <!-- Antes do login: instalar primeiro evita entrar duas vezes (Safari e app no iPhone). -->
+      <InstallBanner v-if="auth.status === 'anonymous'" />
       <slot />
     </main>
     <footer class="border-t border-border/60 bg-background/70 backdrop-blur">
