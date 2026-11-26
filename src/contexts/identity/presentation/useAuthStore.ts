@@ -14,11 +14,12 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => status.value === 'authenticated')
 
   let initPromise: Promise<void> | null = null
-  let unsubscribe: (() => void) | null = null
 
   function setUser(next: User | null) {
     user.value = next
     status.value = next ? 'authenticated' : 'anonymous'
+    // Entrou (ex.: a sessão renovou depois de abrir offline): o erro antigo não vale mais.
+    if (next) error.value = null
   }
 
   /** Idempotente: pode ser chamado pelo guard de rota e por componentes. */
@@ -32,7 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
         error.value = errorMessage(e)
         setUser(null)
       }
-      unsubscribe = repo.onChange(setUser)
+      // Vale pela vida do app: a sessão muda em outra aba, ao renovar ou ao expirar.
+      repo.onChange(setUser)
     })()
     return initPromise
   }
@@ -59,9 +61,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  function $dispose() {
-    unsubscribe?.()
-  }
-
-  return { user, status, error, isAuthenticated, init, signIn, signOut, $dispose }
+  return { user, status, error, isAuthenticated, init, signIn, signOut }
 })

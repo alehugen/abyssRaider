@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { PhWarningCircle } from '@phosphor-icons/vue'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/presentation/ui/card'
 import DiscordLoginButton from '../components/DiscordLoginButton.vue'
 import { t } from '@/shared/i18n'
@@ -13,6 +13,16 @@ const auth = useAuthStore()
 
 const next = computed(() => safeNext(route.query.next))
 const callbackError = computed(() => (typeof route.query.error === 'string' ? route.query.error : null))
+
+// A sessão voltou com a página aberta (abriu offline e renovou depois, ou entrou em outra aba).
+const router = useRouter()
+watch(
+  () => auth.isAuthenticated,
+  (yes) => {
+    if (yes) void router.replace(next.value)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

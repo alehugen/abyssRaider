@@ -71,6 +71,20 @@ describe('useAuthStore', () => {
     expect(auth.error).toContain('login com Discord não está habilitado')
   })
 
+  it('abriu offline (sessão não renovou): quando a renovação der certo, entra e o erro some', async () => {
+    const { repo, emit } = fakeRepo(null)
+    vi.mocked(repo.getCurrentUser).mockRejectedValueOnce(new Error('Failed to fetch'))
+    overrideContainer({ authRepository: repo })
+    const auth = useAuthStore()
+    await auth.init()
+    expect(auth.status).toBe('anonymous')
+    expect(auth.error).toBeTruthy()
+
+    emit(lele)
+    expect(auth.isAuthenticated).toBe(true)
+    expect(auth.error).toBeNull()
+  })
+
   it('signOut limpa o usuário', async () => {
     const { repo } = fakeRepo(lele)
     overrideContainer({ authRepository: repo })

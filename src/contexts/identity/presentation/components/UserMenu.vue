@@ -36,8 +36,10 @@ const pushSettings = ref(false)
 async function signOut() {
   // Antes de sair (precisa da sessão): o aparelho para de receber as notificações desta conta.
   await usePushNotifications().forgetDevice()
-  await auth.signOut()
+  // Vai para a página inicial antes: saindo numa página protegida, o App.vue também
+  // redirecionava (para o login) e as duas navegações disputavam.
   await router.push('/')
+  await auth.signOut()
 }
 </script>
 
