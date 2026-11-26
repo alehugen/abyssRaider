@@ -134,6 +134,15 @@ with problems(check_name, detail) as (
      and e.created_at < e.starts_at - make_interval(mins => n.reminder_minutes)
 
   union all
+  select 'lembrete dos membros não enviado para raid que já começou (cron parado?)',
+         format('raid %s em %s', e.id, e.starts_at)
+    from public.raid_events e
+    join public.parties p on p.id = e.party_id and p.finished_at is null
+   where e.member_reminder_sent_at is null
+     and e.starts_at < now() and e.starts_at > now() - interval '1 day'
+     and e.created_at < e.starts_at - interval '60 minutes'
+
+  union all
   select 'party recorrente sem as raids da semana (cron parado?)',
          format('party %s (%s): recorrência criada até %s', p.id, p.name, coalesce(p.recurrence_until::text, 'nunca'))
     from public.parties p
@@ -173,7 +182,9 @@ with problems(check_name, detail) as (
   union all
   select 'rotina agendada ausente ou desligada', j.name
     from (values ('abyssraider-raid-reminders'), ('abyssraider-notifications-cleanup'),
-                 ('abyssraider-finish-parties'), ('abyssraider-recurring-raids')) as j(name)
+                 ('abyssraider-finish-parties'), ('abyssraider-recurring-raids'),
+                 ('abyssraider-member-reminders'), ('abyssraider-patch-notes'),
+                 ('abyssraider-patch-notes-semana')) as j(name)
    where not exists (select 1 from cron.job c where c.jobname = j.name and c.active)
 
   -- Notificações -----------------------------------------------------------------------

@@ -68,7 +68,7 @@ Vale por aparelho e por conta. Ao sair da conta, o aparelho deixa de receber. No
 ## Banco (Supabase)
 
 - As migrations ficam em `supabase/migrations/` e rodam **em ordem de nome** no SQL Editor do Supabase.
-- São cinco arquivos, que montam o banco do zero: perfis e personagens, parties, agenda (raids, presença, recorrência, disponibilidade), notificações do sino e avisos do Discord. Mudanças novas entram como arquivos seguintes (data mais recente no nome).
+- Os cinco primeiros arquivos (10/11) montam a base: perfis e personagens, parties, agenda (raids, presença, recorrência, disponibilidade), notificações do sino e avisos do Discord. Os seguintes são mudanças em cima dela (lembrete manual, patch notes, santuário novo, push, correções). Uma função redefinida vale pela versão do arquivo mais recente. Mudanças novas entram como arquivos seguintes (data mais recente no nome), sempre idempotentes (`create or replace`, `if not exists`).
 - `supabase/manutencao/` guarda scripts de uma vez só para o banco que já está no ar (ex.: depois de uma consolidação). Banco novo não precisa deles.
 - `supabase/checks/consistency.sql` confere os dados (só leitura): nenhuma linha = tudo consistente.
 - Os avisos do Discord e os lembretes usam as extensões gratuitas `pg_net` e `pg_cron`. Se a migration reclamar de permissão, ligue as duas em **Database → Extensions** e rode de novo.
