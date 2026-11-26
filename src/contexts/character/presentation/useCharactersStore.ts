@@ -53,8 +53,12 @@ export const useCharactersStore = defineStore('characters', () => {
     inflight ??= (async () => {
       loading.value = true
       error.value = null
+      const userId = useAuthStore().user?.id
       try {
-        items.value = await getContainer().characterRepository.listByOwner(ownerId())
+        const list = await getContainer().characterRepository.listByOwner(ownerId())
+        // Trocou de conta durante a consulta: a lista é da conta anterior.
+        if (useAuthStore().user?.id !== userId) return
+        items.value = list
         loaded.value = true
       } catch (e) {
         error.value = errorMessage(e)
@@ -104,6 +108,7 @@ export const useCharactersStore = defineStore('characters', () => {
     items.value = []
     loaded.value = false
     error.value = null
+    inflight = null // a consulta em andamento era da conta anterior: a próxima começa outra
   }
 
   // Trocou de conta (ou saiu): descarta a lista da conta anterior.
