@@ -125,7 +125,10 @@ const dragStatus = computed(() =>
 const comp = computed(() => composition(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 const assigned = computed(() => assignRoles(p.accepted.value, party.value?.sanctuary.groupSize ?? 10))
 // Disponibilidade dos membros: melhor horário e sugestões ao agendar a raid da semana.
-const availability = usePartyAvailability(() => p.accepted.value)
+const availability = usePartyAvailability(
+  () => p.accepted.value,
+  () => !p.finished.value && (p.isLeader.value || p.myMembership.value?.status === 'accepted'),
+)
 const scheduleOptions = computed(() =>
   availability.bestPerDay.value
     .map((s) => ({

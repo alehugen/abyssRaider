@@ -16,23 +16,33 @@ export interface MemberSlot extends Slot {
  * Disponibilidade dos membros de uma party, carregada uma vez e usada pelo
  * "melhor horário" e pelas sugestões do agendamento.
  */
-export function usePartyAvailability(members: MaybeRefOrGetter<readonly PartyMember[]>) {
+export function usePartyAvailability(
+  members: MaybeRefOrGetter<readonly PartyMember[]>,
+  /** Só consulta quando vai aparecer (líder ou membro de party ativa). */
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const byOwner = shallowRef<Map<string, TimeWindow[]>>(new Map())
   const loaded = shallowRef(false)
   const error = shallowRef<string | null>(null)
 
   const list = computed(() => toValue(members))
   const ownerIds = computed(() => [...new Set(list.value.map((m) => m.linked.ownerId))].sort())
+  /** Só a consulta mais recente vale (aceitar/remover membro em sequência). */
+  let seq = 0
 
   watch(
-    () => ownerIds.value.join(','),
-    async () => {
+    () => (toValue(enabled) ? ownerIds.value.join(',') : null),
+    async (key) => {
+      const mine = ++seq
       error.value = null
+      if (key === null) return
       try {
-        byOwner.value = await getContainer().availabilityRepository.listByOwners(ownerIds.value)
+        const result = await getContainer().availabilityRepository.listByOwners(ownerIds.value)
+        if (mine !== seq) return
+        byOwner.value = result
         loaded.value = true
       } catch (e) {
-        error.value = errorMessage(e)
+        if (mine === seq) error.value = errorMessage(e)
       }
     },
     { immediate: true },
