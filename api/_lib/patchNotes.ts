@@ -149,7 +149,8 @@ export function decodeEntities(s: string): string {
   return s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (m, e: string) => {
     if (e[0] === '#') {
       const code = e[1] === 'x' || e[1] === 'X' ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)
-      return Number.isFinite(code) ? String.fromCodePoint(code) : m
+      // Fora do Unicode, fromCodePoint lança e derrubava o patch inteiro: fica como veio.
+      return Number.isFinite(code) && code >= 0 && code <= 0x10ffff ? String.fromCodePoint(code) : m
     }
     return ENTITIES[e.toLowerCase()] ?? m
   })

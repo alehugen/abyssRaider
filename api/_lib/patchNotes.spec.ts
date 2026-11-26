@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   boardUrl,
+  decodeEntities,
   cleanTitle,
   discordEmbed,
   normalizeSummary,
@@ -262,5 +263,11 @@ describe('patch notes (HTML do site oficial)', () => {
       { text: '(Wings Skin) Cat Wings', children: [] },
       { text: '(Apariencia de alas) Alas de gato', children: [] },
     ])
+  })
+})
+
+describe('decodeEntities', () => {
+  it('entidade numérica fora do Unicode fica como está (antes derrubava o patch inteiro)', () => {
+    expect(decodeEntities('a &#1114112; b &#x110000; &#233;')).toBe('a &#1114112; b &#x110000; é')
   })
 })

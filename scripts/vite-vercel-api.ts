@@ -30,10 +30,20 @@ export function vercelApiDev(): Plugin {
           const headers = new Headers()
           for (const [key, value] of Object.entries(req.headers)) {
             if (typeof value === 'string') headers.set(key, value)
+            else if (Array.isArray(value)) for (const v of value) headers.append(key, v)
+          }
+          // POST/PUT (ex.: /api/push/send): repassa o corpo, como a Vercel.
+          const method = req.method ?? 'GET'
+          let body: Uint8Array<ArrayBuffer> | undefined
+          if (method !== 'GET' && method !== 'HEAD') {
+            const chunks: Buffer[] = []
+            for await (const chunk of req) chunks.push(chunk as Buffer)
+            body = new Uint8Array(Buffer.concat(chunks))
           }
           const request = new Request(new URL(`/api${req.url}`, `http://${req.headers.host}`), {
-            method: req.method,
+            method,
             headers,
+            body,
           })
           const response = (await handler(request)) as Response
           res.statusCode = response.status

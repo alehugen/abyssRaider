@@ -12,6 +12,8 @@ import { handlePushSend } from '../_lib/push.js'
  *   VITE_VAPID_PUBLIC_KEY  chave pública (o front também usa)
  *   VAPID_SUBJECT      opcional: mailto: ou https:// de contato (padrão: endereço do app)
  */
+const SEND_TIMEOUT_MS = 10_000
+
 export async function POST(request: Request): Promise<Response> {
   const env = process.env
   const publicKey = env.VITE_VAPID_PUBLIC_KEY || env.VAPID_PUBLIC_KEY
@@ -29,18 +31,22 @@ export async function POST(request: Request): Promise<Response> {
           webpush.sendNotification({ endpoint: t.endpoint, keys: { p256dh: t.p256dh, auth: t.auth } }, payload, {
             ...options,
             vapidDetails,
+            // Um serviço de push lento não segura os outros até o limite da função.
+            timeout: SEND_TIMEOUT_MS,
           })
       : null,
     forget: async (endpoints) => {
       // Função do banco protegida pelo mesmo segredo: não precisa da service_role.
       const url = env.VITE_SUPABASE_URL || env.NEXT_PUBLIC_SUPABASE_URL
       const key = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_PUBLISHABLE_KEY
-      if (!url || !key) return
-      await fetch(`${url}/rest/v1/rpc/push_forget`, {
+      if (!url || !key) return console.error('[push] sem Supabase configurado: aparelhos que saíram não foram apagados')
+      const res = await fetch(`${url}/rest/v1/rpc/push_forget`, {
         method: 'POST',
         headers: { apikey: key, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_secret: secret, p_endpoints: endpoints }),
+        signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
       })
+      if (!res.ok) console.error('[push] push_forget falhou', res.status, await res.text().catch(() => ''))
     },
     safeEqual: (a, b) => {
       const x = Buffer.from(a)

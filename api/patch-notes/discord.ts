@@ -11,7 +11,10 @@ export async function GET(request: Request): Promise<Response> {
   const banner = new URL('/patch-notes-banner.jpg', request.url).href
   try {
     const latest = await listPatchNotes(3)
-    const notes = await Promise.all(latest.map((s) => getPatchNote(s.id)))
+    // Um patch que falha (502 do site, HTML estranho) não derruba os outros: o banco posta o que veio.
+    const settled = await Promise.allSettled(latest.map((s) => getPatchNote(s.id)))
+    const notes = settled.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
+    for (const r of settled) if (r.status === 'rejected') console.error('[patch-notes/discord]', r.reason)
     return json(
       { posts: notes.map((n) => ({ id: n.id, postedAt: n.postedAt, title: n.title, embed: discordEmbed(n, banner) })) },
       300,
