@@ -1,4 +1,5 @@
 import { readonly, ref, type Ref } from 'vue'
+import { t } from '@/shared/i18n'
 import { errorMessage } from '@/shared/lib/errorMessage'
 import { DEFAULT_PUSH_PREFERENCES, type PushDeviceRepository, type PushPreferences } from '../../domain/PushDevice'
 
@@ -107,9 +108,13 @@ export function createPushController(env: PushEnvironment): PushController {
     const b = blocked()
     if (b) return void (status.value = b)
     await run(async () => {
-      const permission = await browser.requestPermission()
+      // Pedido direto no toque (sem await antes): o iPhone só mostra o pedido dentro do gesto.
+      const permission = browser.permission() === 'granted' ? 'granted' : await browser.requestPermission()
+      if (permission === 'denied') return void (status.value = 'denied')
       if (permission !== 'granted') {
-        status.value = permission === 'denied' ? 'denied' : 'off'
+        // O pedido não apareceu ou foi fechado sem resposta: nada de ficar calado.
+        status.value = 'off'
+        error.value = t('notifications.push.notAsked')
         return
       }
       const sub = (await browser.getSubscription()) ?? (await browser.subscribe(urlBase64ToUint8Array(env.vapidKey!)))

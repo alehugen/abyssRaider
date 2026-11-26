@@ -131,6 +131,25 @@ describe('createPushController: ações', () => {
     expect(repo.save).not.toHaveBeenCalled()
   })
 
+  it('o sistema não mostrou o pedido (permissão continua "default"): explica em vez de ficar calado', async () => {
+    const repo = fakeRepo()
+    const { browser } = fakeBrowser({ requestPermission: vi.fn(async (): Promise<NotificationPermission> => 'default') })
+    const c = setup({ repo, browser })
+    await c.enable()
+    expect(c.status.value).toBe('off')
+    expect(c.error.value).toContain('não apareceu')
+    expect(repo.save).not.toHaveBeenCalled()
+  })
+
+  it('permissão já concedida: não pede de novo, só inscreve', async () => {
+    const { browser, setPermission } = fakeBrowser()
+    setPermission('granted')
+    const c = setup({ browser })
+    await c.enable()
+    expect(browser.requestPermission).not.toHaveBeenCalled()
+    expect(c.status.value).toBe('on')
+  })
+
   it('erro ao salvar: mostra o erro e continua desligado', async () => {
     const repo = fakeRepo()
     repo.save = vi.fn(async () => {
