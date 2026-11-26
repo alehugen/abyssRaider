@@ -12,6 +12,8 @@ export interface UpdateEnvironment {
   document?: Pick<Document, 'addEventListener' | 'removeEventListener' | 'visibilityState'> | null
   setInterval?: (fn: () => void, ms: number) => unknown
   clearInterval?: (id: unknown) => void
+  setTimeout?: (fn: () => void, ms: number) => unknown
+  reload?: () => void
 }
 
 export interface UpdateController {
@@ -25,11 +27,15 @@ export interface UpdateController {
 }
 
 const HOUR = 60 * 60 * 1000
+/** "Atualizar" recarrega pelo service worker novo; se em 10 s nada aconteceu, recarrega na mão. */
+const UPDATE_FALLBACK_MS = 10_000
 
 export function createUpdateController(env: UpdateEnvironment): UpdateController {
   const { register, document: doc } = env
   const every = env.setInterval ?? ((fn, ms) => setInterval(fn, ms))
   const stop = env.clearInterval ?? ((id) => clearInterval(id as ReturnType<typeof setInterval>))
+  const later = env.setTimeout ?? ((fn, ms) => setTimeout(fn, ms))
+  const reload = env.reload ?? (() => location.reload())
   const needRefresh = ref(false)
   let registration: ServiceWorkerRegistration | undefined
   let timer: unknown = null
@@ -54,7 +60,10 @@ export function createUpdateController(env: UpdateEnvironment): UpdateController
 
   return {
     needRefresh: readonly(needRefresh),
-    update: () => updateSW(true),
+    update: async () => {
+      later(reload, UPDATE_FALLBACK_MS) // o service worker em espera sumiu: o botão não gira para sempre
+      await updateSW(true)
+    },
     dismiss: () => (needRefresh.value = false),
     dispose: () => {
       if (timer != null) stop(timer)

@@ -118,6 +118,8 @@ describe('usePwaUpdate', () => {
     }
     const doc = Object.assign(fakeTarget(), { visibilityState: 'visible' as DocumentVisibilityState })
     let tick: (() => void) | null = null
+    let later: (() => void) | null = null
+    const reload = vi.fn()
     const controller = createUpdateController({
       register,
       document: doc,
@@ -126,9 +128,14 @@ describe('usePwaUpdate', () => {
         return 1
       },
       clearInterval: vi.fn(),
+      setTimeout: (fn) => {
+        later = fn
+        return 2
+      },
+      reload,
     })
     const registration = { update: vi.fn(async () => {}), installing: null } as unknown as ServiceWorkerRegistration
-    return { controller, options: () => options, updateSW, doc, registration, tick: () => tick?.() }
+    return { controller, options: () => options, updateSW, doc, registration, tick: () => tick?.(), later: () => later?.(), reload }
   }
 
   it('avisa quando há versão nova e só recarrega quando a pessoa pede', async () => {
@@ -163,5 +170,13 @@ describe('usePwaUpdate', () => {
     doc.visibilityState = 'visible'
     doc.emit('visibilitychange')
     expect(registration.update).toHaveBeenCalledTimes(2)
+  })
+
+  it('"Atualizar" que não pega (service worker sumiu): recarrega mesmo assim, em vez de girar para sempre', async () => {
+    const { controller, later, reload } = setup()
+    await controller.update()
+    expect(reload).not.toHaveBeenCalled()
+    later()
+    expect(reload).toHaveBeenCalled()
   })
 })
