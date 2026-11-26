@@ -26,7 +26,7 @@ const OPTIONS: Array<{ value: RsvpStatus; icon: Component; active: string }> = [
       :disabled="disabled"
       :class="
         cn(
-          'inline-flex items-center gap-1.5 min-h-8 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60',
+          'inline-flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap min-h-8 rounded-md sm:flex-none px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-60',
           status === o.value && ['ring-1', o.active],
         )
       "

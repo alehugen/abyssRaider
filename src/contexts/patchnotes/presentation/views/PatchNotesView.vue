@@ -91,9 +91,10 @@ function select(id: string) {
       <p class="max-w-prose text-muted-foreground">{{ t('patchnotes.view.intro') }}</p>
     </header>
 
-    <div class="grid gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
+    <!-- grid-cols-1 = minmax(0,1fr): sem isso, no celular a coluna crescia até a largura da faixa rolável e cortava a página. -->
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-[15rem_minmax(0,1fr)]">
       <!-- Atualizações: coluna no desktop, faixa rolável no celular -->
-      <nav :aria-label="t('patchnotes.view.updates')" class="lg:sticky lg:top-20 lg:self-start">
+      <nav :aria-label="t('patchnotes.view.updates')" class="min-w-0 lg:sticky lg:top-20 lg:self-start">
         <div v-if="loadingList" class="flex gap-2 overflow-hidden lg:flex-col">
           <Skeleton v-for="i in 5" :key="i" class="h-14 w-40 flex-none rounded-xl lg:w-full" />
         </div>
@@ -143,8 +144,8 @@ function select(id: string) {
               class="aspect-[1920/622] w-full rounded-2xl border object-cover"
             />
             <div class="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 class="font-display text-3xl leading-tight font-bold">{{ note.title }}</h2>
+              <div class="min-w-0">
+                <h2 class="font-display text-2xl leading-tight font-bold wrap-break-word sm:text-3xl">{{ note.title }}</h2>
                 <p class="mt-1 text-sm text-muted-foreground">{{ t('patchnotes.view.postedOn', { date: fullDate(note.postedAt) }) }}</p>
               </div>
               <Button variant="outline" size="sm" as-child>

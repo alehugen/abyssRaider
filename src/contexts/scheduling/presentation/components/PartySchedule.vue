@@ -177,9 +177,11 @@ function pendingCount(event: RaidEvent): number {
           </p>
         </div>
 
-        <div class="flex w-full items-center justify-between gap-2 sm:w-auto sm:flex-col sm:items-end">
+        <!-- Celular: presença numa linha inteira e os botões do líder embaixo (lado a lado, "Não vou" quebrava). -->
+        <div class="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
           <RsvpButtons
             v-if="myMemberId"
+            class="w-full sm:w-auto"
             :status="myRsvp(event, myMemberId)"
             :disabled="busy === event.id"
             @respond="respond(event, $event)"
