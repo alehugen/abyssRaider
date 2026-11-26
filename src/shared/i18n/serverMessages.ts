@@ -120,6 +120,7 @@ const ENTRIES: readonly Entry[] = [
   ],
 
   // ---- front (DomainError) ----
+  ['Já tem raid marcada nesse horário.', 'There is already a raid scheduled at that time.', 'Ya hay una raid programada a esa hora.'],
   [
     'O app ainda está carregando. Tente de novo em instantes.',
     'The app is still loading. Try again in a moment.',

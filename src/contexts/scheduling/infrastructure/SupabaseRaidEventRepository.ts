@@ -101,6 +101,8 @@ export class SupabaseRaidEventRepository implements RaidEventRepository {
   async schedule(partyId: string, startsAt: readonly Date[], note: string | null): Promise<void> {
     const rows = startsAt.map((d) => ({ party_id: partyId, starts_at: d.toISOString(), note }))
     const { error } = await this.client.from('raid_events').insert(rows)
+    // Índice único (party, horário): a recorrência ou outro agendamento já criou essa raid.
+    if (error?.code === '23505') throw new DomainError('schedule.duplicate', 'Já tem raid marcada nesse horário.')
     if (error) rethrow(error)
   }
 
