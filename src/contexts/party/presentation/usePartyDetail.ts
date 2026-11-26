@@ -3,6 +3,7 @@ import { computed, ref, shallowRef, toValue, type MaybeRefOrGetter } from 'vue'
 import { getContainer } from '@/app/container'
 import { useAuthStore } from '@/contexts/identity/presentation/useAuthStore'
 import { acceptedMembers, invitedMembers, pendingMembers, type PartyDetails } from '../domain/Party'
+import { useRefreshOnResume } from '@/shared/presentation/useRefreshOnResume'
 import { usePartiesStore } from './usePartiesStore'
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -60,23 +61,34 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     }
   }
 
-  /** Uma ação por vez na página (os botões ficam desativados enquanto `busy`). */
-  async function run(key: string, action: () => Promise<void>): Promise<boolean> {
+  /**
+   * Uma ação por vez na página (os botões ficam desativados enquanto `busy`). Depois da
+   * ação, certa ou errada, recarrega: um erro costuma significar que a party mudou (você
+   * foi removido, ela foi finalizada) e a tela precisa mostrar o estado real.
+   */
+  async function run(key: string, action: () => Promise<void>, reload = true): Promise<boolean> {
     if (busy.value) return false
     busy.value = key
     error.value = null
     try {
       await action()
       parties.invalidate()
-      await load()
+      if (reload) await load()
       return true
     } catch (e) {
-      error.value = errorMessage(e)
+      const message = errorMessage(e)
+      await load()
+      error.value = message
       return false
     } finally {
       busy.value = null
     }
   }
+
+  // Voltou para o app (ou a rede voltou): pedidos, convites e saídas de outras pessoas aparecem.
+  useRefreshOnResume(() => {
+    if (!busy.value && details.value) void load()
+  })
 
   const id = () => toValue(partyId)
 
@@ -101,7 +113,8 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),
     acceptInvite: (memberId: string) => run(memberId, () => repo.acceptInvite(memberId)),
     rename: (name: string) => run('rename', () => repo.rename(id(), name)),
-    removeParty: () => run('party', () => repo.remove(id())),
+    // Sem recarregar: a página sai logo depois (recarregar piscava "party não encontrada").
+    removeParty: () => run('party', () => repo.remove(id()), false),
     finishParty: () => run('party', () => repo.finish(id())),
     setLayout: (layout: ReadonlyArray<{ memberId: string; slot: number }>) =>
       run('layout', () => repo.setLayout(id(), layout)),

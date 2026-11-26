@@ -11,6 +11,7 @@ import { formatRoutine } from '@/contexts/party/presentation/routineFormat'
 import { confirm } from '@/shared/presentation/confirm/useConfirm'
 import { Button } from '@/shared/presentation/ui/button'
 import { Skeleton } from '@/shared/presentation/ui/skeleton'
+import { useRefreshOnResume } from '@/shared/presentation/useRefreshOnResume'
 import { myRsvp, rsvpCounts, type RaidEvent, type RsvpStatus } from '../../domain/RaidEvent'
 import { formatRelative, formatTime, tzLabel } from '../format'
 import RaidDateBadge from './RaidDateBadge.vue'
@@ -32,7 +33,8 @@ const props = defineProps<{
   /** Recorrência da party (dias e horários de toda semana). */
   routine?: RaidRoutine | null
 }>()
-const emit = defineEmits<{ 'routine-changed': [] }>()
+/** routine-changed: a recorrência mudou. stale: uma ação falhou (a party pode ter mudado). */
+const emit = defineEmits<{ 'routine-changed': []; stale: [] }>()
 const notice = ref<string | null>(null)
 
 async function onRecurrenceChanged(message: string) {
@@ -48,17 +50,25 @@ const busy = ref<string | null>(null)
 const error = ref<string | null>(null)
 const dialog = ref<InstanceType<typeof ScheduleRaidDialog> | null>(null)
 
+/** Só a consulta mais recente vale (voltar para o app + ação ao mesmo tempo). */
+let loadSeq = 0
 async function load() {
+  const mine = ++loadSeq
   error.value = null
   try {
-    events.value = await repo.listForParty(props.partyId)
+    const list = await repo.listForParty(props.partyId)
+    if (mine === loadSeq) events.value = list
   } catch (e) {
-    error.value = errorMessage(e)
+    if (mine === loadSeq) error.value = errorMessage(e)
   } finally {
-    loading.value = false
+    if (mine === loadSeq) loading.value = false
   }
 }
 watch(() => props.partyId, load, { immediate: true })
+// Voltou para o app: raids marcadas, canceladas e respostas de outros membros aparecem.
+useRefreshOnResume(() => {
+  if (!busy.value) void load()
+})
 
 async function run(key: string, action: () => Promise<void>) {
   busy.value = key
@@ -68,7 +78,11 @@ async function run(key: string, action: () => Promise<void>) {
     await load()
     return true
   } catch (e) {
-    error.value = errorMessage(e)
+    const message = errorMessage(e)
+    // Falhou: a agenda e a party podem ter mudado (raid cancelada, você saiu da party).
+    await load()
+    emit('stale')
+    error.value = message
     return false
   } finally {
     busy.value = null

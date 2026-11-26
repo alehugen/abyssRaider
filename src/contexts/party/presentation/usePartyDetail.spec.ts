@@ -1,6 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
-import { ref } from 'vue'
+import { effectScope, ref } from 'vue'
 import { getContainer, overrideContainer } from '@/app/container'
 import type { PartyDetails } from '../domain/Party'
 import { usePartyDetail } from './usePartyDetail'
@@ -75,5 +75,48 @@ describe('usePartyDetail', () => {
     expect(p.isLeader.value).toBe(true)
     expect(p.finished.value).toBe(true)
     expect(p.canManage.value).toBe(false)
+  })
+})
+
+describe('usePartyDetail: página sempre atual', () => {
+  it('ação que falha recarrega a party (ex.: você foi removido) e mantém o erro na tela', async () => {
+    setActivePinia(createPinia())
+    const get = vi.fn(async () => details(A))
+    const decide = vi.fn(async () => {
+      throw Object.assign(new Error('Só membros da party podem confirmar presença.'), { code: 'P0001' })
+    })
+    overrideContainer({ partyRepository: { ...getContainer().partyRepository, get, decide } })
+    const p = usePartyDetail(A)
+    await p.load()
+    expect(await p.accept('m1')).toBe(false)
+    expect(get).toHaveBeenCalledTimes(2)
+    expect(p.error.value).toBe('Só membros da party podem confirmar presença.')
+  })
+
+  it('excluir a party não recarrega (evita piscar "party não encontrada")', async () => {
+    setActivePinia(createPinia())
+    const get = vi.fn(async () => details(A))
+    const remove = vi.fn(async () => {})
+    overrideContainer({ partyRepository: { ...getContainer().partyRepository, get, remove } })
+    const p = usePartyDetail(A)
+    await p.load()
+    expect(await p.removeParty()).toBe(true)
+    expect(get).toHaveBeenCalledTimes(1)
+    expect(p.notFound.value).toBe(false)
+  })
+
+  it('ao voltar para o app, recarrega sem apagar a tela', async () => {
+    setActivePinia(createPinia())
+    const get = vi.fn(async () => details(A))
+    overrideContainer({ partyRepository: { ...getContainer().partyRepository, get } })
+    const scope = effectScope()
+    const p = scope.run(() => usePartyDetail(A))!
+    await p.load()
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
+    document.dispatchEvent(new Event('visibilitychange'))
+    expect(p.loading.value).toBe(false)
+    await Promise.resolve()
+    expect(get).toHaveBeenCalledTimes(2)
+    scope.stop()
   })
 })

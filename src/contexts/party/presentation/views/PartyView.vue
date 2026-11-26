@@ -536,6 +536,7 @@ async function removeMember(m: PartyMember) {
         :options="scheduleOptions"
         :routine="party.routine"
         @routine-changed="p.load()"
+        @stale="p.load()"
       />
 
       <!-- Líder: pedidos -->
