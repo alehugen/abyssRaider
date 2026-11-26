@@ -29,7 +29,8 @@ export interface PartyRepository {
   /** Líder: liga, muda ou (lista vazia) desliga a recorrência. Devolve quantas raids foram criadas agora. */
   setRecurrence(partyId: string, slots: readonly RoutineSlot[]): Promise<number>
 
-  requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void>
+  /** O banco usa a conta logada (request_to_join confere o dono do personagem). */
+  requestJoin(partyId: string, characterLinkId: string): Promise<void>
   decide(memberId: string, status: 'accepted' | 'declined'): Promise<void>
   /** Sair, cancelar pedido ou (líder) remover alguém. */
   removeMember(memberId: string): Promise<void>

@@ -107,7 +107,7 @@ export function usePartyDetail(partyId: MaybeRefOrGetter<string>) {
     myMembership,
     load,
     requestJoin: (characterLinkId: string) =>
-      run('join', () => repo.requestJoin(id(), characterLinkId, userId.value ?? '')),
+      run('join', () => repo.requestJoin(id(), characterLinkId)),
     accept: (memberId: string) => run(memberId, () => repo.decide(memberId, 'accepted')),
     decline: (memberId: string) => run(memberId, () => repo.decide(memberId, 'declined')),
     removeMember: (memberId: string) => run(memberId, () => repo.removeMember(memberId)),

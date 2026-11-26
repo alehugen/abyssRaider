@@ -43,6 +43,7 @@ import {
   composition,
   joinBlockedMessage,
   canRequestJoin,
+  isFull,
   GROUP_SIZE,
   groups,
   moveInLayout,
@@ -144,7 +145,7 @@ const scheduleOptions = computed(() =>
     .sort((a, b) => a.date.getTime() - b.date.getTime()),
 )
 
-const full = computed(() => !!party.value && p.accepted.value.length >= party.value.sanctuary.groupSize)
+const full = computed(() => !!party.value && isFull(party.value, p.accepted.value.length))
 
 function roleLabel(m: PartyMember): string {
   if (party.value && m.linked.linkId === party.value.leaderCharacterLinkId) return t('party.view.leader')

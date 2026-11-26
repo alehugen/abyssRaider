@@ -68,11 +68,6 @@ export function rolesOf(className: string): readonly CombatRole[] {
   return isCharacterClass(name) ? CLASS_ROLES[name] : []
 }
 
-/** Papel principal (o primeiro da lista), ou null para classe desconhecida. */
-export function roleOf(className: string): CombatRole | null {
-  return rolesOf(className)[0] ?? null
-}
-
 /**
  * Nomes de classe (como a API grava) que cumprem algum dos papéis, incluindo os
  * nomes internos. Ex.: dano -> Gladiator, ..., Spiritmaster, Elementalist, Chanter, ...

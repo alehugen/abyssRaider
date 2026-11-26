@@ -1,6 +1,6 @@
 import type { CombatRole } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
-import { acceptedMembers, canJoin, neededRolesFor, openRoles, type PartyDetails } from '../domain/Party'
+import { acceptedMembers, canJoin, isFull, neededRolesFor, openRoles, type PartyDetails } from '../domain/Party'
 
 export interface PartyMatch {
   details: PartyDetails
@@ -37,7 +37,7 @@ export function findPartiesFor(linked: LinkedCharacter, candidates: readonly Par
       continue
     }
     const acceptedCount = acceptedMembers(d.members).length
-    if (!canJoin(d.party, linked).ok || acceptedCount >= d.party.sanctuary.groupSize) continue
+    if (!canJoin(d.party, linked).ok || isFull(d.party, acceptedCount)) continue
     joinable.push({
       details: d,
       needed: neededRolesFor(d.party, d.members, linked.character.className),

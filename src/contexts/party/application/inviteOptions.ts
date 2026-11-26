@@ -1,6 +1,6 @@
 import { t } from '@/shared/i18n'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
-import type { MemberStatus, PartySummary } from '../domain/Party'
+import { isFull, type MemberStatus, type PartySummary } from '../domain/Party'
 
 /** Quem já está (ou foi chamado) numa party: base para saber se dá para convidar. */
 export interface Membership {
@@ -42,7 +42,7 @@ export function inviteOptions(
 
     if (mine?.status === 'accepted') return option('member')
     if (mine?.status === 'invited') return option('invited')
-    if (summary.acceptedCount >= p.sanctuary.groupSize) return option('blocked', t('party.invite.blocked.full'))
+    if (isFull(p, summary.acceptedCount)) return option('blocked', t('party.invite.blocked.full'))
     if (mine?.status === 'pending') return option('requested')
 
     if (c.region !== p.region) return option('blocked', t('party.invite.blocked.otherRegion'))

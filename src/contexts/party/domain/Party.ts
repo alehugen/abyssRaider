@@ -72,8 +72,9 @@ export function canRequestJoin(myStatus: MemberStatus | null | undefined): boole
   return !myStatus || myStatus === 'declined'
 }
 
-export function isFull(party: Party, members: readonly PartyMember[]): boolean {
-  return acceptedMembers(members).length >= party.sanctuary.groupSize
+/** Vagas preenchidas (quantos aceitos: da lista de membros ou do resumo da party). */
+export function isFull(party: Pick<Party, 'sanctuary'>, acceptedCount: number): boolean {
+  return acceptedCount >= party.sanctuary.groupSize
 }
 
 export type Composition = Record<CombatRole, number> & { unknown: number }

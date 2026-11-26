@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Character } from '@/contexts/character/domain/Character'
 import type { LinkedCharacter } from '@/contexts/character/domain/LinkedCharacter'
 import {
+  acceptedMembers,
   canRequestJoin,
   canJoin,
   joinBlockedMessage,
@@ -136,8 +137,8 @@ describe('Party', () => {
 
   it('sabe quando está cheia', () => {
     const ten = Array.from({ length: 10 }, (_, i) => member(`m${i}`))
-    expect(isFull(party, ten)).toBe(true)
-    expect(isFull(party, ten.slice(1))).toBe(false)
+    expect(isFull(party, acceptedMembers(ten).length)).toBe(true)
+    expect(isFull(party, acceptedMembers(ten.slice(1)).length)).toBe(false)
   })
 
   it('santuário é entre facções: valida só região e item level', () => {

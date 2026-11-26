@@ -67,10 +67,6 @@ export function normalizeSlots(slots: readonly RoutineSlot[]): RoutineSlot[] {
   return [...byDay].sort(([a], [b]) => a - b).map(([day, time]) => ({ day, time }))
 }
 
-export function routineDays(routine: RaidRoutine): number[] {
-  return routine.slots.map((s) => s.day)
-}
-
 /** Próximas `count` raids da rotina a partir de `from`. */
 export function nextOccurrences(routine: RaidRoutine, count = 1, from = new Date()): Date[] {
   const slots = normalizeSlots(routine.slots)

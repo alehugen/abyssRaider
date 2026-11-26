@@ -256,8 +256,7 @@ export class SupabasePartyRepository implements PartyRepository {
     if (!data?.length) throw new DomainError('party.nothing_changed', NOTHING_CHANGED)
   }
 
-  async requestJoin(partyId: string, characterLinkId: string, ownerId: string): Promise<void> {
-    void ownerId // o banco usa a conta logada (request_to_join confere o dono)
+  async requestJoin(partyId: string, characterLinkId: string): Promise<void> {
     const { error } = await this.client.rpc('request_to_join', {
       p_party_id: partyId,
       p_character_id: characterLinkId,

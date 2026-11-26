@@ -93,7 +93,7 @@ async function requestJoin(match: PartyMatch) {
   requesting.value = match.details.party.id
   error.value = null
   try {
-    await repo.requestJoin(match.details.party.id, linked.linkId, linked.ownerId)
+    await repo.requestJoin(match.details.party.id, linked.linkId)
     requested.value = new Set(requested.value).add(match.details.party.id)
     parties.invalidate()
   } catch (e) {
