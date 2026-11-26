@@ -17,7 +17,10 @@ const push = {
   setPreferences: vi.fn(async (p: PushPreferences) => void (preferences.value = p)),
   forgetDevice: vi.fn(async () => {}),
 }
-vi.mock('./usePushNotifications', () => ({ usePushNotifications: () => push }))
+vi.mock('./usePushNotifications', () => ({
+  usePushNotifications: () => push,
+  pushDiagnostics: async () => [['PushManager', 'não'], ['Permissão', 'default']],
+}))
 
 const { default: PushSettingsDialog } = await import('./PushSettingsDialog.vue')
 
@@ -73,6 +76,13 @@ describe('PushSettingsDialog', () => {
     const body = await openDialog()
     expect(body.querySelector('[data-push="blocked"]')?.textContent).toContain('Adicionar à Tela de Início')
     expect(body.querySelector('[data-action="enable"]')).toBeNull()
+  })
+
+  it('mostra os detalhes técnicos do aparelho (para diagnosticar)', async () => {
+    const body = await openDialog()
+    const details = body.querySelector('[data-push="diagnostics"]')
+    expect(details?.textContent).toContain('Detalhes técnicos')
+    expect(details?.textContent).toContain('PushManager')
   })
 
   it('bloqueado no navegador: diz onde liberar', async () => {

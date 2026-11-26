@@ -41,6 +41,32 @@ export function createBrowserPush(win: Window & typeof globalThis = window): Pus
   }
 }
 
+/** O que o aparelho informa, para diagnosticar quando o pedido de permissão não aparece. */
+export async function pushDiagnostics(win: Window & typeof globalThis = window): Promise<Array<[string, string]>> {
+  const nav = win.navigator
+  const yes = (v: boolean) => (v ? 'sim' : 'não')
+  const rows: Array<[string, string]> = [
+    ['Instalado (tela cheia)', yes(!!win.matchMedia?.('(display-mode: standalone)').matches || (nav as { standalone?: boolean }).standalone === true)],
+    ['Service worker', yes('serviceWorker' in nav)],
+    ['PushManager', yes('PushManager' in win)],
+    ['Notification', yes('Notification' in win)],
+    ['Permissão', 'Notification' in win ? win.Notification.permission : '-'],
+    ['Chave VAPID no build', yes(!!import.meta.env.VITE_VAPID_PUBLIC_KEY)],
+  ]
+  if ('serviceWorker' in nav) {
+    try {
+      const r = await nav.serviceWorker.getRegistration()
+      rows.push(['Service worker registrado', r ? (r.active ? 'ativo' : 'instalando') : 'não'])
+      const s = r && 'pushManager' in r ? await r.pushManager.getSubscription() : null
+      rows.push(['Inscrição no navegador', yes(!!s)])
+    } catch (e) {
+      rows.push(['Service worker registrado', `erro: ${String(e)}`])
+    }
+  }
+  rows.push(['Navegador', nav.userAgent])
+  return rows
+}
+
 let instance: PushController | null = null
 
 /** Notificações push neste aparelho (singleton). */

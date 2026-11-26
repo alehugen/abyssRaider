@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { PhBellRinging, PhCheckCircle, PhCircleNotch, PhInfo } from '@phosphor-icons/vue'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { t } from '@/shared/i18n'
 import { Button } from '@/shared/presentation/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/presentation/ui/dialog'
 import { Switch } from '@/shared/presentation/ui/switch'
 import type { PushPreferences } from '../../domain/PushDevice'
-import { usePushNotifications } from './usePushNotifications'
+import { pushDiagnostics, usePushNotifications } from './usePushNotifications'
 
 /** Ativar/desativar push neste aparelho e escolher o que recebe. */
 const open = defineModel<boolean>('open', { default: false })
@@ -15,9 +15,25 @@ const push = usePushNotifications()
 const status = push.status
 const busy = push.busy
 
-watch(open, (isOpen) => {
-  if (isOpen) void push.refresh()
-})
+/** "Detalhes técnicos": o que o aparelho informa (para quando não funciona). */
+const diagnostics = ref<Array<[string, string]>>([])
+async function loadDiagnostics() {
+  diagnostics.value = await pushDiagnostics().catch((e) => [['erro', String(e)]] as Array<[string, string]>)
+}
+
+watch(
+  open,
+  (isOpen) => {
+    if (!isOpen) return
+    void push.refresh().then(loadDiagnostics)
+  },
+  { immediate: true },
+)
+
+async function enable() {
+  await push.enable()
+  await loadDiagnostics()
+}
 
 /** Situações em que não há o que ativar: só a explicação. */
 const blockedMessage = computed(() => {
@@ -80,13 +96,23 @@ function toggle(key: keyof PushPreferences, value: boolean) {
 
       <p v-if="push.error.value" role="alert" class="text-sm text-destructive-ink">{{ push.error.value }}</p>
 
+      <details v-if="diagnostics.length" class="text-xs text-muted-foreground" data-push="diagnostics">
+        <summary class="cursor-pointer select-none hover:text-foreground">{{ t('notifications.push.details') }}</summary>
+        <dl class="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1">
+          <template v-for="[label, value] in diagnostics" :key="label">
+            <dt>{{ label }}</dt>
+            <dd class="font-medium wrap-break-word text-foreground">{{ value }}</dd>
+          </template>
+        </dl>
+      </details>
+
       <DialogFooter>
         <Button
           v-if="status === 'off'"
           class="h-11 w-full sm:w-auto"
           :disabled="busy"
           data-action="enable"
-          @click="push.enable()"
+          @click="enable"
         >
           <PhCircleNotch v-if="busy" class="animate-spin" aria-hidden="true" />
           <PhBellRinging v-else aria-hidden="true" />
