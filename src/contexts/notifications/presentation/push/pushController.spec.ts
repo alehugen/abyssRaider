@@ -201,6 +201,49 @@ describe('createPushController: ações', () => {
   })
 })
 
+describe('createPushController: sync (ao abrir o app logado)', () => {
+  it('aparelho inscrito sem cadastro no banco (endpoint trocado, limpeza): salva de novo, sem pedir nada', async () => {
+    const { browser, sub } = fakeBrowser()
+    const existing = sub('https://push.test/rotated')
+    const b = fakeBrowser({}, existing).browser
+    const repo = fakeRepo()
+    const c = setup({ browser: b, repo })
+    await c.sync()
+    expect(b.requestPermission).not.toHaveBeenCalled()
+    expect(repo.rows.get('https://push.test/rotated')?.preferences).toEqual({ raids: true, patchNotes: true })
+    expect(c.status.value).toBe('on')
+    expect(browser).toBeTruthy()
+  })
+
+  it('idioma do app mudou: atualiza o do aparelho', async () => {
+    const { sub } = fakeBrowser()
+    const existing = sub('https://push.test/1')
+    const repo = fakeRepo({ 'https://push.test/1': { locale: 'pt-BR', preferences: { raids: false, patchNotes: true } } })
+    const c = setup({ browser: fakeBrowser({}, existing).browser, repo, locale: 'es' })
+    await c.sync()
+    expect(repo.rows.get('https://push.test/1')).toEqual({ locale: 'es', preferences: { raids: false, patchNotes: true } })
+  })
+
+  it('sem permissão ou sem inscrição: não faz nada', async () => {
+    const repo = fakeRepo()
+    const c = setup({ repo })
+    await c.sync()
+    expect(repo.save).not.toHaveBeenCalled()
+    expect(repo.find).not.toHaveBeenCalled()
+  })
+
+  it('erro de rede no sync não aparece na tela (é em segundo plano)', async () => {
+    const { sub } = fakeBrowser()
+    const repo = fakeRepo()
+    repo.find = vi.fn(async () => {
+      throw new Error('Failed to fetch')
+    })
+    const c = setup({ browser: fakeBrowser({}, sub('https://push.test/1')).browser, repo })
+    await c.sync()
+    expect(c.error.value).toBeNull()
+  })
+})
+
 describe('urlBase64ToUint8Array', () => {
   it('converte a chave pública (base64url) em bytes', () => {
     expect([...urlBase64ToUint8Array('AQID_-8')]).toEqual([1, 2, 3, 255, 239])

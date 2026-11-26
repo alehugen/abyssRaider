@@ -44,6 +44,8 @@ export interface PushController {
   busy: Readonly<Ref<boolean>>
   error: Readonly<Ref<string | null>>
   refresh(): Promise<void>
+  /** Em segundo plano: mantém o cadastro do aparelho em dia (sem pedir nada). */
+  sync(): Promise<void>
   enable(): Promise<void>
   disable(): Promise<void>
   setPreferences(p: PushPreferences): Promise<void>
@@ -124,6 +126,25 @@ export function createPushController(env: PushEnvironment): PushController {
     if (status.value === 'loading') status.value = 'off'
   }
 
+  /**
+   * Em segundo plano, ao abrir o app logado (e ao trocar o idioma): se o aparelho já tem
+   * permissão e inscrição, garante o cadastro no banco. Cobre o endpoint que o navegador
+   * troca sozinho, o cadastro apagado pela limpeza e o idioma das notificações.
+   */
+  async function sync() {
+    if (blocked() || browser.permission() !== 'granted') return
+    try {
+      const sub = await browser.getSubscription()
+      if (!sub) return
+      const row = await repo.find(sub.endpoint)
+      if (row) preferences.value = row.preferences
+      if (!row || row.locale !== env.locale()) await save(sub, preferences.value)
+      status.value = 'on'
+    } catch (e) {
+      console.warn('[push] não sincronizou o aparelho', e)
+    }
+  }
+
   async function disable() {
     await run(async () => {
       const sub = await browser.getSubscription()
@@ -165,6 +186,7 @@ export function createPushController(env: PushEnvironment): PushController {
     busy: readonly(busy),
     error: readonly(error),
     refresh,
+    sync,
     enable,
     disable,
     setPreferences,
