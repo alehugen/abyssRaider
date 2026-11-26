@@ -34,10 +34,11 @@ O app é instalável (PWA), com o celular como prioridade.
 - **Instalar:** no menu do usuário, "Instalar app". No Android/Chrome abre o convite do navegador; no iPhone/iPad mostra o passo a passo (Compartilhar > Adicionar à Tela de Início). O item some quando o app já está instalado.
 - **Atualização:** cada build gera um service worker novo. O app procura versão nova ao abrir, ao voltar para a frente e a cada hora, e mostra "Nova versão disponível" com o botão Atualizar. Nunca recarrega sozinho; se a pessoa ignorar, a versão nova entra na próxima abertura.
 - **Offline:** a interface abre e navega sem rede, com um aviso fixo de "Sem conexão". Os dados (Supabase e `/api`) não passam pelo cache do service worker, para nunca mostrar dado velho ou de outra conta.
-- **Hospedagem:** `index.html`, `sw.js`, `registerSW.js` e `manifest.webmanifest` precisam ir sem cache (`Cache-Control: no-cache`), senão a atualização não chega. Isso está em `vercel.json`.
+- **Hospedagem:** `index.html`, `sw.js` e `manifest.webmanifest` precisam ir sem cache (`Cache-Control: no-cache`), senão a atualização não chega. Isso está em `vercel.json`, junto dos cabeçalhos de segurança.
 - **Ícones:** gerados de `public/pwa-source.png` com `npx pwa-assets-generator` (config em `pwa-assets.config.ts`). Para trocar o ícone, substitua esse arquivo (512×512 ou maior) e rode de novo.
 - **Testar:** `npm run build` e `npm run preview`, depois DevTools > Application > Manifest (sem erros) e Service Workers (marque Offline e recarregue). Em `npm run dev` o service worker fica desligado (`devOptions` em `vite.config.ts`).
-- **Service worker:** é nosso, em `src/sw/sw.ts` (modo `injectManifest`): precache da interface, rotas offline, fontes e push.
+- **Service worker:** é nosso, em `src/sw/sw.ts` (modo `injectManifest`): precache da interface (inclusive as fontes, que vêm do `@fontsource`), rotas offline e push. Ao tocar numa notificação com o app aberto, o app navega pelo router, sem recarregar; o push que chega atualiza o sino na hora e marca o ícone do app.
+- **Jeito de app:** tela de abertura com o logo no `index.html`; atalhos no ícone (Agenda, Parties, Patch notes); instalado, sem o elástico e o puxar-para-recarregar; as telas recarregam sozinhas ao voltar para o app (`useRefreshOnResume`); o link da party abre o compartilhar do celular.
 - **Layout:** telas desenhadas a partir de 360px. No celular, a navegação fica na barra inferior; a partir de `md`, no cabeçalho. Use os utilitários de área segura do `main.css` (`pt-safe`, `pb-safe`, `px-safe`, `pb-nav`, `bottom-nav`) em vez de valores soltos, e prefira `dvh` a `vh`. Em tela de toque, botões e itens de menu aceitam toque numa área de pelo menos 44×44px.
 
 ## Notificações push
@@ -55,13 +56,15 @@ Vale por aparelho e por conta. Ao sair da conta, o aparelho deixa de receber. No
 
 **Configuração (uma vez):**
 
-1. Rode `20261126000000_push.sql` e depois `20261126010000_push_bell.sql` no SQL Editor.
+1. Rode `20261126000000_push.sql`, `20261126010000_push_bell.sql` e `20261127000000_correcoes.sql` no SQL Editor.
 2. Gere as chaves com `npx web-push generate-vapid-keys`.
 3. Na Vercel, cadastre estas variáveis e faça um novo deploy (a chave pública entra no build):
    - `VITE_VAPID_PUBLIC_KEY`: a chave pública.
    - `VAPID_PRIVATE_KEY`: a chave privada.
    - `PUSH_SECRET`: o resultado de `select secret from public.push_config`.
-4. O endereço do app vem de `patch_notes_feed.app_url`. Para fixar outro, rode `update public.push_config set app_url = 'https://...'`.
+4. O endereço do app fica em `push_config.app_url` (a migration de correções copia o de `patch_notes_feed`). Nunca vem dos avisos das parties, que qualquer líder grava.
+
+O aparelho confere o próprio cadastro ao abrir o app logado: se o navegador trocar a inscrição, ela volta sozinha.
 
 **Conferir:** os envios ficam em `net._http_response`. Por exemplo, `select status_code, content from net._http_response order by created desc limit 5` mostra `{"sent":1,...}`.
 
