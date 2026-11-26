@@ -76,7 +76,10 @@ async function run(key: string, action: () => Promise<void>) {
 }
 
 async function schedule(dates: Date[], note: string | null) {
-  if (await run('schedule', () => repo.schedule(props.partyId, dates, note))) dialog.value?.close()
+  if (await run('schedule', () => repo.schedule(props.partyId, dates, note))) return dialog.value?.close()
+  // O erro vai para dentro do diálogo, que continua aberto por cima da página.
+  if (error.value) dialog.value?.fail(error.value)
+  error.value = null
 }
 
 async function cancel(event: RaidEvent) {

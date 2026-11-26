@@ -64,4 +64,11 @@ describe('ScheduleRaidDialog', () => {
     await submit()
     expect(scheduled()).toEqual([suggestion])
   })
+
+  it('erro ao agendar aparece dentro do diálogo (não atrás dele)', async () => {
+    await openDialog({ suggested: suggestion })
+    ;(wrapper!.vm as unknown as { fail: (m: string) => void }).fail('Sem conexão')
+    await flushPromises()
+    expect(document.querySelector('[role="dialog"] [role="alert"]')?.textContent).toContain('Sem conexão')
+  })
 })

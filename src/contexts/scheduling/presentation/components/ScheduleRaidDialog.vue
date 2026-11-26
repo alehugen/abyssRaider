@@ -98,7 +98,11 @@ function close() {
   when.value = ''
   dates.value = []
 }
-defineExpose({ close })
+/** O pai mostra aqui o erro do agendamento: na página ele ficaria atrás do diálogo aberto. */
+function fail(message: string) {
+  error.value = message
+}
+defineExpose({ close, fail })
 </script>
 
 <template>
